@@ -2,8 +2,8 @@
     padding: 32px;
     background-color: #fff;
     border-radius: 12px;
-    max-width: 600px;
-    margin: 40px auto;
+    width: 800px;              /* Wider than before */
+    margin-left: 130px;         /* Spacing from the sidebar */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
@@ -58,4 +58,20 @@
 
 .submit-btn:hover {
     background-color: #1e40af;
+}
+
+/* 🔄 New layout styles for sidebar + form */
+.onboarding-page-layout {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    background-color: #f3f4f6;
+}
+
+.onboarding-form-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 40px 24px;
 }

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Sidebar from '../components/Sidebar'; // Adjust the path as needed
+import '../components/Sidebar.css';
 import './Onboarding.css';
 
 export default function Onboarding() {
@@ -56,80 +58,84 @@ export default function Onboarding() {
         }
     };
 
-
     return (
-        <div className="onboarding-form-container">
-            <h2>Candidate Onboarding</h2>
-            <form className="onboarding-form" onSubmit={handleSubmit}>
-                <div className="form-row">
-                    <label>Full Name</label>
-                    <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} required />
-                </div>
-
-                <div className="form-row">
-                    <label>Department</label>
-                    <input type="text" name="department" value={formData.department} onChange={handleChange} required />
-                </div>
-
-                <div className="form-row">
-                    <label>Role</label>
-                    <input type="text" name="role" value={formData.role} onChange={handleChange} required />
-                </div>
-
-                <div className="form-row">
-                    <label>Email</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} required />
-                </div>
-
-                <div className="form-row">
-                    <label>Phone Number</label>
-                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required />
-                </div>
-
-                <div className="form-row">
-                    <label>Address</label>
-                    <textarea name="address" value={formData.address} onChange={handleChange} required />
-                </div>
-
-                <div className="form-row">
-                    <label>Joining Date</label>
-                    <input type="date" name="joiningDate" value={formData.joiningDate} onChange={handleChange} required />
-                </div>
-
-                <div className="form-row">
-                    <label>Has Previous Experience?</label>
-                    <select name="hasExperience" value={formData.hasExperience} onChange={handleChange}>
-                        <option value="No">No</option>
-                        <option value="Yes">Yes</option>
-                    </select>
-                </div>
-
-                {formData.hasExperience === 'Yes' && (
-                    <>
+        <div className="onboarding-page-layout">
+            <Sidebar />
+            <div className="onboarding-form-wrapper">
+                <div className="onboarding-form-container">
+                    <h2>Candidate Onboarding</h2>
+                    <form className="onboarding-form" onSubmit={handleSubmit}>
                         <div className="form-row">
-                            <label>Years of Experience</label>
-                            <input
-                                type="number"
-                                name="experienceYears"
-                                value={formData.experienceYears}
-                                onChange={handleChange}
-                                min="0"
-                                required
-                            />
+                            <label>Full Name</label>
+                            <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} required />
                         </div>
-                        <div className="form-row">
-                            <label>Previous Role</label>
-                            <input type="text" name="previousRole" value={formData.previousRole} onChange={handleChange} required />
-                        </div>
-                        <div className="form-row">
-                            <label>Previous Company Name</label>
-                            <input type="text" name="previousCompany" value={formData.previousCompany} onChange={handleChange} required />
-                        </div>
-                    </>
-                )}
 
-                <button type="submit" className="submit-btn">Submit</button>
-            </form>
+                        <div className="form-row">
+                            <label>Department</label>
+                            <input type="text" name="department" value={formData.department} onChange={handleChange} required />
+                        </div>
+
+                        <div className="form-row">
+                            <label>Role</label>
+                            <input type="text" name="role" value={formData.role} onChange={handleChange} required />
+                        </div>
+
+                        <div className="form-row">
+                            <label>Email</label>
+                            <input type="email" name="email" value={formData.email} onChange={handleChange} required />
+                        </div>
+
+                        <div className="form-row">
+                            <label>Phone Number</label>
+                            <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required />
+                        </div>
+
+                        <div className="form-row">
+                            <label>Address</label>
+                            <textarea name="address" value={formData.address} onChange={handleChange} required />
+                        </div>
+
+                        <div className="form-row">
+                            <label>Joining Date</label>
+                            <input type="date" name="joiningDate" value={formData.joiningDate} onChange={handleChange} required />
+                        </div>
+
+                        <div className="form-row">
+                            <label>Has Previous Experience?</label>
+                            <select name="hasExperience" value={formData.hasExperience} onChange={handleChange}>
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+
+                        {formData.hasExperience === 'Yes' && (
+                            <>
+                                <div className="form-row">
+                                    <label>Years of Experience</label>
+                                    <input
+                                        type="number"
+                                        name="experienceYears"
+                                        value={formData.experienceYears}
+                                        onChange={handleChange}
+                                        min="0"
+                                        required
+                                    />
+                                </div>
+                                <div className="form-row">
+                                    <label>Previous Role</label>
+                                    <input type="text" name="previousRole" value={formData.previousRole} onChange={handleChange} required />
+                                </div>
+                                <div className="form-row">
+                                    <label>Previous Company Name</label>
+                                    <input type="text" name="previousCompany" value={formData.previousCompany} onChange={handleChange} required />
+                                </div>
+                            </>
+                        )}
+
+                        <button type="submit" className="submit-btn">Submit</button>
+                    </form>
+                </div>
+            </div>
         </div>
     );
 }
