@@ -1,0 +1,59 @@
+.employee-list-container {
+    padding: 30px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9fbfc;
+    min-height: 100vh;
+}
+
+.employee-list-container h2 {
+    text-align: center;
+    font-size: 32px;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+.employee-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.employee-table thead {
+    background-color: #34495e;
+    color: #ecf0f1;
+}
+
+.employee-table th,
+.employee-table td {
+    padding: 16px 20px;
+    text-align: left;
+    font-size: 15px;
+}
+
+.employee-table th {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.employee-table tbody tr {
+    transition: background 0.25s;
+}
+
+.employee-table tbody tr:nth-child(even) {
+    background-color: #f2f6fa;
+}
+
+.employee-table tbody tr:hover {
+    background-color: #e3f2fd;
+    cursor: pointer;
+}
+
+.employee-table td {
+    color: #2d3436;
+    vertical-align: middle;
+}

@@ -1,0 +1,64 @@
+/* Container */
+.add-user-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #f3f4f6;
+    padding: 20px;
+}
+
+/* Card */
+.add-user-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 450px;
+    padding: 40px 30px;
+}
+
+/* Heading */
+.add-user-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #4f46e5;
+    margin-bottom: 24px;
+}
+
+/* Form Group */
+.add-user-form input,
+.add-user-form select {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: border-color 0.2s;
+}
+
+.add-user-form input:focus,
+.add-user-form select:focus {
+    border-color: #4f46e5;
+    outline: none;
+}
+
+/* Button */
+.add-user-form button {
+    width: 100%;
+    padding: 12px;
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-user-form button:hover {
+    background-color: #4338ca;
+}
