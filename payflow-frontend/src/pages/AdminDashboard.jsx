@@ -38,6 +38,18 @@ const AdminDashboard = () => {
         }
     };
 
+    const hrUsers = users.filter(user => user.role?.toUpperCase() === 'HR');
+    const managerUsers = users.filter(user => user.role?.toUpperCase() === 'MANAGER');
+    const employeeUsers = users.filter(user => user.role?.toUpperCase() === 'EMPLOYEE');
+
+    const activeHRs = hrUsers.filter(user => user.active).length;
+    const inactiveHRs = hrUsers.filter(user => !user.active).length;
+
+    const activeManagers = managerUsers.filter(user => user.active).length;
+    const inactiveManagers = managerUsers.filter(user => !user.active).length;
+
+    const totalEmployees = employeeUsers.length;
+
     return (
         <div className="admin-dashboard-layout">
             <Sidebar />
@@ -48,22 +60,29 @@ const AdminDashboard = () => {
                             {/* Total HRs */}
                             <div className="admin-card">
                                 <h2 className="admin-section-title">TOTAL HRs</h2>
-                                <div className="admin-count">6</div>
+                                <div className="admin-count">{hrUsers.length}</div>
                                 <div className="stats">
-                                    <span>Active: 5</span>
-                                    <span>Inactive: 1</span>
+                                    <span>Active: {activeHRs}</span>
+                                    <span>Inactive: {inactiveHRs}</span>
+                                </div>
+                            </div>
+
+                            {/* Total Managers */}
+                            <div className="admin-card">
+                                <h2 className="admin-section-title">TOTAL MANAGERS</h2>
+                                <div className="admin-count">{managerUsers.length}</div>
+                                <div className="stats">
+                                    <span>Active: {activeManagers}</span>
+                                    <span>Inactive: {inactiveManagers}</span>
                                 </div>
                             </div>
 
                             {/* Total Employees */}
                             <div className="admin-card">
                                 <h2 className="admin-section-title">TOTAL EMPLOYEES</h2>
-                                <div className="admin-count">150</div>
-                                <div className="admin-stats">
-                                    <span>Male: 95</span>
-                                    <span>Female: 55</span>
-                                </div>
+                                <div className="admin-count">{totalEmployees}</div>
                             </div>
+
                         </div>
 
                         {/* HR Management Section */}
@@ -80,18 +99,21 @@ const AdminDashboard = () => {
                                     <tr>
                                         <th>Name</th>
                                         <th>Email</th>
+                                        <th>Role</th> {/* 👈 Add this */}
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
                                     {users.map((user, index) => (
                                         <tr key={index}>
                                             <td>{user.name}</td>
                                             <td>{user.username}</td>
+                                            <td>{user.role}</td> {/* 👈 Show whether HR or MANAGER */}
                                             <td>
                                                 <span className={`status ${user.active === false ? 'inactive' : 'active'}`}>
-                                                  {user.active === false ? 'Inactive' : 'Active'}
+                                                    {user.active === false ? 'Inactive' : 'Active'}
                                                 </span>
                                             </td>
                                             <td>
@@ -106,6 +128,7 @@ const AdminDashboard = () => {
                                         </tr>
                                     ))}
                                 </tbody>
+
                             </table>
                         </div>
                     </section>
