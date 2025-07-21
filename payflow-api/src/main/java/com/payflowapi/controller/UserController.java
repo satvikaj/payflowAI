@@ -4,6 +4,7 @@ import com.payflowapi.dto.LoginDto;
 import com.payflowapi.dto.LoginResponse;
 import com.payflowapi.entity.User;
 import com.payflowapi.repository.UserRepository;
+import com.payflowapi.service.EmailService;
 import com.payflowapi.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -20,6 +21,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     // LOGIN endpoint
     @PostMapping("/login")
@@ -54,7 +58,7 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "Password reset successful"));
     }
 
-    // ADD USER (Admin creates HR or Manager)
+
     @PostMapping("/admin/add-user")
     public ResponseEntity<?> addUser(@RequestBody Map<String, String> body) {
         String name = body.get("name");
@@ -71,13 +75,51 @@ public class UserController {
         // Create and save the new user
         User user = new User();
         user.setName(name);
-        user.setUsername(email); // username = email
+        user.setUsername(email);
         user.setPassword(password);
         user.setRole(role.toUpperCase());
-        user.setFirstLogin(true); // Force password reset on first login
+        user.setFirstLogin(true);
 
         userRepository.save(user);
 
-        return ResponseEntity.ok(Map.of("message", "User added successfully"));
+        // Try sending email
+        try {
+            System.out.println("📧 Calling emailService for: " + email);
+            emailService.sendUserCredentials(email, email, password);
+            System.out.println("✅ Email sent (or attempted) to: " + email);
+            return ResponseEntity.ok(Map.of("message", "User added successfully and credentials emailed"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "User saved, but failed to send email"));
+        }
     }
+    // GET all users
+    @GetMapping("/admin/users")
+    public ResponseEntity<?> getAllUsers() {
+        return ResponseEntity.ok(userRepository.findAll());
+    }
+    // DISABLE user by email (username)
+    @PutMapping("/admin/disable-user")
+    public ResponseEntity<?> disableUser(@RequestBody Map<String, String> body) {
+        String username = body.get("username");
+
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "User not found"));
+        }
+
+        User user = optionalUser.get();
+        user.setActive(false);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(Map.of("message", "User disabled successfully"));
+    }
+    @GetMapping("/test")
+    public String testApi() {
+        return "✅ Controller is working!";
+    }
+
+
 }

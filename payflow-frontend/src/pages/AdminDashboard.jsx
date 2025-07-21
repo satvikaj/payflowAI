@@ -1,16 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/SidebarAdmin';
 import './AdminDashboard.css';
 import { FaEdit } from 'react-icons/fa';
+
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    const [users, setUsers] = useState([]);
 
-    const hrList = [
-        { name: 'John Smith', email: 'john.smith@example.com', status: 'Active' },
-        { name: 'Emma Johnson', email: 'emma.johnson@example.com', status: 'Inactive' },
-        { name: 'Michael Williams', email: 'michael.williams@example.com', status: 'Active' },
-    ];
+    // Fetch users on component mount
+    useEffect(() => {
+        axios.get('http://localhost:8080/api/admin/users')
+            .then(res => setUsers(res.data))
+            .catch(err => console.error('Failed to fetch users', err));
+    }, []);
+
+
+
+    const handleDisableUser = async (username) => {
+        const confirm = window.confirm("Are you sure you want to disable this user?");
+        if (!confirm) return;
+
+        try {
+            const res = await axios.put(`http://localhost:8080/api/admin/disable-user`, {
+                username: username,
+            });
+
+            alert(res.data.message);
+
+            // Refresh user list
+            const updatedUsers = await axios.get('http://localhost:8080/api/admin/users');
+            setUsers(updatedUsers.data);
+        } catch (err) {
+            alert("Failed to disable user");
+            console.error(err);
+        }
+    };
 
     return (
         <div className="admin-dashboard-layout">
@@ -43,7 +69,7 @@ const AdminDashboard = () => {
                         {/* HR Management Section */}
                         <div className="hr-table-card">
                             <div className="hr-management-header">
-                                <h2 className="section-title">HR Management</h2>
+                                <h2 className="section-title">HR / MANAGER  Management</h2>
                                 <button className="create-btn" onClick={() => navigate('/create-user')}>
                                     + Add New HR
                                 </button>
@@ -51,29 +77,34 @@ const AdminDashboard = () => {
 
                             <table className="hr-table">
                                 <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Status</th>
-                                    <th>Edit</th>
-                                </tr>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                {hrList.map((hr, index) => (
-                                    <tr key={index}>
-                                        <td>{hr.name}</td>
-                                        <td>{hr.email}</td>
-                                        <td>
-                        <span className={`status ${hr.status.toLowerCase()}`}>
-
-                          {hr.status}
-                        </span>
-                                        </td>
-                                        <td>
-                                            <FaEdit className="edit-icon" />
-                                        </td>
-                                    </tr>
-                                ))}
+                                    {users.map((user, index) => (
+                                        <tr key={index}>
+                                            <td>{user.name}</td>
+                                            <td>{user.username}</td>
+                                            <td>
+                                                <span className={`status ${user.active === false ? 'inactive' : 'active'}`}>
+                                                  {user.active === false ? 'Inactive' : 'Active'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {user.active ? (
+                                                    <button className="disable-btn" onClick={() => handleDisableUser(user.username)}>
+                                                        Disable
+                                                    </button>
+                                                ) : (
+                                                    <span className="disabled-text">Disabled</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
@@ -85,23 +116,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-
-
-
-// import React from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import './AdminDashboard.css';
-//
-// const AdminDashboard = () => {
-//     const navigate = useNavigate();
-//
-//     return (
-//         <div className="admin-dashboard">
-//             <h2>Admin Dashboard</h2>
-//             <button onClick={() => navigate('/create-user')}>Create HR/Manager</button>
-//             {/*<button onClick={() => navigate('/reset-password')}>Reset Password</button>*/}
-//         </div>
-//     );
-// };
-//
-// export default AdminDashboard;

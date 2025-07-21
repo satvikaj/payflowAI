@@ -43,7 +43,7 @@ const AddUser = () => {
             const data = await res.json();
 
             if (res.ok) {
-                alert('User added successfully!');
+                alert(data.message);
                 setFormData({ name: '', email: '', role: 'HR', password: '' });
             } else {
                 alert(data.message || 'Failed to add user');
@@ -102,84 +102,3 @@ export default AddUser;
 
 
 
-// import React, { useState } from 'react';
-// import './AddUser.css';
-//
-// const AddUser = () => {
-//     const [formData, setFormData] = useState({
-//         name: '',
-//         email: '',
-//         role: 'HR',
-//         password: '',
-//     });
-//
-//     const handleChange = (e) => {
-//         setFormData({ ...formData, [e.target.name]: e.target.value });
-//     };
-//
-//     const handleSubmit = async (e) => {
-//         e.preventDefault();
-//         try {
-//             const res = await fetch('/api/admin/add-user', {
-//                 method: 'POST',
-//                 headers: { 'Content-Type': 'application/json' },
-//                 body: JSON.stringify(formData),
-//             });
-//
-//             const data = await res.json();
-//             if (res.ok) {
-//                 alert('User added successfully!');
-//                 setFormData({ name: '', email: '', role: 'HR', password: '' });
-//             } else {
-//                 alert(data.message || 'Failed to add user');
-//             }
-//         } catch (error) {
-//             alert('Server error!');
-//         }
-//     };
-//
-//     return (
-//         <div className="add-user-container">
-//             <div className="add-user-card">
-//                 <h2 className="add-user-title">Add HR or Manager</h2>
-//                 <form onSubmit={handleSubmit} className="add-user-form">
-//                     <input
-//                         type="text"
-//                         name="name"
-//                         placeholder="Full Name"
-//                         value={formData.name}
-//                         onChange={handleChange}
-//                         required
-//                     />
-//                     <input
-//                         type="email"
-//                         name="email"
-//                         placeholder="Email Address"
-//                         value={formData.email}
-//                         onChange={handleChange}
-//                         required
-//                     />
-//                     <select
-//                         name="role"
-//                         value={formData.role}
-//                         onChange={handleChange}
-//                     >
-//                         <option value="HR">HR</option>
-//                         <option value="Manager">Manager</option>
-//                     </select>
-//                     <input
-//                         type="password"
-//                         name="password"
-//                         placeholder="Temporary Password"
-//                         value={formData.password}
-//                         onChange={handleChange}
-//                         required
-//                     />
-//                     <button type="submit">Add User</button>
-//                 </form>
-//             </div>
-//         </div>
-//     );
-// };
-//
-// export default AddUser;
