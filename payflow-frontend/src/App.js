@@ -15,6 +15,7 @@ import Home from "./pages/Home";
 import Sidebar from "./components/Sidebar";
 import UnifiedLogin from "./pages/UnifiedLogin";
 import EmployeeList from "./pages/EmployeeList";
+import EmployeeDashboard from "./pages/EmployeeDashboard";
 
 // import Login from "./components/Login";
 
@@ -37,6 +38,7 @@ function App() {
                 {/*<Route path="/login/hr" element={<HRLogin />} />*/}
                 {/*<Route path="/login/manager" element={<ManagerLogin />} />*/}
                 <Route path="/employee" element={<EmployeeList />} />
+                <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
 
             </Routes>
         </BrowserRouter>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PopupMessage from '../components/PopupMessage';
 import './AddUser.css';
 
 const AddUser = () => {
@@ -8,6 +9,7 @@ const AddUser = () => {
         role: 'HR',
         password: '',
     });
+    const [popup, setPopup] = useState({ show: false, message: '', type: 'success' });
 
     const generateDefaultPassword = (name, role) => {
         const base = name.trim().split(' ')[0].toLowerCase();
@@ -43,18 +45,21 @@ const AddUser = () => {
             const data = await res.json();
 
             if (res.ok) {
-                alert(data.message);
+                setPopup({ show: true, title: 'User Added', message: data.message || 'User has been added successfully.', type: 'success' });
                 setFormData({ name: '', email: '', role: 'HR', password: '' });
             } else {
-                alert(data.message || 'Failed to add user');
+                setPopup({ show: true, title: 'Add User Failed', message: data.message || 'Failed to add user.', type: 'error' });
             }
         } catch (err) {
-            alert('Server error while adding user.');
+            setPopup({ show: true, title: 'Server Error', message: 'Server error while adding user.', type: 'error' });
         }
     };
 
     return (
         <div className="add-user-container">
+            {popup.show && (
+                <PopupMessage title={popup.title} message={popup.message} type={popup.type} onClose={() => setPopup({ ...popup, show: false })} />
+            )}
             <div className="add-user-card">
                 <h2 className="add-user-title">Add HR or Manager</h2>
                 <form onSubmit={handleSubmit} className="add-user-form">

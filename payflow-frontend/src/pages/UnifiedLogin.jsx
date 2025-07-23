@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Login.css';
-import Swal from 'sweetalert2';
+import PopupMessage from '../components/PopupMessage';
 
 const UnifiedLogin = () => {
     const [emailOrId, setEmailOrId] = useState('');
@@ -10,6 +10,7 @@ const UnifiedLogin = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
+    const [popup, setPopup] = useState({ show: false, title: '', message: '', type: 'success' });
 
 
     const handleLogin = async (e) => {
@@ -20,16 +21,11 @@ const UnifiedLogin = () => {
         if (emailOrId === 'admin' && password === 'admin123') {
             localStorage.setItem('role', 'ADMIN');
             localStorage.setItem('authToken', 'static-admin-token'); // if needed
-            Swal.fire({
-                icon: 'success',
-                title: 'Login Successful',
-                text: 'Welcome Admin!',
-                timer: 2000,
-                showConfirmButton: false,
-            });
+            setPopup({ show: true, title: 'Login Successful', message: 'Welcome Admin!', type: 'success' });
             setTimeout(() => {
+                setPopup({ ...popup, show: false });
                 navigate('/admin-dashboard');
-            }, 2000);
+            }, 1200);
             return;
         }
 
@@ -57,16 +53,16 @@ const UnifiedLogin = () => {
             localStorage.setItem("role", role);
             localStorage.setItem("email", finalEmail);
             localStorage.setItem("name", name || "User");
+            // Store userEmail for employee dashboard fetch
+            if (role === "EMPLOYEE") {
+                localStorage.setItem("userEmail", finalEmail);
+            } else {
+                localStorage.removeItem("userEmail");
+            }
 
-            Swal.fire({
-                icon: 'success',
-                title: 'Login Successful',
-                text: `Welcome ${res.data.name || role}!`,
-                timer: 2000,
-                showConfirmButton: false,
-            });
-
+            setPopup({ show: true, title: 'Login Successful', message: `Welcome ${res.data.name || role}!`, type: 'success' });
             setTimeout(() => {
+                setPopup({ ...popup, show: false });
                 if (firstLogin) {
                     navigate("/reset-password");
                 } else {
@@ -75,18 +71,17 @@ const UnifiedLogin = () => {
                     else if (role === "EMPLOYEE") navigate("/employee-dashboard");
                     else navigate("/");
                 }
-            }, 2000);
+            }, 1200);
         } catch (err) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Login Failed',
-                text: 'Invalid credentials. Please try again.',
-            });
+            setPopup({ show: true, title: 'Login Failed', message: 'Invalid credentials. Please try again.', type: 'error' });
         }
     };
 
     return (
         <div className="login-container">
+            {popup.show && (
+                <PopupMessage title={popup.title} message={popup.message} type={popup.type} onClose={() => setPopup({ ...popup, show: false })} />
+            )}
             <h2>PayFlow AI - Login</h2>
             <form onSubmit={handleLogin}>
                 <input

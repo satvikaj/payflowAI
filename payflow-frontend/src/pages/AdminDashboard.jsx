@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PopupMessage from '../components/PopupMessage';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/SidebarAdmin';
@@ -8,12 +9,21 @@ import { FaEdit } from 'react-icons/fa';
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
+    const [employeeCount, setEmployeeCount] = useState(0);
 
     // Fetch users on component mount
+    const [popup, setPopup] = useState({ show: false, title: '', message: '', type: 'success' });
+
     useEffect(() => {
+        // Fetch users
         axios.get('http://localhost:8080/api/admin/users')
             .then(res => setUsers(res.data))
             .catch(err => console.error('Failed to fetch users', err));
+
+        // Fetch employee count from backend
+        axios.get('http://localhost:8080/api/employee/count')
+            .then(res => setEmployeeCount(res.data))
+            .catch(err => console.error('Failed to fetch employee count', err));
     }, []);
 
 
@@ -27,13 +37,13 @@ const AdminDashboard = () => {
                 username: username,
             });
 
-            alert(res.data.message);
+            setPopup({ show: true, title: 'User Disabled', message: res.data.message || 'User has been disabled.', type: 'success' });
 
             // Refresh user list
             const updatedUsers = await axios.get('http://localhost:8080/api/admin/users');
             setUsers(updatedUsers.data);
         } catch (err) {
-            alert("Failed to disable user");
+            setPopup({ show: true, title: 'Failed', message: 'Failed to disable user', type: 'error' });
             console.error(err);
         }
     };
@@ -48,10 +58,13 @@ const AdminDashboard = () => {
     const activeManagers = managerUsers.filter(user => user.active).length;
     const inactiveManagers = managerUsers.filter(user => !user.active).length;
 
-    const totalEmployees = employeeUsers.length;
+
 
     return (
         <div className="admin-dashboard-layout">
+            {popup.show && (
+                <PopupMessage title={popup.title} message={popup.message} type={popup.type} onClose={() => setPopup({ ...popup, show: false })} />
+            )}
             <Sidebar />
             <main className="admin-dashboard-main">
                 <div className="admin-dashboard-content-card">
@@ -80,7 +93,7 @@ const AdminDashboard = () => {
                             {/* Total Employees */}
                             <div className="admin-card">
                                 <h2 className="admin-section-title">TOTAL EMPLOYEES</h2>
-                                <div className="admin-count">{totalEmployees}</div>
+                                <div className="admin-count">{employeeCount}</div>
                             </div>
 
                         </div>

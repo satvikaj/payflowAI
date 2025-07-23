@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import PopupMessage from '../components/PopupMessage';
 import { useNavigate } from 'react-router-dom';
 import './ResetPassword.css';
 
@@ -9,11 +10,13 @@ const ResetPassword = () => {
     const navigate = useNavigate();
     const email = localStorage.getItem('email');
 
+    const [popup, setPopup] = useState({ show: false, title: '', message: '', type: 'success' });
+
     const handleReset = async (e) => {
         e.preventDefault();
 
         if (newPassword !== confirmPassword) {
-            alert('Passwords do not match');
+            setPopup({ show: true, title: 'Password Mismatch', message: 'Passwords do not match.', type: 'error' });
             return;
         }
 
@@ -33,17 +36,19 @@ const ResetPassword = () => {
             }
 
             const data = await res.json();
-            alert('Password updated successfully');
-
-            navigate('/');
+            setPopup({ show: true, title: 'Password Updated', message: 'Password updated successfully.', type: 'success' });
+            setTimeout(() => navigate('/'), 1200);
         } catch (error) {
             console.error('Reset error:', error.message);
-            alert('Reset failed: ' + error.message);
+            setPopup({ show: true, title: 'Reset Failed', message: 'Reset failed: ' + error.message, type: 'error' });
         }
     };
 
     return (
         <div className="reset-container">
+            {popup.show && (
+                <PopupMessage title={popup.title} message={popup.message} type={popup.type} onClose={() => setPopup({ ...popup, show: false })} />
+            )}
             <h2>Reset Password</h2>
             <form onSubmit={handleReset}>
                 <input
