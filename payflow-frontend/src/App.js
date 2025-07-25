@@ -16,6 +16,10 @@ import Sidebar from "./components/Sidebar";
 import UnifiedLogin from "./pages/UnifiedLogin";
 import EmployeeList from "./pages/EmployeeList";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
+import EmployeeLeave from "./pages/EmployeeLeave";
+import ManagerDashboard from "./pages/ManagerDashboard";
+import NotificationsPage from "./pages/NotificationsPage";
+import EmployeeOverview from "./pages/EmployeeOverview";
 
 // import Login from "./components/Login";
 
@@ -39,6 +43,10 @@ function App() {
                 {/*<Route path="/login/manager" element={<ManagerLogin />} />*/}
                 <Route path="/employee" element={<EmployeeList />} />
                 <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
+                <Route path="/manager-dashboard" element={<ManagerDashboard />} />
+                <Route path="/manager-notifications" element={<NotificationsPage />} />
+                <Route path="/employee-leave" element={<EmployeeLeave />} />
+                <Route path="/employee-overview" element={<EmployeeOverview />} />
 
             </Routes>
         </BrowserRouter>

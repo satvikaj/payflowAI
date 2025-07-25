@@ -27,11 +27,24 @@ public class Employee {
 
     private String department;
     private String role;
+    private Long managerId; // Manager's user ID
 
     private String hasExperience;
-    private String experienceYears;
-    private String previousRole;
-    private String previousCompany;
+
+    // For multiple experiences
+    @ElementCollection
+    @CollectionTable(name = "employee_experiences", joinColumns = @JoinColumn(name = "employee_id"))
+    private java.util.List<Experience> experiences;
+
+    @Embeddable
+    @lombok.Data
+    public static class Experience {
+        private String years;
+        private String role;
+        private String company;
+        private String fromDate;
+        private String toDate;
+    }
 
     private String certifications;
     private String skills;

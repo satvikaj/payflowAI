@@ -1,5 +1,6 @@
 import React from 'react';
 import './Sidebar.css';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     FaTachometerAlt,
     FaUsers,
@@ -9,10 +10,11 @@ import {
     FaChartBar,
     FaCog
 } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
 
 export default function Sidebar() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const isActive = (path) => location.pathname === path;
 
     return (
         <aside className="sidebar">
@@ -20,32 +22,32 @@ export default function Sidebar() {
                 <span className="logo">HR</span> system
             </h1>
             <div className="sidebar-menu">
-                <button className="sidebar-btn active" onClick={() => navigate('/hr-dashboard')}>
+                <button className={"sidebar-btn" + (isActive('/hr-dashboard') ? ' active' : '')} onClick={() => navigate('/hr-dashboard')}>
                     <FaTachometerAlt /> Dashboard
                 </button>
-
-                <button className="sidebar-btn" onClick={() => navigate('/employee')}>
+                <button className={"sidebar-btn" + (isActive('/employee') ? ' active' : '')} onClick={() => navigate('/employee')}>
                     <FaUsers /> Employees
                 </button>
-                <button className="sidebar-btn" onClick={() => navigate('/onboarding')}>
+                <button className={"sidebar-btn" + (isActive('/onboarding') ? ' active' : '')} onClick={() => navigate('/onboarding')}>
                     <FaUserPlus /> Onboardings
                 </button>
-                <button className="sidebar-btn" onClick={() => navigate('/projects')}>
+                <button className={"sidebar-btn" + (isActive('/projects') ? ' active' : '')} onClick={() => navigate('/projects')}>
                     <FaTasks /> Projects
                 </button>
-                <button className="sidebar-btn" onClick={() => navigate('/payroll')}>
+                <button className={"sidebar-btn" + (isActive('/payroll') ? ' active' : '')} onClick={() => navigate('/payroll')}>
                     <FaMoneyBill /> Payrolls
                 </button>
-                <button className="sidebar-btn" onClick={() => navigate('/reports')}>
+                <button className={"sidebar-btn" + (isActive('/reports') ? ' active' : '')} onClick={() => navigate('/reports')}>
                     <FaChartBar /> Reports
                 </button>
-                <button className="sidebar-btn" onClick={() => navigate('/settings')}>
+                <button className={"sidebar-btn" + (isActive('/settings') ? ' active' : '')} onClick={() => navigate('/settings')}>
                     <FaCog /> Settings
                 </button>
             </div>
         </aside>
     );
 }
+
 
 
 

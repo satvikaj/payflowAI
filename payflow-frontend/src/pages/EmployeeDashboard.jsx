@@ -9,13 +9,20 @@ const EmployeeDashboard = () => {
     // TODO: Replace with actual logged-in user context or JWT
     const email = localStorage.getItem('userEmail'); // or get from auth context
 
-    // Debug: log email and response
+    // Leave state
+    const [leaveSummary, setLeaveSummary] = useState({ total: 12, used: 0, remaining: 12 });
+    const [leaveHistory, setLeaveHistory] = useState([]);
+    const [showLeaveForm, setShowLeaveForm] = useState(false);
+    const [leaveForm, setLeaveForm] = useState({ startDate: '', endDate: '', reason: '' });
+    const [leaveLoading, setLeaveLoading] = useState(false);
+    const [leaveError, setLeaveError] = useState('');
+    const [leaveSuccess, setLeaveSuccess] = useState('');
+
     useEffect(() => {
         if (email) {
-            console.log('Fetching employee for email:', email);
+            // Fetch employee details
             axios.get(`http://localhost:8080/api/employee?email=${email}`)
                 .then(res => {
-                    console.log('Employee API response:', res.data);
                     if (Array.isArray(res.data) && res.data.length > 0) {
                         setEmployee(res.data[0]);
                     } else if (res.data) {
@@ -23,8 +30,49 @@ const EmployeeDashboard = () => {
                     }
                 })
                 .catch(err => console.error('Failed to fetch employee details', err));
+
+            // Fetch leave summary
+            axios.get(`http://localhost:8080/api/leave/summary?email=${email}`)
+                .then(res => {
+                    setLeaveSummary(res.data.summary);
+                    setLeaveHistory(res.data.history || []);
+                })
+                .catch(() => {
+                    // fallback to default if error
+                    setLeaveSummary({ total: 12, used: 0, remaining: 12 });
+                    setLeaveHistory([]);
+                });
         }
     }, [email]);
+
+    const handleLeaveFormChange = (e) => {
+        setLeaveForm({ ...leaveForm, [e.target.name]: e.target.value });
+    };
+
+    const handleLeaveApply = (e) => {
+        e.preventDefault();
+        setLeaveLoading(true);
+        setLeaveError('');
+        setLeaveSuccess('');
+        axios.post('http://localhost:8080/api/leave/apply', {
+            email,
+            ...leaveForm
+        })
+            .then(res => {
+                setLeaveSuccess('Leave request submitted successfully!');
+                setShowLeaveForm(false);
+                // Refresh leave summary
+                return axios.get(`http://localhost:8080/api/leave/summary?email=${email}`);
+            })
+            .then(res => {
+                setLeaveSummary(res.data.summary);
+                setLeaveHistory(res.data.history || []);
+            })
+            .catch(err => {
+                setLeaveError('Failed to submit leave request.');
+            })
+            .finally(() => setLeaveLoading(false));
+    };
 
     return (
         <div className="employee-dashboard-layout">
@@ -66,6 +114,19 @@ const EmployeeDashboard = () => {
                         ) : (
                             <p>Loading profile...</p>
                         )}
+                </div>
+                    <div className="dashboard-card notifications-card">
+                        <h3><FaBell /> Notifications</h3>
+                        <ul className="notifications-list">
+                            <li>No new notifications.</li>
+                        </ul>
+                    </div>
+                    
+                    <div className="dashboard-card leave-card">
+                        <h3><FaClipboardList /> Leave Summary</h3>
+                        <p><b>Total Leaves:</b> <span style={{color:'#6366f1'}}>{leaveSummary.total} days</span></p>
+                        <p><b>Used:</b> <span style={{color:'tomato'}}>{leaveSummary.used} days</span></p>
+                        <p><b>Remaining:</b> <span style={{color:'#22c55e'}}>{leaveSummary.remaining} days</span></p>
                     </div>
                     <div className="dashboard-card payroll-card">
                         <h3><FaMoneyBill /> Payroll</h3>
@@ -73,17 +134,7 @@ const EmployeeDashboard = () => {
                         <p><b>Salary:</b> <span style={{color:'#6366f1'}}>Confidential</span></p>
                         <button className="quick-link-btn" style={{marginTop:8}}>Download Payslip</button>
                     </div>
-                    <div className="dashboard-card leave-card">
-                        <h3><FaClipboardList /> Leave Summary</h3>
-                        <p><b>Leave Balance:</b> <span style={{color:'#6366f1'}}>12 days</span></p>
-                        <button className="quick-link-btn" style={{marginTop:8}}>Apply for Leave</button>
-                    </div>
-                    <div className="dashboard-card notifications-card">
-                        <h3><FaBell /> Notifications</h3>
-                        <ul className="notifications-list">
-                            <li>No new notifications.</li>
-                        </ul>
-                    </div>
+                    
                 </div>
                 <div className="quick-links">
                     <button className="quick-link-btn">Update Profile</button>

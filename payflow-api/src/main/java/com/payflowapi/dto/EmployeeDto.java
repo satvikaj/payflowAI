@@ -21,13 +21,21 @@ public class EmployeeDto {
     private String department;
     private String role;
     private String joiningDate;
+    private Long managerId;
 
     private String hasExperience;
-    private String experienceYears;
-    private String previousRole;
-    private String previousCompany;
+    // For multiple experiences
+    private java.util.List<ExperienceDto> experiences;
 
     private String certifications;
     private String skills;
     private String languages;
+
+    // Nested DTO for experience
+    @lombok.Data
+    public static class ExperienceDto {
+        private String years;
+        private String role;
+        private String company;
+    }
 }

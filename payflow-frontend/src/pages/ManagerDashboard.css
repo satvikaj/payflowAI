@@ -1,0 +1,267 @@
+.manager-dashboard-cards-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 32px;
+}
+.manager-dashboard-cards-row-centered {
+  display: flex;
+  gap: 36px;
+  justify-content: center;
+  margin-bottom: 36px;
+}
+.manager-dashboard-card-highlight {
+  background: linear-gradient(135deg, #e0e7ff 0%, #f0fff4 100%);
+  border: 2px solid #a3bffa;
+  box-shadow: 0 4px 24px rgba(49,130,206,0.08);
+  min-width: 260px;
+  max-width: 340px;
+  align-items: center;
+  text-align: center;
+}
+.manager-dashboard-card-highlight h3 {
+  color: #2b6cb0;
+  font-size: 1.25rem;
+  margin-bottom: 10px;
+}
+.manager-dashboard-card-value {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: #38a169;
+  margin-bottom: 4px;
+}
+.manager-dashboard-card-label {
+  color: #4a5568;
+  font-size: 1.08rem;
+  margin-bottom: 8px;
+}
+/* Layout and header */
+.manager-dashboard-layout {
+  display: flex;
+}
+.manager-dashboard-main {
+  flex: 1;
+  padding: 32px 40px;
+  background: #f5f7fa;
+}
+.manager-dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+/* Bell icon and notifications */
+.manager-dashboard-bell-wrapper {
+  position: relative;
+}
+.manager-dashboard-bell {
+  position: relative;
+  display: inline-block;
+}
+.manager-dashboard-bell-count {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  background: #e53e3e;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  padding: 2px 7px;
+  font-weight: 600;
+}
+.manager-dashboard-notif-list {
+  position: absolute;
+  top: 32px;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  min-width: 220px;
+  z-index: 10;
+  padding: 10px 0;
+}
+.manager-dashboard-notif-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 12px;
+}
+.manager-dashboard-notif-list li {
+  padding: 7px 0;
+  border-bottom: 1px solid #f1f1f1;
+  font-size: 1rem;
+  color: #2d3a4b;
+}
+.manager-dashboard-notif-list li:last-child {
+  border-bottom: none;
+}
+
+/* Cards row */
+.manager-dashboard-cards-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.manager-dashboard-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  padding: 22px 28px 18px 28px;
+  min-width: 200px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.manager-dashboard-card h3 {
+  font-size: 1.1rem;
+  color: #2d3a4b;
+  margin-bottom: 10px;
+}
+.manager-dashboard-card-value {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #3182ce;
+  margin-bottom: 2px;
+}
+.manager-dashboard-card-label {
+  color: #718096;
+  font-size: 1rem;
+}
+
+/* Reminders */
+.manager-dashboard-reminder-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.manager-dashboard-reminder-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+.manager-dashboard-reminder-btn {
+  background: #3182ce;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.manager-dashboard-reminder-btn:hover {
+  background: #2563eb;
+}
+.manager-dashboard-reminder-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.manager-dashboard-reminder-list li {
+  font-size: 0.98rem;
+  color: #2d3a4b;
+  margin-bottom: 4px;
+}
+.manager-dashboard-reminder-date {
+  color: #718096;
+  font-size: 0.92rem;
+}
+
+/* Employees on leave cards */
+.manager-dashboard-leave-cards-row {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.manager-dashboard-leave-card {
+  background: #fefcbf;
+  border: 1px solid #f6e05e;
+  border-radius: 10px;
+  padding: 18px 22px;
+  min-width: 180px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.manager-dashboard-leave-card-title {
+  font-weight: 600;
+  color: #b7791f;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+.manager-dashboard-leave-card-type {
+  color: #b7791f;
+  font-size: 1rem;
+  margin-bottom: 2px;
+}
+.manager-dashboard-leave-card-dates {
+  color: #744210;
+  font-size: 0.98rem;
+  margin-bottom: 2px;
+}
+.manager-dashboard-leave-card-status {
+  color: #744210;
+  font-size: 0.97rem;
+}
+.manager-dashboard-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 32px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+
+.manager-dashboard-container h1 {
+  color: #2d3a4b;
+  font-size: 2.2rem;
+  margin-bottom: 18px;
+  font-weight: 700;
+}
+
+.manager-dashboard-container p {
+  color: #4a5568;
+  font-size: 1.1rem;
+  margin-bottom: 28px;
+}
+
+.manager-dashboard-section {
+  margin-bottom: 32px;
+  padding: 18px 0 0 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.manager-dashboard-section h2 {
+  font-size: 1.3rem;
+  color: #1a202c;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.manager-dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.manager-dashboard-table th, .manager-dashboard-table td {
+  border: 1px solid #e2e8f0;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.manager-dashboard-table th {
+  background: #f7fafc;
+  color: #2d3a4b;
+  font-weight: 600;
+}
+
+.manager-dashboard-table tr:nth-child(even) {
+  background: #f9f9f9;
+}

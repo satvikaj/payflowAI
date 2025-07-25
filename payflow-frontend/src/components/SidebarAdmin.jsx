@@ -8,20 +8,15 @@ const SidebarAdmin = () => {
         <div className="sidebar">
             <h2 className="logo">WELCOME!</h2>
             <ul className="nav-list">
-                {/* Functional Dashboard Link */}
                 <li>
-                    <NavLink to="/admin-dashboard" activeClassName="active-link">
+                    <NavLink to="/admin-dashboard" className={({ isActive }) => isActive ? 'active-link' : ''} end>
                         <FaTachometerAlt /> Dashboard
                     </NavLink>
-
                 </li>
-
-                {/* Clickable but not navigating now */}
-                <li className="nav-placeholder">
-                    <FaUserTie /> HR Management
-                </li>
-                <li className="nav-placeholder">
-                    <FaUsers /> Employee Overview
+                <li>
+                    <NavLink to="/employee-overview" className={({ isActive }) => isActive ? 'active-link' : ''} end>
+                        <FaUsers /> Employee Overview
+                    </NavLink>
                 </li>
                 <li className="nav-placeholder">
                     <FaCogs /> Settings

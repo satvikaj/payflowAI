@@ -1,31 +1,33 @@
 import React from 'react';
 import './Sidebar.css';
 import { FaTachometerAlt, FaUser, FaMoneyBill, FaCalendarAlt, FaEnvelope } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+
+import { NavLink } from 'react-router-dom';
 
 export default function EmployeeSidebar() {
-    const navigate = useNavigate();
     return (
         <aside className="sidebar">
             <h1 className="sidebar-title">
                 <span className="logo">Employee</span> Portal
             </h1>
             <div className="sidebar-menu">
-                <button className="sidebar-btn active" onClick={() => navigate('/employee-dashboard')}>
+                <NavLink to="/employee-dashboard" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
                     <FaTachometerAlt /> Dashboard
-                </button>
-                <button className="sidebar-btn" onClick={() => navigate('/employee-profile')}>
+                </NavLink>
+                <NavLink to="/employee-profile" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
                     <FaUser /> Profile
-                </button>
-                <button className="sidebar-btn" onClick={() => navigate('/employee-payroll')}>
+                </NavLink>
+                <NavLink to="/employee-payroll" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
                     <FaMoneyBill /> Payroll
-                </button>
-                <button className="sidebar-btn" onClick={() => navigate('/employee-leave')}>
+                </NavLink>
+                <NavLink to="/employee-leave" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
                     <FaCalendarAlt /> Leave
-                </button>
-                <button className="sidebar-btn" onClick={() => navigate('/employee-notifications')}>
+                </NavLink>
+                <NavLink to="/employee-notifications" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
                     <FaEnvelope /> Notifications
-                </button>
+                </NavLink>
             </div>
         </aside>
     );

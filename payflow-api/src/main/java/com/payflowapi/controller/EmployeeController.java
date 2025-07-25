@@ -2,6 +2,8 @@ package com.payflowapi.controller;
 
 import com.payflowapi.dto.EmployeeDto;
 import com.payflowapi.entity.Employee;
+import com.payflowapi.entity.Project;
+import com.payflowapi.entity.EmployeeLeave;
 import com.payflowapi.repository.EmployeeRepository;
 import com.payflowapi.entity.User;
 import com.payflowapi.repository.UserRepository;
@@ -27,6 +29,12 @@ public class EmployeeController {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private com.payflowapi.repository.EmployeeLeaveRepository employeeLeaveRepository;
+
+    @Autowired
+    private com.payflowapi.repository.ProjectRepository projectRepository;
+
     @PostMapping("/onboard")
     public Employee onboardEmployee(@RequestBody EmployeeDto dto) {
         Employee employee = new Employee();
@@ -50,11 +58,21 @@ public class EmployeeController {
         employee.setDepartment(dto.getDepartment());
         employee.setRole(dto.getRole());
         employee.setJoiningDate(dto.getJoiningDate());
+        employee.setManagerId(dto.getManagerId());
 
         employee.setHasExperience(dto.getHasExperience());
-        employee.setExperienceYears(dto.getExperienceYears());
-        employee.setPreviousRole(dto.getPreviousRole());
-        employee.setPreviousCompany(dto.getPreviousCompany());
+        // Map experiences from DTO to entity
+        if (dto.getExperiences() != null && !dto.getExperiences().isEmpty()) {
+            java.util.List<Employee.Experience> expList = new java.util.ArrayList<>();
+            for (EmployeeDto.ExperienceDto expDto : dto.getExperiences()) {
+                Employee.Experience exp = new Employee.Experience();
+                exp.setYears(expDto.getYears());
+                exp.setRole(expDto.getRole());
+                exp.setCompany(expDto.getCompany());
+                expList.add(exp);
+            }
+            employee.setExperiences(expList);
+        }
 
         // Skills & Certifications
         employee.setCertifications(dto.getCertifications());
@@ -92,6 +110,31 @@ public class EmployeeController {
         for (int i = 0; i < length; i++)
             sb.append(chars.charAt(rnd.nextInt(chars.length())));
         return sb.toString();
+    }
+
+    // --- Manager Dashboard Endpoints ---
+
+    // 1. Get team members for a manager
+    @GetMapping("/manager/{managerId}/team")
+    public List<Employee> getTeamByManager(@PathVariable Long managerId) {
+        return employeeRepository.findByManagerId(managerId);
+    }
+
+    // 2. Get leave requests for a manager's team
+    @GetMapping("/manager/{managerId}/leaves")
+    public List<EmployeeLeave> getTeamLeaves(@PathVariable Long managerId) {
+        // This assumes you have EmployeeLeaveRepository and EmployeeLeave entity
+        // and Employee has a managerId field
+        List<Employee> team = employeeRepository.findByManagerId(managerId);
+        List<Long> teamIds = team.stream().map(Employee::getId).toList();
+        return employeeLeaveRepository.findByEmployeeIdIn(teamIds);
+    }
+
+    // 3. Get projects managed by a manager
+    @GetMapping("/manager/{managerId}/projects")
+    public List<Project> getProjectsByManager(@PathVariable Long managerId) {
+        // This assumes you have ProjectRepository and Project entity with managerId
+        return projectRepository.findByManagerId(managerId);
     }
 
     @GetMapping

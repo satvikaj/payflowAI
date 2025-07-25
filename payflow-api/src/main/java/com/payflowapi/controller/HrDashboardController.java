@@ -2,7 +2,23 @@ package com.payflowapi.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import com.payflowapi.repository.EmployeeRepository;
+import com.payflowapi.repository.AnnouncementRepository;
+import com.payflowapi.repository.CalendarEventRepository;
+import com.payflowapi.repository.EmployeeLeaveRepository;
+import com.payflowapi.repository.OnboardingRepository;
+import com.payflowapi.repository.OnboardingCandidateRepository;
+import com.payflowapi.repository.ProjectRepository;
+import com.payflowapi.repository.ProjectTeamMemberRepository;
+import com.payflowapi.repository.PayrollRepository;
 import com.payflowapi.entity.Employee;
+import com.payflowapi.entity.Announcement;
+import com.payflowapi.entity.CalendarEvent;
+import com.payflowapi.entity.EmployeeLeave;
+import com.payflowapi.entity.Onboarding;
+import com.payflowapi.entity.OnboardingCandidate;
+import com.payflowapi.entity.Project;
+import com.payflowapi.entity.ProjectTeamMember;
+import com.payflowapi.entity.Payroll;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
@@ -13,33 +29,45 @@ public class HrDashboardController {
 
         @Autowired
         private EmployeeRepository employeeRepository;
+        @Autowired
+        private AnnouncementRepository announcementRepository;
+        @Autowired
+        private CalendarEventRepository calendarEventRepository;
+        @Autowired
+        private EmployeeLeaveRepository employeeLeaveRepository;
+        @Autowired
+        private OnboardingRepository onboardingRepository;
+        @Autowired
+        private OnboardingCandidateRepository onboardingCandidateRepository;
+        @Autowired
+        private ProjectRepository projectRepository;
+        @Autowired
+        private ProjectTeamMemberRepository projectTeamMemberRepository;
+        @Autowired
+        private PayrollRepository payrollRepository;
 
         // --- Announcements ---
         @GetMapping("/announcements")
         public List<Map<String, String>> getAnnouncements() {
-                // Dummy data, replace with DB fetch
                 List<Map<String, String>> list = new ArrayList<>();
-                list.add(Map.of("message", "📢 Annual meet scheduled on 5th Aug"));
-                list.add(Map.of("message", "🛡️ Security audit on 20th July"));
+                List<Announcement> announcements = announcementRepository.findAll();
+                for (Announcement a : announcements) {
+                        list.add(Map.of("message", a.getMessage()));
+                }
                 return list;
         }
 
         // --- Employees on Leave ---
         @GetMapping("/leave/today")
         public List<Map<String, String>> getEmployeesOnLeave() {
-                // Example: Return employees with 'Sick' or 'Casual' in certifications as a fake
-                // leave marker
                 List<Map<String, String>> list = new ArrayList<>();
-                List<Employee> employees = employeeRepository.findAll();
-                for (Employee e : employees) {
-                        if (e.getCertifications() != null && (e.getCertifications().toLowerCase().contains("sick")
-                                        || e.getCertifications().toLowerCase().contains("casual"))) {
-                                list.add(Map.of(
-                                                "name", e.getFullName(),
-                                                "type", e.getCertifications(),
-                                                "from", "N/A",
-                                                "to", "N/A"));
-                        }
+                List<EmployeeLeave> leaves = employeeLeaveRepository.findAll();
+                for (EmployeeLeave leave : leaves) {
+                        list.add(Map.of(
+                                        "name", leave.getEmployeeName(),
+                                        "type", leave.getType(),
+                                        "from", leave.getFromDate() != null ? leave.getFromDate().toString() : "N/A",
+                                        "to", leave.getToDate() != null ? leave.getToDate().toString() : "N/A"));
                 }
                 return list;
         }
@@ -48,9 +76,13 @@ public class HrDashboardController {
         @GetMapping("/calendar/events")
         public List<Map<String, String>> getCalendarEvents() {
                 List<Map<String, String>> list = new ArrayList<>();
-                list.add(Map.of("time", "12PM", "title", "Business lunch at Pret", "color", "green"));
-                list.add(Map.of("time", "1PM", "title", "Skype call with Kate", "color", "yellow"));
-                list.add(Map.of("time", "4PM", "title", "HR team meeting", "color", "red"));
+                List<CalendarEvent> events = calendarEventRepository.findAll();
+                for (CalendarEvent event : events) {
+                        list.add(Map.of(
+                                        "time", event.getTime(),
+                                        "title", event.getTitle(),
+                                        "color", event.getColor()));
+                }
                 return list;
         }
 
@@ -58,30 +90,24 @@ public class HrDashboardController {
         @GetMapping("/onboarding/summary")
         public List<Map<String, Object>> getOnboardingSummary() {
                 List<Map<String, Object>> list = new ArrayList<>();
-                list.add(Map.of(
-                                "code", "CAB235",
-                                "position", "Senior Business Developer",
-                                "candidates", List.of(
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=1"),
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=2")),
-                                "deadline", "29/05/2025",
-                                "status", "Pending"));
-                list.add(Map.of(
-                                "code", "FBD114",
-                                "position", "Senior Python Developer",
-                                "candidates", List.of(
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=3"),
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=4"),
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=5")),
-                                "deadline", "30/05/2025",
-                                "status", "Pending"));
-                list.add(Map.of(
-                                "code", "HKD099",
-                                "position", "Junior Project Manager",
-                                "candidates", List.of(
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=6")),
-                                "deadline", "12/06/2025",
-                                "status", "Pending"));
+                List<Onboarding> onboardings = onboardingRepository.findAll();
+                for (Onboarding onboarding : onboardings) {
+                        List<Map<String, String>> candidatesList = new ArrayList<>();
+                        List<OnboardingCandidate> candidates = onboardingCandidateRepository.findAll();
+                        for (OnboardingCandidate candidate : candidates) {
+                                if (candidate.getOnboardingId() != null
+                                                && candidate.getOnboardingId().equals(onboarding.getId())) {
+                                        candidatesList.add(Map.of("avatar", candidate.getAvatar()));
+                                }
+                        }
+                        list.add(Map.of(
+                                        "code", onboarding.getCode(),
+                                        "position", onboarding.getPosition(),
+                                        "candidates", candidatesList,
+                                        "deadline",
+                                        onboarding.getDeadline() != null ? onboarding.getDeadline().toString() : "N/A",
+                                        "status", onboarding.getStatus()));
+                }
                 return list;
         }
 
@@ -89,43 +115,39 @@ public class HrDashboardController {
         @GetMapping("/projects/summary")
         public List<Map<String, Object>> getProjectSummary() {
                 List<Map<String, Object>> list = new ArrayList<>();
-                list.add(Map.of(
-                                "name", "HRMS Revamp",
-                                "manager", "Ravi Kumar",
-                                "team", List.of(
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=8"),
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=9"),
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=10"),
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=11"),
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=12")),
-                                "status", "In Progress",
-                                "deadline", "31/08/2025"));
-                list.add(Map.of(
-                                "name", "Payroll Automation",
-                                "manager", "Anjali Mehta",
-                                "team", List.of(
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=13"),
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=14")),
-                                "status", "Completed",
-                                "deadline", "15/07/2025"));
-                list.add(Map.of(
-                                "name", "Onboarding Portal",
-                                "manager", "Karthik Reddy",
-                                "team", List.of(
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=5"),
-                                                Map.of("avatar", "https://i.pravatar.cc/30?img=6")),
-                                "status", "Delayed",
-                                "deadline", "22/07/2025"));
+                List<Project> projects = projectRepository.findAll();
+                for (Project project : projects) {
+                        List<Map<String, String>> teamList = new ArrayList<>();
+                        List<ProjectTeamMember> teamMembers = projectTeamMemberRepository.findAll();
+                        for (ProjectTeamMember member : teamMembers) {
+                                if (member.getProjectId() != null && member.getProjectId().equals(project.getId())) {
+                                        teamList.add(Map.of("avatar", member.getAvatar()));
+                                }
+                        }
+                        list.add(Map.of(
+                                        "name", project.getName(),
+                                        "manager", project.getManager(),
+                                        "team", teamList,
+                                        "status", project.getStatus(),
+                                        "deadline",
+                                        project.getDeadline() != null ? project.getDeadline().toString() : "N/A"));
+                }
                 return list;
         }
 
         // --- Payroll Summary ---
         @GetMapping("/payroll/summary")
         public Map<String, Object> getPayrollSummary() {
+                List<Payroll> payrolls = payrollRepository.findAll();
+                double totalPaid = payrolls.stream().filter(p -> "Paid".equalsIgnoreCase(p.getStatus()))
+                                .mapToDouble(Payroll::getNetSalary).sum();
+                double pending = payrolls.stream().filter(p -> "Pending".equalsIgnoreCase(p.getStatus()))
+                                .mapToDouble(Payroll::getNetSalary).sum();
+                String cycle = payrolls.isEmpty() ? "N/A" : payrolls.get(0).getCycle();
                 return Map.of(
-                                "totalPaid", 1245000,
-                                "pending", 115000,
-                                "cycle", "1st - 5th Every Month");
+                                "totalPaid", totalPaid,
+                                "pending", pending,
+                                "cycle", cycle);
         }
 
         // --- Payroll Table ---
