@@ -7,7 +7,8 @@ import './ManagerDashboard.css';
 import axios from '../utils/axios';
 
 function ManagerDashboard() {
-    const managerId = 1;
+    // Use managerId from localStorage (set after login)
+    const managerId = localStorage.getItem('managerId');
     const [team, setTeam] = useState([]);
     const [leaves, setLeaves] = useState([]);
     const [projects, setProjects] = useState([]);
@@ -54,7 +55,7 @@ function ManagerDashboard() {
 
     // Employees on leave today
     const today = new Date().toISOString().slice(0, 10);
-    const employeesOnLeave = leaves.filter(l => l.startDate <= today && l.endDate >= today);
+    const employeesOnLeave = leaves.filter(l => l.fromDate <= today && l.toDate >= today);
 
     return (
         <div className="manager-dashboard-layout">
@@ -87,7 +88,9 @@ function ManagerDashboard() {
                     </div>
                 </div>
                 <p>Welcome to the manager dashboard. Here you can view your project overview, team, notifications, reminders, and employees on leave.</p>
-
+                <button className="quick-link-btn" style={{marginBottom:16}} onClick={() => navigate(`/manager/${managerId}/leaves`)}>
+                    View All Leave Requests
+                </button>
                 {loading ? <div>Loading...</div> : (
                     <>
                         {/* Project Overview Card */}
@@ -135,8 +138,8 @@ function ManagerDashboard() {
                                     return (
                                         <div className="manager-dashboard-leave-card" key={lv.id}>
                                             <div className="manager-dashboard-leave-card-title">{emp ? emp.fullName : 'Employee #' + lv.employeeId}</div>
-                                            <div className="manager-dashboard-leave-card-type">{lv.leaveType}</div>
-                                            <div className="manager-dashboard-leave-card-dates">{lv.startDate} to {lv.endDate}</div>
+                                            <div className="manager-dashboard-leave-card-type">{lv.type}</div>
+                                            <div className="manager-dashboard-leave-card-dates">{lv.fromDate} to {lv.toDate}</div>
                                             <div className="manager-dashboard-leave-card-status">Status: {lv.status}</div>
                                         </div>
                                     );

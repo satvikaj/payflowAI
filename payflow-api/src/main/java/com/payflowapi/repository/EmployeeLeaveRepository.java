@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Long> {
     List<EmployeeLeave> findByEmployeeIdIn(List<Long> employeeIds);
+    List<EmployeeLeave> findByEmployeeId(Long employeeId);
+    List<EmployeeLeave> findByManagerId(Long managerId);
 }

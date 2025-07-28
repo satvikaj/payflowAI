@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import EmployeeSidebar from '../components/EmployeeSidebar';
 import './EmployeeDashboard.css';
 import axios from 'axios';
@@ -10,13 +10,13 @@ const EmployeeDashboard = () => {
     const email = localStorage.getItem('userEmail'); // or get from auth context
 
     // Leave state
-    const [leaveSummary, setLeaveSummary] = useState({ total: 12, used: 0, remaining: 12 });
     const [leaveHistory, setLeaveHistory] = useState([]);
-    const [showLeaveForm, setShowLeaveForm] = useState(false);
-    const [leaveForm, setLeaveForm] = useState({ startDate: '', endDate: '', reason: '' });
-    const [leaveLoading, setLeaveLoading] = useState(false);
-    const [leaveError, setLeaveError] = useState('');
-    const [leaveSuccess, setLeaveSuccess] = useState('');
+    const totalLeaves = 12;
+    // Calculate used leaves: count all ACCEPTED leaves
+    const usedLeaves = useMemo(() => {
+        return leaveHistory.filter(l => l.status === 'ACCEPTED').length;
+    }, [leaveHistory]);
+    const remainingLeaves = totalLeaves - usedLeaves;
 
     useEffect(() => {
         if (email) {
@@ -31,48 +31,17 @@ const EmployeeDashboard = () => {
                 })
                 .catch(err => console.error('Failed to fetch employee details', err));
 
-            // Fetch leave summary
-            axios.get(`http://localhost:8080/api/leave/summary?email=${email}`)
+            // Fetch leave history (use the same endpoint as EmployeeLeave page for consistency)
+            axios.get(`http://localhost:8080/api/employee/leave/history?email=${email}`)
                 .then(res => {
-                    setLeaveSummary(res.data.summary);
-                    setLeaveHistory(res.data.history || []);
+                    setLeaveHistory(res.data || []);
                 })
                 .catch(() => {
-                    // fallback to default if error
-                    setLeaveSummary({ total: 12, used: 0, remaining: 12 });
                     setLeaveHistory([]);
                 });
         }
     }, [email]);
 
-    const handleLeaveFormChange = (e) => {
-        setLeaveForm({ ...leaveForm, [e.target.name]: e.target.value });
-    };
-
-    const handleLeaveApply = (e) => {
-        e.preventDefault();
-        setLeaveLoading(true);
-        setLeaveError('');
-        setLeaveSuccess('');
-        axios.post('http://localhost:8080/api/leave/apply', {
-            email,
-            ...leaveForm
-        })
-            .then(res => {
-                setLeaveSuccess('Leave request submitted successfully!');
-                setShowLeaveForm(false);
-                // Refresh leave summary
-                return axios.get(`http://localhost:8080/api/leave/summary?email=${email}`);
-            })
-            .then(res => {
-                setLeaveSummary(res.data.summary);
-                setLeaveHistory(res.data.history || []);
-            })
-            .catch(err => {
-                setLeaveError('Failed to submit leave request.');
-            })
-            .finally(() => setLeaveLoading(false));
-    };
 
     return (
         <div className="employee-dashboard-layout">
@@ -124,9 +93,9 @@ const EmployeeDashboard = () => {
                     
                     <div className="dashboard-card leave-card">
                         <h3><FaClipboardList /> Leave Summary</h3>
-                        <p><b>Total Leaves:</b> <span style={{color:'#6366f1'}}>{leaveSummary.total} days</span></p>
-                        <p><b>Used:</b> <span style={{color:'tomato'}}>{leaveSummary.used} days</span></p>
-                        <p><b>Remaining:</b> <span style={{color:'#22c55e'}}>{leaveSummary.remaining} days</span></p>
+                        <p><b>Total Leaves:</b> <span style={{color:'#6366f1'}}>{totalLeaves} days</span></p>
+                        <p><b>Used:</b> <span style={{color:'tomato'}}>{usedLeaves} days</span></p>
+                        <p><b>Remaining:</b> <span style={{color:'#22c55e'}}>{remainingLeaves} days</span></p>
                     </div>
                     <div className="dashboard-card payroll-card">
                         <h3><FaMoneyBill /> Payroll</h3>

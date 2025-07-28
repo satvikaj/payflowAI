@@ -10,7 +10,8 @@ import Dashboard from "./pages/Dashboard";
 import ManagerLogin from './pages/ManagerLogin';
 import HRLogin from './pages/HRLogin';
 import Onboarding from "./pages/Onboarding";
-import EmployeeLogin from "./pages/EmployeeLogin";
+// import EmployeeLogin from "./pages/EmployeeLogin";
+import ManagerLeaveRequests from './pages/ManagerLeaveRequests';
 import Home from "./pages/Home";
 import Sidebar from "./components/Sidebar";
 import UnifiedLogin from "./pages/UnifiedLogin";
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/employee" element={<EmployeeList />} />
                 <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
                 <Route path="/manager-dashboard" element={<ManagerDashboard />} />
+                <Route path="/manager/:managerId/leaves" element={<ManagerLeaveRequests />} />
                 <Route path="/manager-notifications" element={<NotificationsPage />} />
                 <Route path="/employee-leave" element={<EmployeeLeave />} />
                 <Route path="/employee-overview" element={<EmployeeOverview />} />

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import EmployeeSidebar from '../components/EmployeeSidebar';
 import './EmployeeDashboard.css';
@@ -7,8 +7,13 @@ import { FaClipboardList, FaHistory, FaPlusCircle } from 'react-icons/fa';
 
 const EmployeeLeave = () => {
     const email = localStorage.getItem('userEmail');
-    const [leaveSummary, setLeaveSummary] = useState({ total: 12, used: 0, remaining: 12 });
     const [leaveHistory, setLeaveHistory] = useState([]);
+    const totalLeaves = 12;
+    // Calculate used leaves: count all ACCEPTED leaves, sum their days (or just count as 1 per leave if not tracking days)
+    const usedLeaves = useMemo(() => {
+        return leaveHistory.filter(l => l.status === 'ACCEPTED').length;
+    }, [leaveHistory]);
+    const remainingLeaves = totalLeaves - usedLeaves;
     const [leaveForm, setLeaveForm] = useState({ startDate: '', endDate: '', reason: '' });
     const [leaveLoading, setLeaveLoading] = useState(false);
     const [leaveError, setLeaveError] = useState('');
@@ -16,13 +21,11 @@ const EmployeeLeave = () => {
 
     useEffect(() => {
         if (email) {
-            axios.get(`http://localhost:8080/api/leave/summary?email=${email}`)
+            axios.get(`http://localhost:8080/api/employee/leave/history?email=${email}`)
                 .then(res => {
-                    setLeaveSummary(res.data.summary);
-                    setLeaveHistory(res.data.history || []);
+                    setLeaveHistory(res.data || []);
                 })
                 .catch(() => {
-                    setLeaveSummary({ total: 12, used: 0, remaining: 12 });
                     setLeaveHistory([]);
                 });
         }
@@ -37,21 +40,25 @@ const EmployeeLeave = () => {
         setLeaveLoading(true);
         setLeaveError('');
         setLeaveSuccess('');
-        axios.post('http://localhost:8080/api/leave/apply', {
+        axios.post('http://localhost:8080/api/employee/leave/apply', {
             email,
-            ...leaveForm
+            type: 'Annual', // or use a dropdown for type selection
+            startDate: leaveForm.startDate,
+            endDate: leaveForm.endDate,
+            reason: leaveForm.reason
         })
             .then(res => {
                 setLeaveSuccess('Leave request submitted successfully!');
+                setLeaveError('');
                 setLeaveForm({ startDate: '', endDate: '', reason: '' });
-                return axios.get(`http://localhost:8080/api/leave/summary?email=${email}`);
+                return axios.get(`http://localhost:8080/api/employee/leave/history?email=${email}`);
             })
             .then(res => {
-                setLeaveSummary(res.data.summary);
-                setLeaveHistory(res.data.history || []);
+                setLeaveHistory(res.data || []);
             })
             .catch(err => {
                 setLeaveError('Failed to submit leave request.');
+                setLeaveSuccess('');
             })
             .finally(() => setLeaveLoading(false));
     };
@@ -65,9 +72,9 @@ const EmployeeLeave = () => {
                     <div className="leave-summary-card dashboard-card leave-card">
                         <h3><FaClipboardList /> Leave Summary</h3>
                         <div className="leave-summary-grid">
-                            <div><b>Total</b><div className="leave-summary-value total">{leaveSummary.total}</div></div>
-                            <div><b>Used</b><div className="leave-summary-value used">{leaveSummary.used}</div></div>
-                            <div><b>Remaining</b><div className="leave-summary-value remaining">{leaveSummary.remaining}</div></div>
+                            <div><b>Total</b><div className="leave-summary-value total">{totalLeaves}</div></div>
+                            <div><b>Used</b><div className="leave-summary-value used">{usedLeaves}</div></div>
+                            <div><b>Remaining</b><div className="leave-summary-value remaining">{remainingLeaves}</div></div>
                         </div>
                     </div>
                     <div className="leave-form-card dashboard-card leave-card">
@@ -97,22 +104,24 @@ const EmployeeLeave = () => {
                     {leaveHistory.length === 0 ? (
                         <p className="leave-history-empty">No leave records found.</p>
                     ) : (
-                        <table className="leave-history-table">
-                            <thead>
+                        <table className="leave-history-table" style={{width:'100%', borderCollapse:'collapse', marginTop:16, background:'#fff', borderRadius:8, overflow:'hidden', boxShadow:'0 2px 8px #eee'}}>
+                            <thead style={{background:'#f5f6fa'}}>
                                 <tr>
-                                    <th>Start Date</th>
-                                    <th>End Date</th>
-                                    <th>Status</th>
-                                    <th>Reason</th>
+                                    <th style={{padding:'10px 16px', borderBottom:'1px solid #e0e0e0'}}>Start Date</th>
+                                    <th style={{padding:'10px 16px', borderBottom:'1px solid #e0e0e0'}}>End Date</th>
+                                    <th style={{padding:'10px 16px', borderBottom:'1px solid #e0e0e0'}}>Status</th>
+                                    <th style={{padding:'10px 16px', borderBottom:'1px solid #e0e0e0'}}>Employee Reason</th>
+                                    <th style={{padding:'10px 16px', borderBottom:'1px solid #e0e0e0'}}>Manager Denial Reason</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {leaveHistory.map((leave, idx) => (
-                                    <tr key={idx}>
-                                        <td>{leave.startDate}</td>
-                                        <td>{leave.endDate}</td>
-                                        <td><b>{leave.status}</b></td>
-                                        <td>{leave.reason}</td>
+                                    <tr key={idx} style={{background: idx % 2 === 0 ? '#fafbfc' : '#fff'}}>
+                                        <td style={{padding:'8px 16px', borderBottom:'1px solid #f0f0f0'}}>{leave.fromDate}</td>
+                                        <td style={{padding:'8px 16px', borderBottom:'1px solid #f0f0f0'}}>{leave.toDate}</td>
+                                        <td style={{padding:'8px 16px', borderBottom:'1px solid #f0f0f0'}}><b>{leave.status}</b></td>
+                                        <td style={{padding:'8px 16px', borderBottom:'1px solid #f0f0f0'}}>{leave.reason || '-'}</td>
+                                        <td style={{padding:'8px 16px', borderBottom:'1px solid #f0f0f0'}}>{leave.denialReason || '-'}</td>
                                     </tr>
                                 ))}
                             </tbody>
