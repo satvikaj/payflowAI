@@ -46,13 +46,19 @@ const UnifiedLogin = () => {
                 username: finalEmail,
                 password: password,
             });
-
-            const { token, role, firstLogin, name } = res.data;
-
+            const { token, role, firstLogin, name, id, managerId } = res.data;
             localStorage.setItem("authToken", token);
             localStorage.setItem("role", role);
             localStorage.setItem("email", finalEmail);
             localStorage.setItem("name", name || "User");
+            // Store managerId for manager dashboard/leave requests
+            if (role === "MANAGER") {
+                if (managerId && managerId !== "null") {
+                    localStorage.setItem("managerId", managerId);
+                } else if (id && id !== "null") {
+                    localStorage.setItem("managerId", id);
+                }
+            }
             // Store userEmail for employee dashboard fetch
             if (role === "EMPLOYEE") {
                 localStorage.setItem("userEmail", finalEmail);
@@ -98,14 +104,8 @@ const UnifiedLogin = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                 />
-
-                <label style={{ display: "block", marginTop: "1px", fontSize: "14px", marginRight: "280px" }}>
-                    <input
-                        type="checkbox"
-                        checked={showPassword}
-                        onChange={() => setShowPassword(!showPassword)}
-                        style={{ marginRight: "5px" }}
-                    />
+                <label>
+                    <input type="checkbox" checked={showPassword} onChange={() => setShowPassword(!showPassword)} />
                     Show Password
                 </label>
 

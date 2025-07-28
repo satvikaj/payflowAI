@@ -1,3 +1,4 @@
+// ...existing code...
 package com.payflowapi.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
@@ -6,6 +7,18 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class EmailService {
+    public void sendNotificationEmail(String toEmail, String subject, String messageBody) {
+        System.out.println("Sending notification email to " + toEmail);
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject(subject);
+        message.setText(messageBody);
+
+        mailSender.send(message);
+
+        System.out.println("Notification email sent successfully to " + toEmail);
+    }
 
     @Autowired
     private JavaMailSender mailSender;

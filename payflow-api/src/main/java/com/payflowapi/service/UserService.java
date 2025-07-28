@@ -39,7 +39,10 @@ public class UserService {
         // ✅ Create LoginResponse and set name
         LoginResponse response = new LoginResponse(token, user.getRole(), user.isFirstLogin());
         response.setName(user.getName());
-
+        // Set user id for manager users
+        if (user.getRole() != null && user.getRole().equalsIgnoreCase("MANAGER")) {
+            response.setId(user.getId());
+        }
         return response;
     }
 
