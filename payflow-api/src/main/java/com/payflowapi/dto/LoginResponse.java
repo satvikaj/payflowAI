@@ -7,6 +7,13 @@ public class LoginResponse {
     private String role;        // 👥 Role of the user (ADMIN, HR, MANAGER)
     private boolean firstLogin; // ✅ True if user must reset password on first login
     private String name;
+    private Long id; // Add user id for managerId
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
     // ✅ Default constructor (required for serialization)
     public LoginResponse() {
     }

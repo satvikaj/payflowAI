@@ -1,6 +1,7 @@
 package com.payflowapi.controller;
 
 import com.payflowapi.dto.EmployeeDto;
+import com.payflowapi.dto.LeaveRequestDto;
 import com.payflowapi.entity.Employee;
 import com.payflowapi.entity.Project;
 import com.payflowapi.entity.EmployeeLeave;
@@ -14,11 +15,121 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import java.security.SecureRandom;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/employee")
 @CrossOrigin(origins = "http://localhost:3000") // Allow frontend access
 public class EmployeeController {
+    // Accept/Deny leave request and send email notification
+    @PostMapping("/leave/{leaveId}/action")
+    public ResponseEntity<String> handleLeaveAction(@PathVariable Long leaveId, @RequestBody Map<String, String> body) {
+        String action = body.get("action"); // ACCEPT or DENY
+        String denialReason = body.get("reason"); // Only for DENY
+        EmployeeLeave leave = employeeLeaveRepository.findById(leaveId).orElse(null);
+        if (leave == null) return ResponseEntity.badRequest().body("Leave request not found");
+        if ("ACCEPT".equalsIgnoreCase(action)) {
+            leave.setStatus("ACCEPTED");
+            employeeLeaveRepository.save(leave);
+            // Send email to employee
+            Employee emp = employeeRepository.findById(leave.getEmployeeId()).orElse(null);
+            if (emp != null) {
+                emailService.sendNotificationEmail(
+                    emp.getEmail(),
+                    "Leave Request Accepted",
+                    "Hello " + emp.getFullName() + ",\n\nYour leave request has been accepted.\n" +
+                    "Type: " + leave.getType() + "\n" +
+                    "From: " + leave.getFromDate() + "\n" +
+                    "To: " + leave.getToDate() + "\n" +
+                    (leave.getReason() != null && !leave.getReason().isEmpty() ? ("Reason: " + leave.getReason() + "\n") : "") +
+                    "\n- PayFlow Team"
+                );
+            }
+            return ResponseEntity.ok("Leave accepted and email sent");
+        } else if ("DENY".equalsIgnoreCase(action)) {
+            leave.setStatus("DENIED");
+            leave.setDenialReason(denialReason); // Store manager's denial reason
+            employeeLeaveRepository.save(leave);
+            // Send email to employee with both reasons
+            Employee emp = employeeRepository.findById(leave.getEmployeeId()).orElse(null);
+            if (emp != null) {
+                StringBuilder denialMsg = new StringBuilder();
+                denialMsg.append("Hello ").append(emp.getFullName()).append(",\n\nYour leave request has been denied.\n");
+                denialMsg.append("Type: ").append(leave.getType()).append("\n");
+                denialMsg.append("From: ").append(leave.getFromDate()).append("\n");
+                denialMsg.append("To: ").append(leave.getToDate()).append("\n");
+                if (leave.getReason() != null && !leave.getReason().isEmpty()) {
+                    denialMsg.append("Your Reason: ").append(leave.getReason()).append("\n");
+                }
+                if (denialReason != null && !denialReason.isEmpty()) {
+                    denialMsg.append("Manager's Denial Reason: ").append(denialReason).append("\n");
+                }
+                denialMsg.append("\n- PayFlow Team");
+                emailService.sendNotificationEmail(
+                    emp.getEmail(),
+                    "Leave Request Denied",
+                    denialMsg.toString()
+                );
+            }
+            return ResponseEntity.ok("Leave denied and email sent");
+        }
+        return ResponseEntity.badRequest().body("Invalid action");
+    }
+    // List all employees and their managerId for verification
+    @GetMapping("/all-employees")
+    public List<Employee> getAllEmployeesWithManagerId() {
+        return employeeRepository.findAll();
+    }
+    // FIX: Update all leave requests with correct managerId from employee table
+    @PostMapping("/leaves/fix-manager-ids")
+    public String fixLeaveManagerIds() {
+        List<EmployeeLeave> leaves = employeeLeaveRepository.findAll();
+        int updated = 0;
+        for (EmployeeLeave leave : leaves) {
+            Employee emp = employeeRepository.findById(leave.getEmployeeId()).orElse(null);
+            if (emp != null && (leave.getManagerId() == null || !leave.getManagerId().equals(emp.getManagerId()))) {
+                leave.setManagerId(emp.getManagerId());
+                employeeLeaveRepository.save(leave);
+                updated++;
+            }
+        }
+        return "Updated managerId for " + updated + " leave requests.";
+    }
+    // DEBUG: List all leave requests and their managerId
+    @GetMapping("/leaves/all")
+    public List<EmployeeLeave> getAllLeaves() {
+        return employeeLeaveRepository.findAll();
+    }
+    // Endpoint to get leave history for an employee
+    @GetMapping("/leave/history")
+    public List<EmployeeLeave> getLeaveHistory(@RequestParam String email) {
+        Employee employee = employeeRepository.findByEmail(email).orElse(null);
+        if (employee == null) {
+            return List.of();
+        }
+        return employeeLeaveRepository.findByEmployeeId(employee.getId());
+    }
+    // Endpoint to apply for leave
+    @PostMapping("/leave/apply")
+    public EmployeeLeave applyForLeave(@RequestBody LeaveRequestDto dto) {
+        // Find employee by email
+        Employee employee = employeeRepository.findByEmail(dto.getEmail()).orElse(null);
+        if (employee == null) {
+            throw new RuntimeException("Employee not found");
+        }
+        EmployeeLeave leave = new EmployeeLeave();
+        leave.setEmployeeId(employee.getId());
+        leave.setManagerId(employee.getManagerId());
+        leave.setEmployeeName(employee.getFullName());
+        leave.setType(dto.getType());
+        leave.setFromDate(dto.getStartDate());
+        leave.setToDate(dto.getEndDate());
+        leave.setReason(dto.getReason());
+        leave.setStatus("PENDING");
+        employeeLeaveRepository.save(leave);
+        return leave;
+    }
 
     @Autowired
     private EmployeeRepository employeeRepository;
@@ -123,11 +234,11 @@ public class EmployeeController {
     // 2. Get leave requests for a manager's team
     @GetMapping("/manager/{managerId}/leaves")
     public List<EmployeeLeave> getTeamLeaves(@PathVariable Long managerId) {
-        // This assumes you have EmployeeLeaveRepository and EmployeeLeave entity
-        // and Employee has a managerId field
-        List<Employee> team = employeeRepository.findByManagerId(managerId);
-        List<Long> teamIds = team.stream().map(Employee::getId).toList();
-        return employeeLeaveRepository.findByEmployeeIdIn(teamIds);
+        // Debug log
+        System.out.println("Fetching leaves for managerId: " + managerId);
+        List<EmployeeLeave> leaves = employeeLeaveRepository.findByManagerId(managerId);
+        System.out.println("Found leaves: " + leaves.size());
+        return leaves;
     }
 
     // 3. Get projects managed by a manager

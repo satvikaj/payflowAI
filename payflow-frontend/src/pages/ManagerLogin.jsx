@@ -143,7 +143,10 @@ const ManagerLogin = () => {
       if (res.ok) {
         localStorage.setItem('email', email);
         localStorage.setItem('role', data.role);
-
+        // Store managerId for dashboard/leave requests
+        if (data.managerId) {
+          localStorage.setItem('managerId', data.managerId);
+        }
         if (data.firstLogin) {
           navigate('/reset-password');
         } else {
