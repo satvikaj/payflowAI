@@ -4,6 +4,9 @@ import { FaTachometerAlt, FaUsers, FaProjectDiagram, FaEnvelopeOpenText } from '
 import './SidebarManager.css';
 
 const SidebarManager = () => {
+    // Get managerId from localStorage for proper routing
+    const managerId = localStorage.getItem('managerId');
+
     return (
         <div className="sidebar">
             <h2 className="logo">MANAGER</h2>
@@ -24,7 +27,11 @@ const SidebarManager = () => {
                     </NavLink>
                 </li>
                 <li>
-                    <NavLink to="/leave-requests" className={({ isActive }) => isActive ? 'active-link' : ''} end>
+                    <NavLink 
+                        to={`/manager/${managerId}/leaves`} 
+                        className={({ isActive }) => isActive ? 'active-link' : ''} 
+                        end
+                    >
                         <FaEnvelopeOpenText /> Leave Requests
                     </NavLink>
                 </li>

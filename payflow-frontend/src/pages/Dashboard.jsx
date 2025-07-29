@@ -305,12 +305,89 @@ export default function Dashboard() {
 
                             {/* Employees on Leave Card */}
                             <div className="card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 4px 24px rgba(30,64,175,0.07), 0 1.5px 6px rgba(0,0,0,0.04)', padding: '28px 24px 22px 24px', transition: 'box-shadow 0.2s, transform 0.18s' }}>
-                                <h2 className="section-title">EMPLOYEES ON LEAVE</h2>
-                                <ul className="leave-list">
-                                    {onLeave.length === 0 ? <li>No one on leave</li> : onLeave.map((l, i) => (
-                                        <li key={i}><strong>{l.name}</strong> - {l.type} ({l.from} - {l.to})</li>
-                                    ))}
-                                </ul>
+                                <h2 className="section-title">EMPLOYEES ON LEAVE TODAY</h2>
+                                {(() => {
+                                    // Get today's date in YYYY-MM-DD format
+                                    const today = new Date().toISOString().split('T')[0];
+                                    
+                                    // Count employees on leave today
+                                    let employeesOnLeaveCount = 0;
+                                    const employeesOnLeaveToday = [];
+                                    
+                                    if (onLeave && Array.isArray(onLeave)) {
+                                        onLeave.forEach(leave => {
+                                            // Use the correct field names from the API response
+                                            let fromDate = leave.from;
+                                            let toDate = leave.to;
+                                            
+                                            // Skip if no dates available or dates are "N/A"
+                                            if (!fromDate || !toDate || fromDate === "N/A" || toDate === "N/A") return;
+                                            
+                                            // Convert dates to YYYY-MM-DD format for comparison
+                                            try {
+                                                fromDate = new Date(fromDate).toISOString().split('T')[0];
+                                                toDate = new Date(toDate).toISOString().split('T')[0];
+                                            } catch (e) {
+                                                console.error('Date parsing error:', e);
+                                                return;
+                                            }
+                                            
+                                            // Check if leave is approved/accepted
+                                            const status = (leave.status || '').toLowerCase();
+                                            const isApproved = status === 'approved' || status === 'accepted';
+                                            
+                                            // Check if today falls within leave period
+                                            const isToday = fromDate <= today && today <= toDate;
+                                            
+                                            if (isApproved && isToday) {
+                                                const employeeName = leave.name || 'Unknown Employee';
+                                                const leaveType = leave.type || 'Leave';
+                                                
+                                                // Check for duplicates based on name and dates
+                                                const isDuplicate = employeesOnLeaveToday.some(emp => 
+                                                    emp.name === employeeName && 
+                                                    emp.fromDate === fromDate && 
+                                                    emp.toDate === toDate
+                                                );
+                                                
+                                                if (!isDuplicate) {
+                                                    employeesOnLeaveToday.push({
+                                                        name: employeeName,
+                                                        type: leaveType,
+                                                        fromDate: fromDate,
+                                                        toDate: toDate
+                                                    });
+                                                }
+                                            }
+                                        });
+                                    }
+                                    
+                                    employeesOnLeaveCount = employeesOnLeaveToday.length;
+                                    
+                                    return (
+                                        <>
+                                            <div style={{ marginBottom: '12px', fontSize: '2.5rem', fontWeight: '800', color: '#22223b', textAlign: 'center' }}>
+                                                {employeesOnLeaveCount}
+                                            </div>
+                                            <ul className="leave-list">
+                                                {employeesOnLeaveCount === 0 ? (
+                                                    <li style={{ color: '#10b981', fontWeight: '500' }}>✅ Full attendance today</li>
+                                                ) : (
+                                                    employeesOnLeaveToday.map((emp, i) => (
+                                                        <li key={`${emp.name}-${i}`} style={{ marginBottom: '8px', padding: '8px', background: '#fef3c7', borderRadius: '6px', border: '1px solid #fbbf24' }}>
+                                                            <strong style={{ color: '#92400e' }}>{emp.name}</strong> - 
+                                                            <span style={{ color: '#b45309', marginLeft: '4px' }}>{emp.type}</span>
+                                                            <br />
+                                                            <span style={{ fontSize: '0.9rem', color: '#78716c' }}>
+                                                                ({emp.fromDate} to {emp.toDate})
+                                                            </span>
+                                                        </li>
+                                                    ))
+                                                )}
+                                            </ul>
+                                        </>
+                                    );
+                                })()}
                             </div>
                         </div>
 

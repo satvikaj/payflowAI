@@ -13,7 +13,6 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-
     public LoginResponse login(LoginDto dto) {
         // 🔍 Find user by username (email)
         User user = userRepository.findByUsername(dto.getUsername())
@@ -28,10 +27,9 @@ public class UserService {
         if (!user.getPassword().equals(dto.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
-//        if (user.getActive() != null && !user.getActive()) {
-//            throw new RuntimeException("User is disabled");
-//        }
-
+        // if (user.getActive() != null && !user.getActive()) {
+        // throw new RuntimeException("User is disabled");
+        // }
 
         // 🪪 Generate mock token (can be replaced with JWT later)
         String token = "mock-token";
@@ -47,8 +45,3 @@ public class UserService {
     }
 
 }
-
-
-
-
-

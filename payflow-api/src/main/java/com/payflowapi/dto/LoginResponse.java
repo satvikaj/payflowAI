@@ -3,17 +3,20 @@ package com.payflowapi.dto;
 // ✅ DTO for sending login response to frontend
 public class LoginResponse {
 
-    private String token;       // 🔐 Authentication token (can be dummy or JWT)
-    private String role;        // 👥 Role of the user (ADMIN, HR, MANAGER)
+    private String token; // 🔐 Authentication token (can be dummy or JWT)
+    private String role; // 👥 Role of the user (ADMIN, HR, MANAGER)
     private boolean firstLogin; // ✅ True if user must reset password on first login
-    private String name;
+    private String name; // 👤 Full name of the user
     private Long id; // Add user id for managerId
+
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
+
     // ✅ Default constructor (required for serialization)
     public LoginResponse() {
     }
@@ -25,10 +28,10 @@ public class LoginResponse {
         this.firstLogin = firstLogin;
     }
 
-
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -37,6 +40,7 @@ public class LoginResponse {
     public String getToken() {
         return token;
     }
+
     public void setToken(String token) {
         this.token = token;
     }
@@ -45,6 +49,7 @@ public class LoginResponse {
     public String getRole() {
         return role;
     }
+
     public void setRole(String role) {
         this.role = role;
     }
@@ -53,6 +58,7 @@ public class LoginResponse {
     public boolean isFirstLogin() {
         return firstLogin;
     }
+
     public void setFirstLogin(boolean firstLogin) {
         this.firstLogin = firstLogin;
     }
