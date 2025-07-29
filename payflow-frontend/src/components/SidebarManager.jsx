@@ -27,6 +27,11 @@ const SidebarManager = () => {
                     </NavLink>
                 </li>
                 <li>
+                    <NavLink to="/manager-onboarding" className={({ isActive }) => isActive ? 'active-link' : ''} end>
+                        <FaUsers /> Onboarding
+                    </NavLink>
+                </li>
+                <li>
                     <NavLink 
                         to={`/manager/${managerId}/leaves`} 
                         className={({ isActive }) => isActive ? 'active-link' : ''} 
