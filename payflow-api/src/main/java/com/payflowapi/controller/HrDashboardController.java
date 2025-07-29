@@ -64,10 +64,12 @@ public class HrDashboardController {
                 List<EmployeeLeave> leaves = employeeLeaveRepository.findAll();
                 for (EmployeeLeave leave : leaves) {
                         list.add(Map.of(
-                                        "name", leave.getEmployeeName(),
-                                        "type", leave.getType(),
+                                        "name",
+                                        leave.getEmployeeName() != null ? leave.getEmployeeName() : "Unknown Employee",
+                                        "type", leave.getType() != null ? leave.getType() : "Leave",
                                         "from", leave.getFromDate() != null ? leave.getFromDate().toString() : "N/A",
-                                        "to", leave.getToDate() != null ? leave.getToDate().toString() : "N/A"));
+                                        "to", leave.getToDate() != null ? leave.getToDate().toString() : "N/A",
+                                        "status", leave.getStatus() != null ? leave.getStatus() : "PENDING"));
                 }
                 return list;
         }

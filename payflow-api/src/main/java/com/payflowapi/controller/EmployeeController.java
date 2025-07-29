@@ -28,7 +28,8 @@ public class EmployeeController {
         String action = body.get("action"); // ACCEPT or DENY
         String denialReason = body.get("reason"); // Only for DENY
         EmployeeLeave leave = employeeLeaveRepository.findById(leaveId).orElse(null);
-        if (leave == null) return ResponseEntity.badRequest().body("Leave request not found");
+        if (leave == null)
+            return ResponseEntity.badRequest().body("Leave request not found");
         if ("ACCEPT".equalsIgnoreCase(action)) {
             leave.setStatus("ACCEPTED");
             employeeLeaveRepository.save(leave);
@@ -36,15 +37,17 @@ public class EmployeeController {
             Employee emp = employeeRepository.findById(leave.getEmployeeId()).orElse(null);
             if (emp != null) {
                 emailService.sendNotificationEmail(
-                    emp.getEmail(),
-                    "Leave Request Accepted",
-                    "Hello " + emp.getFullName() + ",\n\nYour leave request has been accepted.\n" +
-                    "Type: " + leave.getType() + "\n" +
-                    "From: " + leave.getFromDate() + "\n" +
-                    "To: " + leave.getToDate() + "\n" +
-                    (leave.getReason() != null && !leave.getReason().isEmpty() ? ("Reason: " + leave.getReason() + "\n") : "") +
-                    "\n- PayFlow Team"
-                );
+                        emp.getEmail(),
+                        "Leave Request Accepted",
+                        "Hello " + emp.getFullName() + ",\n\nYour leave request has been accepted.\n" +
+                                "Type: " + leave.getType() + "\n" +
+                                "From: " + leave.getFromDate() + "\n" +
+                                "To: " + leave.getToDate() + "\n" +
+                                (leave.getReason() != null && !leave.getReason().isEmpty()
+                                        ? ("Reason: " + leave.getReason() + "\n")
+                                        : "")
+                                +
+                                "\n- PayFlow Team");
             }
             return ResponseEntity.ok("Leave accepted and email sent");
         } else if ("DENY".equalsIgnoreCase(action)) {
@@ -55,7 +58,8 @@ public class EmployeeController {
             Employee emp = employeeRepository.findById(leave.getEmployeeId()).orElse(null);
             if (emp != null) {
                 StringBuilder denialMsg = new StringBuilder();
-                denialMsg.append("Hello ").append(emp.getFullName()).append(",\n\nYour leave request has been denied.\n");
+                denialMsg.append("Hello ").append(emp.getFullName())
+                        .append(",\n\nYour leave request has been denied.\n");
                 denialMsg.append("Type: ").append(leave.getType()).append("\n");
                 denialMsg.append("From: ").append(leave.getFromDate()).append("\n");
                 denialMsg.append("To: ").append(leave.getToDate()).append("\n");
@@ -67,20 +71,21 @@ public class EmployeeController {
                 }
                 denialMsg.append("\n- PayFlow Team");
                 emailService.sendNotificationEmail(
-                    emp.getEmail(),
-                    "Leave Request Denied",
-                    denialMsg.toString()
-                );
+                        emp.getEmail(),
+                        "Leave Request Denied",
+                        denialMsg.toString());
             }
             return ResponseEntity.ok("Leave denied and email sent");
         }
         return ResponseEntity.badRequest().body("Invalid action");
     }
+
     // List all employees and their managerId for verification
     @GetMapping("/all-employees")
     public List<Employee> getAllEmployeesWithManagerId() {
         return employeeRepository.findAll();
     }
+
     // FIX: Update all leave requests with correct managerId from employee table
     @PostMapping("/leaves/fix-manager-ids")
     public String fixLeaveManagerIds() {
@@ -96,11 +101,13 @@ public class EmployeeController {
         }
         return "Updated managerId for " + updated + " leave requests.";
     }
+
     // DEBUG: List all leave requests and their managerId
     @GetMapping("/leaves/all")
     public List<EmployeeLeave> getAllLeaves() {
         return employeeLeaveRepository.findAll();
     }
+
     // Endpoint to get leave history for an employee
     @GetMapping("/leave/history")
     public List<EmployeeLeave> getLeaveHistory(@RequestParam String email) {
@@ -110,25 +117,85 @@ public class EmployeeController {
         }
         return employeeLeaveRepository.findByEmployeeId(employee.getId());
     }
+
     // Endpoint to apply for leave
     @PostMapping("/leave/apply")
-    public EmployeeLeave applyForLeave(@RequestBody LeaveRequestDto dto) {
+    public ResponseEntity<?> applyForLeave(@RequestBody LeaveRequestDto dto) {
         // Find employee by email
         Employee employee = employeeRepository.findByEmail(dto.getEmail()).orElse(null);
         if (employee == null) {
-            throw new RuntimeException("Employee not found");
+            return ResponseEntity.badRequest().body("Employee not found");
         }
+
+        // Parse dates
+        java.time.LocalDate fromDate = java.time.LocalDate.parse(dto.getStartDate());
+        java.time.LocalDate toDate = java.time.LocalDate.parse(dto.getEndDate());
+
+        // Validate date range
+        if (fromDate.isAfter(toDate)) {
+            return ResponseEntity.badRequest().body("Start date cannot be after end date");
+        }
+
+        // Calculate days requested
+        long daysRequested = java.time.temporal.ChronoUnit.DAYS.between(fromDate, toDate) + 1;
+
+        // Check leave balance - count accepted leaves for this employee
+        List<EmployeeLeave> acceptedLeaves = employeeLeaveRepository.findByEmployeeIdAndStatus(employee.getId(), "ACCEPTED");
+        long usedLeaves = 0;
+        for (EmployeeLeave leave : acceptedLeaves) {
+            if (leave.getFromDate() != null && leave.getToDate() != null) {
+                usedLeaves += java.time.temporal.ChronoUnit.DAYS.between(leave.getFromDate(), leave.getToDate()) + 1;
+            }
+        }
+        
+        final int TOTAL_ANNUAL_LEAVES = 12;
+        long remainingLeaves = TOTAL_ANNUAL_LEAVES - usedLeaves;
+
+        // Check if employee has any remaining leaves
+        if (remainingLeaves <= 0) {
+            return ResponseEntity.badRequest().body("You have no remaining leaves. You have already used all " + TOTAL_ANNUAL_LEAVES + " annual leaves.");
+        }
+
+        // Check if requested days exceed remaining leaves
+        if (daysRequested > remainingLeaves) {
+            return ResponseEntity.badRequest().body("You are requesting " + daysRequested + " days but only have " + remainingLeaves + " leaves remaining.");
+        }
+
+        // Check for overlapping leave requests
+        List<EmployeeLeave> overlappingLeaves = employeeLeaveRepository.findOverlappingLeaves(
+                employee.getId(), fromDate, toDate);
+
+        if (!overlappingLeaves.isEmpty()) {
+            StringBuilder conflictMessage = new StringBuilder("Leave request conflicts with existing leave(s): ");
+            for (EmployeeLeave existing : overlappingLeaves) {
+                conflictMessage.append(existing.getFromDate().toString())
+                        .append(" to ")
+                        .append(existing.getToDate().toString())
+                        .append(" (")
+                        .append(existing.getStatus())
+                        .append("), ");
+            }
+            // Remove trailing comma and space
+            String message = conflictMessage.toString();
+            if (message.endsWith(", ")) {
+                message = message.substring(0, message.length() - 2);
+            }
+            return ResponseEntity.badRequest().body(message);
+        }
+
+        // Create new leave request
         EmployeeLeave leave = new EmployeeLeave();
         leave.setEmployeeId(employee.getId());
         leave.setManagerId(employee.getManagerId());
         leave.setEmployeeName(employee.getFullName());
         leave.setType(dto.getType());
-        leave.setFromDate(dto.getStartDate());
-        leave.setToDate(dto.getEndDate());
+        leave.setFromDate(fromDate);
+        leave.setToDate(toDate);
         leave.setReason(dto.getReason());
         leave.setStatus("PENDING");
-        employeeLeaveRepository.save(leave);
-        return leave;
+
+        EmployeeLeave savedLeave = employeeLeaveRepository.save(leave);
+        return ResponseEntity.ok(savedLeave);
     }
 
     @Autowired
