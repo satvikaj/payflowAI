@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import ManagerLogin from './pages/ManagerLogin';
 import HRLogin from './pages/HRLogin';
 import Onboarding from "./pages/Onboarding";
+import ManagerOnboarding from "./pages/ManagerOnboarding";
 // import EmployeeLogin from "./pages/EmployeeLogin";
 import ManagerLeaveRequests from './pages/ManagerLeaveRequests';
 import Home from "./pages/Home";
@@ -42,7 +43,8 @@ function App() {
                 <Route path="/sidebar" element={<Sidebar/>}/>
                 <Route path="/create-user" element={<AddUser/>} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/onboarding" element={<Onboarding />} />
+<Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/manager-onboarding" element={<ManagerOnboarding />} />
                 {/*<Route path="/login/hr" element={<HRLogin />} />*/}
                 {/*<Route path="/login/manager" element={<ManagerLogin />} />*/}
                 <Route path="/employee" element={<EmployeeList />} />
