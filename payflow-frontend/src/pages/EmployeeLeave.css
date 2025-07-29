@@ -1,15 +1,15 @@
-/* .employee-leave-layout {
+.employee-leave-layout {
   display: flex;
   min-height: 100vh;
   background: #f6f8fa;
 }
 
-
 .employee-leave-content {
   flex: 1;
-  padding: 32px 0 32px 0;
+  padding: 32px 0 32px 40px; /* Account for fixed sidebar width */
   max-width: 900px;
-  margin: 0 auto;
+  margin-right: auto;
+  min-height: 100vh;
 }
 
 .leave-top-row {
@@ -179,10 +179,10 @@
   margin-top: 24px;
   box-shadow: 0 8px 30px rgba(99, 102, 241, 0.08);
   border-radius: 18px;
-  width: fit-content;
-  max-width: 98vw;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%; /* Full width instead of fit-content */
+  max-width: 95vw;
+  margin-left: 0; /* Move card to left edge */
+  margin-right: 0; /* Remove auto margin */
   background: #fff;
   padding: 24px 16px;
   overflow: visible;
@@ -215,16 +215,13 @@
 }
 
 .leave-history-table-container {
-  overflow-x: auto;
   padding: 0 16px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start; /* Align table to the left */
 }
 
 .leave-history-table {
-  width: auto;
-  min-width: 700px;
-  max-width: 1200px;
+  width: 100%;
   border-collapse: separate;
   border-spacing: 0 10px;
   background: transparent;
@@ -307,9 +304,10 @@
 
 .employee-leave-content {
   flex: 1;
-  padding: 32px 0;
+  padding: 32px 0 32px 40px; /* Account for fixed sidebar width */
   max-width: 900px;
-  margin: 0 auto;
+  margin-right: auto;
+  min-height: 100vh;
 }
 
 .leave-top-row {

@@ -21,6 +21,7 @@ import EmployeeLeave from "./pages/EmployeeLeave";
 import ManagerDashboard from "./pages/ManagerDashboard";
 import NotificationsPage from "./pages/NotificationsPage";
 import EmployeeOverview from "./pages/EmployeeOverview";
+import EmployeeProfile from "./pages/EmployeeProfile";
 
 // import Login from "./components/Login";
 
@@ -49,6 +50,7 @@ function App() {
                 <Route path="/manager-notifications" element={<NotificationsPage />} />
                 <Route path="/employee-leave" element={<EmployeeLeave />} />
                 <Route path="/employee-overview" element={<EmployeeOverview />} />
+                <Route path="/employee-profile" element={<EmployeeProfile />} />
 
             </Routes>
         </BrowserRouter>
