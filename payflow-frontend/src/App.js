@@ -22,6 +22,8 @@ import ManagerDashboard from "./pages/ManagerDashboard";
 import NotificationsPage from "./pages/NotificationsPage";
 import EmployeeOverview from "./pages/EmployeeOverview";
 import EmployeeProfile from "./pages/EmployeeProfile";
+import ManagerOnboarding from "./pages/ManagerOnboarding";
+import TeamMembers from "./pages/TeamMembers";
 
 // import Login from "./components/Login";
 
@@ -51,6 +53,8 @@ function App() {
                 <Route path="/employee-leave" element={<EmployeeLeave />} />
                 <Route path="/employee-overview" element={<EmployeeOverview />} />
                 <Route path="/employee-profile" element={<EmployeeProfile />} />
+                <Route path="/manager-onboarding" element={<ManagerOnboarding />} />
+                <Route path="/team-members" element={<TeamMembers />} />
 
             </Routes>
         </BrowserRouter>
