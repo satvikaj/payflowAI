@@ -24,8 +24,8 @@ import axios from '../utils/axios';
 function ManagerDashboard() {
     // Use managerId from localStorage (set after login)
     const managerId = localStorage.getItem('managerId');
-    // Get manager name for personalized welcome message
-    const managerName = localStorage.getItem('managerName') || 'Manager';
+    // Get manager name dynamically from API
+    const [managerName, setManagerName] = useState('Manager');
     const [team, setTeam] = useState([]);
     const [leaves, setLeaves] = useState([]);
     const [projects, setProjects] = useState([]);
@@ -135,16 +135,20 @@ function ManagerDashboard() {
         async function fetchData() {
             setLoading(true);
             try {
-                const [teamRes, leavesRes, projectsRes] = await Promise.all([
+                const [managerRes, teamRes, leavesRes, projectsRes] = await Promise.all([
+                    axios.get(`/manager/${managerId}/details`),
                     axios.get(`/manager/${managerId}/team`),
                     axios.get(`/manager/${managerId}/leaves`),
                     axios.get(`/manager/${managerId}/projects`)
                 ]);
+                setManagerName(managerRes.data?.name || 'Manager');
                 setTeam(teamRes.data);
                 setLeaves(leavesRes.data);
                 setProjects(projectsRes.data);
             } catch (err) {
                 console.error("Error fetching manager data", err);
+                // Fallback to localStorage if API fails
+                setManagerName(localStorage.getItem('managerName') || 'Manager');
             }
             setLoading(false);
         }
@@ -193,40 +197,54 @@ function ManagerDashboard() {
     const activeProjects = projects.filter(p => p.status === 'ACTIVE' || !p.status).length;
     const completedProjects = projects.filter(p => p.status === 'COMPLETED').length;
     
-    // Get recent activities with pagination
+    // Get recent activities with pagination (sorted chronologically - newest first)
     const allRecentActivities = [
         ...leaves.map(l => ({
             type: 'leave',
             message: `Leave request from ${l.employeeName || team.find(t => t.id === l.employeeId)?.fullName || 'Employee'}`,
             time: l.createdAt || 'Recently',
             status: l.status,
-            date: new Date(l.createdAt || Date.now())
+            id: l.id,
+            sortKey: `leave_${l.id}`
         })),
         ...projects.map(p => ({
             type: 'project',
             message: `Project "${p.name || 'update'}" ${p.status === 'COMPLETED' ? 'completed' : 'updated'}`,
             time: p.updatedAt || 'Recently',
             status: p.status || 'ACTIVE',
-            date: new Date(p.updatedAt || Date.now())
+            id: p.id,
+            sortKey: `project_${p.id}`
         })),
         ...reminders.map(r => ({
             type: 'reminder',
             message: `Reminder: ${r.text}`,
             time: r.date,
             status: 'ACTIVE',
-            date: new Date(r.createdAt || Date.now())
+            id: r.id,
+            sortKey: `reminder_${r.id}`
         }))
-    ].sort((a, b) => b.date - a.date);
+    ].sort((a, b) => {
+        // Sort by ID within each type, then by type priority (leaves first, then projects, then reminders)
+        if (a.type !== b.type) {
+            const typePriority = { 'leave': 3, 'project': 2, 'reminder': 1 };
+            return typePriority[b.type] - typePriority[a.type];
+        }
+        return b.id - a.id; // Newest first within same type
+    });
 
     // Pagination for activities
     const totalActivityPages = Math.ceil(allRecentActivities.length / activitiesPerPage);
     const startActivityIndex = (currentActivityPage - 1) * activitiesPerPage;
     const paginatedActivities = allRecentActivities.slice(startActivityIndex, startActivityIndex + activitiesPerPage);
 
-    // Pagination for leaves
-    const totalLeavePages = Math.ceil(leaves.length / leavesPerPage);
+    // Pagination for leaves (sorted chronologically - newest first)
+    const sortedLeaves = [...leaves].sort((a, b) => {
+        // Sort by ID (newest/highest ID first since auto-generated)
+        return b.id - a.id;
+    });
+    const totalLeavePages = Math.ceil(sortedLeaves.length / leavesPerPage);
     const startLeaveIndex = (currentLeavePage - 1) * leavesPerPage;
-    const paginatedLeaves = leaves.slice(startLeaveIndex, startLeaveIndex + leavesPerPage);
+    const paginatedLeaves = sortedLeaves.slice(startLeaveIndex, startLeaveIndex + leavesPerPage);
 
     const getNotificationIcon = (type) => {
         switch(type) {
@@ -450,68 +468,49 @@ function ManagerDashboard() {
                                             Page {currentActivityPage} of {totalActivityPages || 1} ({allRecentActivities.length} total)
                                         </div>
                                     </div>
-                                    <div className="activity-list">
-                                        {paginatedActivities.length > 0 ? paginatedActivities.map((activity, idx) => (
-                                            <div key={idx} className="activity-item">
-                                                <div className={`activity-icon ${activity.type}`}>
-                                                    {getNotificationIcon(activity.type)}
-                                                </div>
-                                                <div className="activity-content">
-                                                    <p>{activity.message}</p>
-                                                    <span className="activity-time">{formatDate(activity.time)}</span>
-                                                </div>
-                                                <div className={`activity-status ${activity.status?.toLowerCase()}`}>
-                                                    {activity.status}
-                                                </div>
-                                            </div>
-                                        )) : (
-                                            <div className="no-activities">
-                                                <FaClipboardList />
-                                                <p>No recent activities</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {totalActivityPages > 1 && (
-                                        <div className="pagination-controls">
+                                    <div className="activity-container">
+                                        {totalActivityPages > 1 && (
                                             <button 
-                                                className="pagination-btn"
+                                                className="pagination-side-btn left"
                                                 onClick={() => setCurrentActivityPage(prev => Math.max(prev - 1, 1))}
                                                 disabled={currentActivityPage === 1}
+                                                title="Previous page"
                                             >
-                                                Previous
+                                                ‹
                                             </button>
-                                            <div className="pagination-pages">
-                                                {Array.from({ length: Math.min(5, totalActivityPages) }, (_, i) => {
-                                                    let pageNum;
-                                                    if (totalActivityPages <= 5) {
-                                                        pageNum = i + 1;
-                                                    } else if (currentActivityPage <= 3) {
-                                                        pageNum = i + 1;
-                                                    } else if (currentActivityPage >= totalActivityPages - 2) {
-                                                        pageNum = totalActivityPages - 4 + i;
-                                                    } else {
-                                                        pageNum = currentActivityPage - 2 + i;
-                                                    }
-                                                    return (
-                                                        <button
-                                                            key={pageNum}
-                                                            className={`pagination-number ${pageNum === currentActivityPage ? 'active' : ''}`}
-                                                            onClick={() => setCurrentActivityPage(pageNum)}
-                                                        >
-                                                            {pageNum}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
+                                        )}
+                                        <div className="activity-list">
+                                            {paginatedActivities.length > 0 ? paginatedActivities.map((activity, idx) => (
+                                                <div key={idx} className="activity-item">
+                                                    <div className={`activity-icon ${activity.type}`}>
+                                                        {getNotificationIcon(activity.type)}
+                                                    </div>
+                                                    <div className="activity-content">
+                                                        <p>{activity.message}</p>
+                                                        <span className="activity-time">{formatDate(activity.time)}</span>
+                                                    </div>
+                                                    <div className={`activity-status ${activity.status?.toLowerCase()}`}>
+                                                        {activity.status}
+                                                    </div>
+                                                </div>
+                                            )) : (
+                                                <div className="no-activities">
+                                                    <FaClipboardList />
+                                                    <p>No recent activities</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {totalActivityPages > 1 && (
                                             <button 
-                                                className="pagination-btn"
+                                                className="pagination-side-btn right"
                                                 onClick={() => setCurrentActivityPage(prev => Math.min(prev + 1, totalActivityPages))}
                                                 disabled={currentActivityPage === totalActivityPages}
+                                                title="Next page"
                                             >
-                                                Next
+                                                ›
                                             </button>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                             </>
                         )}
@@ -557,102 +556,82 @@ function ManagerDashboard() {
                                     <div className="section-header">
                                         <h4><FaClipboardList /> All Leave Requests</h4>
                                         <div className="pagination-info">
-                                            Page {currentLeavePage} of {totalLeavePages || 1} ({leaves.length} total)
+                                            Page {currentLeavePage} of {totalLeavePages || 1} ({sortedLeaves.length} total)
                                         </div>
                                     </div>
                                     
                                     {leaves.length > 0 ? (
                                         <>
-                                            <div className="leave-requests-table">
-                                                <div className="table-header">
-                                                    <div className="table-cell">Employee</div>
-                                                    <div className="table-cell">Type</div>
-                                                    <div className="table-cell">Dates</div>
-                                                    <div className="table-cell">Status</div>
-                                                    <div className="table-cell">Applied</div>
-                                                </div>
-                                                {paginatedLeaves.map(leave => {
-                                                    const emp = team.find(e => e.id === leave.employeeId);
-                                                    return (
-                                                        <div key={leave.id} className="table-row">
-                                                            <div className="table-cell">
-                                                                <div className="employee-info">
-                                                                    <span className="employee-name">
-                                                                        {emp ? emp.fullName : 'Employee #' + leave.employeeId}
-                                                                    </span>
-                                                                    <span className="employee-dept">
-                                                                        {emp?.department || 'N/A'}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="table-cell">
-                                                                <span className={`leave-type-badge ${leave.type?.toLowerCase()}`}>
-                                                                    {leave.type}
-                                                                </span>
-                                                            </div>
-                                                            <div className="table-cell">
-                                                                <div className="date-range">
-                                                                    <span>{leave.fromDate}</span>
-                                                                    <span className="date-separator">to</span>
-                                                                    <span>{leave.toDate}</span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="table-cell">
-                                                                <span className={`status-badge ${leave.status?.toLowerCase()}`}>
-                                                                    {leave.status}
-                                                                </span>
-                                                            </div>
-                                                            <div className="table-cell">
-                                                                <span className="applied-date">
-                                                                    {formatDate(leave.createdAt)}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                            
-                                            {totalLeavePages > 1 && (
-                                                <div className="pagination-controls">
+                                            <div className="leave-container">
+                                                {totalLeavePages > 1 && (
                                                     <button 
-                                                        className="pagination-btn"
+                                                        className="pagination-side-btn left"
                                                         onClick={() => setCurrentLeavePage(prev => Math.max(prev - 1, 1))}
                                                         disabled={currentLeavePage === 1}
+                                                        title="Previous page"
                                                     >
-                                                        Previous
+                                                        ‹
                                                     </button>
-                                                    <div className="pagination-pages">
-                                                        {Array.from({ length: Math.min(5, totalLeavePages) }, (_, i) => {
-                                                            let pageNum;
-                                                            if (totalLeavePages <= 5) {
-                                                                pageNum = i + 1;
-                                                            } else if (currentLeavePage <= 3) {
-                                                                pageNum = i + 1;
-                                                            } else if (currentLeavePage >= totalLeavePages - 2) {
-                                                                pageNum = totalLeavePages - 4 + i;
-                                                            } else {
-                                                                pageNum = currentLeavePage - 2 + i;
-                                                            }
-                                                            return (
-                                                                <button
-                                                                    key={pageNum}
-                                                                    className={`pagination-number ${pageNum === currentLeavePage ? 'active' : ''}`}
-                                                                    onClick={() => setCurrentLeavePage(pageNum)}
-                                                                >
-                                                                    {pageNum}
-                                                                </button>
-                                                            );
-                                                        })}
+                                                )}
+                                                <div className="leave-requests-table">
+                                                    <div className="table-header">
+                                                        <div className="table-cell">Employee</div>
+                                                        <div className="table-cell">Type</div>
+                                                        <div className="table-cell">Dates</div>
+                                                        <div className="table-cell">Status</div>
+                                                        <div className="table-cell">Applied</div>
                                                     </div>
+                                                    {paginatedLeaves.map(leave => {
+                                                        const emp = team.find(e => e.id === leave.employeeId);
+                                                        return (
+                                                            <div key={leave.id} className="table-row">
+                                                                <div className="table-cell">
+                                                                    <div className="employee-info">
+                                                                        <span className="employee-name">
+                                                                            {emp ? emp.fullName : 'Employee #' + leave.employeeId}
+                                                                        </span>
+                                                                        <span className="employee-dept">
+                                                                            {emp?.department || 'N/A'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="table-cell">
+                                                                    <span className={`leave-type-badge ${leave.type?.toLowerCase()}`}>
+                                                                        {leave.type}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="table-cell">
+                                                                    <div className="date-range">
+                                                                        <span>{leave.fromDate}</span>
+                                                                        <span className="date-separator">to</span>
+                                                                        <span>{leave.toDate}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="table-cell">
+                                                                    <span className={`status-badge ${leave.status?.toLowerCase()}`}>
+                                                                        {leave.status}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="table-cell">
+                                                                    <span className="applied-date">
+                                                                        {formatDate(leave.createdAt)}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                                {totalLeavePages > 1 && (
                                                     <button 
-                                                        className="pagination-btn"
+                                                        className="pagination-side-btn right"
                                                         onClick={() => setCurrentLeavePage(prev => Math.min(prev + 1, totalLeavePages))}
                                                         disabled={currentLeavePage === totalLeavePages}
+                                                        title="Next page"
                                                     >
-                                                        Next
+                                                        ›
                                                     </button>
-                                                </div>
-                                            )}
+                                                )}
+                                            </div>
                                         </>
                                     ) : (
                                         <div className="no-leaves">
