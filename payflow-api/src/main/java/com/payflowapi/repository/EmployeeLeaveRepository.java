@@ -18,6 +18,8 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 
     List<EmployeeLeave> findByEmployeeIdAndStatus(Long employeeId, String status);
 
+
+
     // Find overlapping leave requests for the same employee
     @Query("SELECT el FROM EmployeeLeave el WHERE el.employeeId = :employeeId " +
             "AND el.status != 'DENIED' " +

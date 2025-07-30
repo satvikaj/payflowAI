@@ -136,9 +136,9 @@ function ManagerDashboard() {
             setLoading(true);
             try {
                 const [teamRes, leavesRes, projectsRes] = await Promise.all([
-                    axios.get(`/manager/${managerId}/team`),
-                    axios.get(`/manager/${managerId}/leaves`),
-                    axios.get(`/manager/${managerId}/projects`)
+                    axios.get(`/api/manager/${managerId}/team`),
+                    axios.get(`/api/manager/${managerId}/leaves`),
+                    axios.get(`/api/manager/${managerId}/projects`)
                 ]);
                 setTeam(teamRes.data);
                 setLeaves(leavesRes.data);
@@ -273,6 +273,14 @@ function ManagerDashboard() {
                     </div>
                     <div className="header-right">
                         <div className="quick-actions">
+                            <button
+                                className="quick-action-btn"
+                                onClick={() => navigate('/manager/payroll-dashboard')}
+                                title="Manage Payroll"
+                            >
+                                <FaClipboardList /> Payroll
+                            </button>
+
                             <button 
                                 className="quick-action-btn"
                                 onClick={() => navigate(`/manager/${managerId}/leaves`)}

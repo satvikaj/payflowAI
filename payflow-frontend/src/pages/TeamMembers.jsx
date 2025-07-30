@@ -47,8 +47,8 @@ const TeamMembers = () => {
             try {
                 console.log('Fetching team data for manager:', managerId);
                 const [teamRes, leavesRes] = await Promise.all([
-                    axios.get(`/manager/${managerId}/team`),
-                    axios.get(`/manager/${managerId}/leaves`)
+                    axios.get(`/api/manager/${managerId}/team`),
+                    axios.get(`/api/manager/${managerId}/leaves`)
                 ]);
                 
                 console.log('Team data:', teamRes.data);
