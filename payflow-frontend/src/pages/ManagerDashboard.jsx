@@ -136,10 +136,10 @@ function ManagerDashboard() {
             setLoading(true);
             try {
                 const [managerRes, teamRes, leavesRes, projectsRes] = await Promise.all([
-                    axios.get(`/manager/${managerId}/details`),
-                    axios.get(`/manager/${managerId}/team`),
-                    axios.get(`/manager/${managerId}/leaves`),
-                    axios.get(`/manager/${managerId}/projects`)
+                    axios.get(`/api/manager/${managerId}/details`),
+                    axios.get(`/api/manager/${managerId}/team`),
+                    axios.get(`/api/manager/${managerId}/leaves`),
+                    axios.get(`/api/manager/${managerId}/projects`)
                 ]);
                 setManagerName(managerRes.data?.name || 'Manager');
                 setTeam(teamRes.data);
