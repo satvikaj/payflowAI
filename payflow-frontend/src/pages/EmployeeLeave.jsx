@@ -21,15 +21,37 @@ const EmployeeLeave = () => {
     const approvedRequests = leaveHistory.filter(l => l.status === 'ACCEPTED').length;
     const rejectedRequests = leaveHistory.filter(l => l.status === 'DENIED' || l.status === 'REJECTED').length;
     const [leaveForm, setLeaveForm] = useState({ startDate: '', endDate: '', reason: '' });
+    const [sortStatus, setSortStatus] = useState(''); // '' means no sort, otherwise sort by status
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 5;
-    const totalPages = Math.ceil(leaveHistory.length / pageSize);
-    const paginatedHistory = leaveHistory.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    
+    // Get filtered data based on sort status (sorted chronologically - newest first)
+    const getFilteredHistory = () => {
+        let filteredData = [];
+        if (sortStatus === 'REJECTED') {
+            filteredData = leaveHistory.filter(l => l.status === 'DENIED' || l.status === 'REJECTED');
+        } else if (sortStatus) {
+            filteredData = leaveHistory.filter(l => l.status === sortStatus);
+        } else {
+            filteredData = [...leaveHistory];
+        }
+        
+        // Sort by ID - newest first (chronological order)
+        return filteredData.sort((a, b) => b.id - a.id);
+    };
+    
+    const filteredHistory = getFilteredHistory();
+    const totalPages = Math.ceil(filteredHistory.length / pageSize);
+    const paginatedHistory = filteredHistory.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    
+    // Reset to first page when filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [sortStatus]);
     const [showLeaveModal, setShowLeaveModal] = useState(false);
     const [leaveLoading, setLeaveLoading] = useState(false);
     const [leaveError, setLeaveError] = useState('');
     const [leaveSuccess, setLeaveSuccess] = useState('');
-    const [sortStatus, setSortStatus] = useState(''); // '' means no sort, otherwise sort by status
     const [showPopup, setShowPopup] = useState(false);
     const [popupMsg, setPopupMsg] = useState({ title: '', message: '', type: 'success' });
     const navigate = useNavigate();
@@ -255,7 +277,7 @@ const EmployeeLeave = () => {
                     <div className="leave-history-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 352 }}>
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                             <FaHistory style={{ color: '#6366f1', fontSize: 22, marginRight: 4 }} />
-                            <span>Leave History{leaveHistory.length > 0 && <span className="record-count">({leaveHistory.length} record{leaveHistory.length > 1 ? 's' : ''})</span>}</span>
+                            <span>Leave History{filteredHistory.length > 0 && <span className="record-count">({filteredHistory.length} record{filteredHistory.length > 1 ? 's' : ''})</span>}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                             <label htmlFor="sort-status" style={{ fontSize: 14, color: '#444', marginRight: 8, fontWeight: 500 }}>Sort by Status:</label>
@@ -303,13 +325,7 @@ const EmployeeLeave = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {(
-                                            sortStatus === 'REJECTED'
-                                                ? paginatedHistory.filter(l => l.status === 'DENIED' || l.status === 'REJECTED')
-                                                : sortStatus
-                                                    ? paginatedHistory.filter(l => l.status === sortStatus)
-                                                    : paginatedHistory
-                                        ).map((leave, idx) => {
+                                        {paginatedHistory.map((leave, idx) => {
                                             let statusClass = 'leave-history-status';
                                             let statusText = leave.status;
                                             if (leave.status === 'ACCEPTED') statusClass += ' approved';
@@ -332,6 +348,24 @@ const EmployeeLeave = () => {
                                             const formattedFrom = leave.fromDate ? new Date(leave.fromDate).toLocaleDateString('en-GB', dateOptions) : '-';
                                             const formattedTo = leave.toDate ? new Date(leave.toDate).toLocaleDateString('en-GB', dateOptions) : '-';
 
+                                            // Helper function to truncate text intelligently
+                                            const truncateText = (text, maxLength = 25) => {
+                                                if (!text || text === '-') return text;
+                                                if (text.length <= maxLength) return text;
+                                                
+                                                // Find the last space before maxLength to avoid cutting words
+                                                const truncated = text.substring(0, maxLength);
+                                                const lastSpaceIndex = truncated.lastIndexOf(' ');
+                                                
+                                                if (lastSpaceIndex > maxLength * 0.6) {
+                                                    // If there's a space reasonably close to maxLength, cut there
+                                                    return truncated.substring(0, lastSpaceIndex) + '...';
+                                                } else {
+                                                    // Otherwise use the original maxLength cut
+                                                    return truncated + '...';
+                                                }
+                                            };
+
                                             return (
                                                 <tr key={idx}>
                                                     <td>{formattedFrom}</td>
@@ -339,18 +373,80 @@ const EmployeeLeave = () => {
                                                     <td>{duration}</td>
                                                     <td>{leave.reason || '-'}</td>
                                                     <td><span className={statusClass}>{statusText}</span></td>
-                                                    <td>{leave.denialReason || '-'}</td>
+                                                    <td>
+                                                        {leave.denialReason && leave.denialReason !== '-' ? (
+                                                            leave.denialReason.length > 25 ? (
+                                                                <span 
+                                                                    className="denial-reason-tooltip"
+                                                                    data-tooltip={leave.denialReason}
+                                                                    style={{ 
+                                                                        cursor: 'help',
+                                                                        borderBottom: '1px dotted #6366f1',
+                                                                        color: '#6366f1'
+                                                                    }}
+                                                                >
+                                                                    {truncateText(leave.denialReason)}
+                                                                </span>
+                                                            ) : (
+                                                                <span>{leave.denialReason}</span>
+                                                            )
+                                                        ) : '-'}
+                                                    </td>
                                                 </tr>
                                             );
                                         })}
                                     </tbody>
                                 </table>
 
-                                {leaveHistory.length > pageSize && (
-                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 16, gap: 12 }}>
-                                        <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>Prev</button>
-                                        <span>Page {currentPage} of {totalPages}</span>
-                                        <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next</button>
+                                {filteredHistory.length > pageSize && (
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'center', 
+                                        alignItems: 'center', 
+                                        marginTop: 20, 
+                                        gap: 16,
+                                        padding: '16px 0'
+                                    }}>
+                                        <button 
+                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                                            disabled={currentPage === 1}
+                                            style={{
+                                                padding: '8px 16px',
+                                                borderRadius: 6,
+                                                border: '1px solid #d1d5db',
+                                                background: currentPage === 1 ? '#f9fafb' : '#fff',
+                                                color: currentPage === 1 ? '#9ca3af' : '#374151',
+                                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                                fontWeight: 500,
+                                                fontSize: 14
+                                            }}
+                                        >
+                                            Previous
+                                        </button>
+                                        <span style={{ 
+                                            fontSize: 14, 
+                                            color: '#6b7280',
+                                            fontWeight: 500,
+                                            padding: '0 16px'
+                                        }}>
+                                            Page {currentPage} of {totalPages} ({filteredHistory.length} record{filteredHistory.length !== 1 ? 's' : ''})
+                                        </span>
+                                        <button 
+                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                                            disabled={currentPage === totalPages}
+                                            style={{
+                                                padding: '8px 16px',
+                                                borderRadius: 6,
+                                                border: '1px solid #d1d5db',
+                                                background: currentPage === totalPages ? '#f9fafb' : '#fff',
+                                                color: currentPage === totalPages ? '#9ca3af' : '#374151',
+                                                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                                                fontWeight: 500,
+                                                fontSize: 14
+                                            }}
+                                        >
+                                            Next
+                                        </button>
                                     </div>
                                 )}
                             </div>

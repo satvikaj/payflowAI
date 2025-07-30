@@ -1093,13 +1093,72 @@
 /* Pagination Styles */
 .pagination-controls {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
   gap: 0.5rem;
   margin-top: 1.5rem;
   padding: 1rem;
   background: #f8fafc;
   border-radius: 8px;
+}
+
+/* Side Pagination Styles */
+.activity-container,
+.leave-container,
+.leave-requests-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: 1rem;
+}
+
+.pagination-side-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: 2px solid #6366f1;
+  background: white;
+  color: #6366f1;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-side-btn:hover:not(:disabled) {
+  background: #6366f1;
+  color: white;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.pagination-side-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: #d1d5db;
+  color: #9ca3af;
+}
+
+.pagination-side-btn.left {
+  left: -20px;
+}
+
+.pagination-side-btn.right {
+  right: -20px;
+}
+
+.activity-list,
+.leave-requests-table,
+.leave-history-table-container {
+  flex: 1;
+  margin: 0 20px;
 }
 
 .pagination-btn {
@@ -1458,12 +1517,13 @@
   .pagination-controls {
     flex-wrap: wrap;
     gap: 0.25rem;
+    justify-content: flex-end;
   }
   
   .pagination-pages {
     order: 3;
     width: 100%;
-    justify-content: center;
+    justify-content: flex-end;
     margin-top: 0.5rem;
   }
 }
