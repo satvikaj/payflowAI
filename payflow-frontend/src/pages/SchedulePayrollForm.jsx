@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import axios from '../utils/axios';
 import './SchedulePayrollForm.css';
 import SidebarManager from '../components/SidebarManager';
+import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 
 
 function SchedulePayrollForm() {
@@ -14,7 +16,7 @@ function SchedulePayrollForm() {
     const [status, setStatus] = useState('Scheduled');
     const [message, setMessage] = useState('');
     const [paymentDate, setPaymentDate] = useState('');
-
+    const navigate = useNavigate();
     // useEffect(() => {
     //     if (!managerId) {
     //         localStorage.setItem("managerId", "17");
@@ -41,19 +43,35 @@ function SchedulePayrollForm() {
         e.preventDefault();
         try {
             await axios.post('/api/payrolls/schedule', {
-                employeeId,
+                employeeId: Number(employeeId),
                 baseSalary: parseFloat(baseSalary),
                 cycle,
                 paymentDate,
                 status
             });
-            setMessage('Payroll scheduled successfully!');
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Payroll scheduled successfully!',
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                navigate('/manager/payroll-dashboard'); // ✅ Step 3: Redirect after success
+            });
+
+            // setMessage('Payroll scheduled successfully!');
             setEmployeeId('');
             setBaseSalary('');
             setCycle('');
         } catch (error) {
             console.error('Error scheduling payroll:', error);
-            setMessage('Failed to schedule payroll.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Something went wrong while scheduling payroll!',
+            });
+
+            // setMessage('Failed to schedule payroll.');
         }
     };
 
