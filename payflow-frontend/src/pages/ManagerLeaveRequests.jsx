@@ -34,10 +34,14 @@ function ManagerLeaveRequests() {
     
     // Pagination and sorting
     const filteredLeaves = useMemo(() => {
+        let sortedLeaves = [...leaves];
+        // Sort by ID - newest first (chronological order)
+        sortedLeaves.sort((a, b) => b.id - a.id);
+        
         if (sortStatus === 'REJECTED') {
-            return leaves.filter(l => l.status === 'DENIED' || l.status === 'REJECTED');
+            return sortedLeaves.filter(l => l.status === 'DENIED' || l.status === 'REJECTED');
         }
-        return sortStatus ? leaves.filter(l => l.status === sortStatus) : leaves;
+        return sortStatus ? sortedLeaves.filter(l => l.status === sortStatus) : sortedLeaves;
     }, [leaves, sortStatus]);
     
     const totalPages = Math.ceil(filteredLeaves.length / pageSize);
@@ -99,7 +103,7 @@ function ManagerLeaveRequests() {
         
         try {
             const leaveToUpdate = leaves.find(l => l.id === leaveId);
-            await axios.post(`/employee/leave/${leaveId}/action`, { action: 'DENY', reason: denyReason });
+            await axios.post(`/api/employee/leave/${leaveId}/action`, { action: 'DENY', reason: denyReason });
             setLeaves(leaves => leaves.map(l => l.id === leaveId ? { ...l, status: 'DENIED', denialReason: denyReason } : l));
             setDenyingId(null);
             setDenyReason('');
@@ -239,157 +243,150 @@ function ManagerLeaveRequests() {
                                     <div>No leave requests found.</div>
                                 </div>
                             ) : (
-                                <div className="leave-history-table-container">
-                                    <table className="leave-history-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Employee</th>
-                                                <th>Start Date</th>
-                                                <th>End Date</th>
-                                                <th>Duration</th>
-                                                <th>Type</th>
-                                                <th>Reason</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {paginatedLeaves.map((leave, idx) => {
-                                                let statusClass = 'leave-history-status';
-                                                let statusText = leave.status;
-                                                if (leave.status === 'ACCEPTED') statusClass += ' approved';
-                                                else if (leave.status === 'PENDING') statusClass += ' pending';
-                                                else if (leave.status === 'DENIED' || leave.status === 'REJECTED') {
-                                                    statusClass += ' rejected';
-                                                    statusText = 'REJECTED';
-                                                }
+                                <div className="leave-requests-container">
+                                    {filteredLeaves.length > pageSize && (
+                                        <button 
+                                            className="pagination-side-btn left"
+                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                                            disabled={currentPage === 1}
+                                            title="Previous page"
+                                        >
+                                            ‹
+                                        </button>
+                                    )}
+                                    <div className="leave-history-table-container">
+                                        <table className="leave-history-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Employee</th>
+                                                    <th>Start Date</th>
+                                                    <th>End Date</th>
+                                                    <th>Duration</th>
+                                                    <th>Type</th>
+                                                    <th>Reason</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {paginatedLeaves.map((leave, idx) => {
+                                                    let statusClass = 'leave-history-status';
+                                                    let statusText = leave.status;
+                                                    if (leave.status === 'ACCEPTED') statusClass += ' approved';
+                                                    else if (leave.status === 'PENDING') statusClass += ' pending';
+                                                    else if (leave.status === 'DENIED' || leave.status === 'REJECTED') {
+                                                        statusClass += ' rejected';
+                                                        statusText = 'REJECTED';
+                                                    }
 
-                                                let duration = '-';
-                                                if (leave.fromDate && leave.toDate) {
-                                                    const from = new Date(leave.fromDate);
-                                                    const to = new Date(leave.toDate);
-                                                    const diff = Math.abs(to - from);
-                                                    duration = (Math.floor(diff / (1000 * 60 * 60 * 24)) + 1) + ' day(s)';
-                                                }
+                                                    let duration = '-';
+                                                    if (leave.fromDate && leave.toDate) {
+                                                        const from = new Date(leave.fromDate);
+                                                        const to = new Date(leave.toDate);
+                                                        const diff = Math.abs(to - from);
+                                                        duration = (Math.floor(diff / (1000 * 60 * 60 * 24)) + 1) + ' day(s)';
+                                                    }
 
-                                                // Format dates
-                                                const dateOptions = { day: 'numeric', month: 'short', year: 'numeric' };
-                                                const formattedFrom = leave.fromDate ? new Date(leave.fromDate).toLocaleDateString('en-GB', dateOptions) : '-';
-                                                const formattedTo = leave.toDate ? new Date(leave.toDate).toLocaleDateString('en-GB', dateOptions) : '-';
+                                                    // Format dates
+                                                    const dateOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+                                                    const formattedFrom = leave.fromDate ? new Date(leave.fromDate).toLocaleDateString('en-GB', dateOptions) : '-';
+                                                    const formattedTo = leave.toDate ? new Date(leave.toDate).toLocaleDateString('en-GB', dateOptions) : '-';
 
-                                                return (
-                                                    <tr key={leave.id || idx}>
-                                                        <td style={{ fontWeight: 600 }}>
-                                                            <FaUserTie style={{ marginRight: 6, color: '#6366f1' }} />
-                                                            {leave.employeeName || `Employee ${leave.employeeId}`}
-                                                        </td>
-                                                        <td>{formattedFrom}</td>
-                                                        <td>{formattedTo}</td>
-                                                        <td style={{ fontWeight: 600 }}>{duration}</td>
-                                                        <td>{leave.type || 'Annual'}</td>
-                                                        <td style={{ maxWidth: '200px', wordBreak: 'break-word' }}>{leave.reason || '-'}</td>
-                                                        <td><span className={statusClass}>{statusText}</span></td>
-                                                        <td>
-                                                            {leave.status === 'PENDING' && (
-                                                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                                                    <button 
-                                                                        onClick={() => handleAction(leave.id, 'ACCEPT')}
-                                                                        style={{ 
-                                                                            background: '#22c55e', color: '#fff', border: 'none', 
-                                                                            padding: '6px 12px', borderRadius: 6, cursor: 'pointer',
-                                                                            fontSize: 12, fontWeight: 600
-                                                                        }}
-                                                                    >
-                                                                        ✓ Accept
-                                                                    </button>
-                                                                    <button 
-                                                                        onClick={() => setDenyingId(leave.id)}
-                                                                        style={{ 
-                                                                            background: '#f87171', color: '#fff', border: 'none', 
-                                                                            padding: '6px 12px', borderRadius: 6, cursor: 'pointer',
-                                                                            fontSize: 12, fontWeight: 600
-                                                                        }}
-                                                                    >
-                                                                        ✗ Deny
-                                                                    </button>
-                                                                </div>
-                                                            )}
-                                                            {denyingId === leave.id && (
-                                                                <form onSubmit={e => handleDeny(e, leave.id)} style={{ marginTop: 8 }}>
-                                                                    <input 
-                                                                        type="text" 
-                                                                        placeholder="Enter denial reason" 
-                                                                        value={denyReason} 
-                                                                        onChange={e => setDenyReason(e.target.value)} 
-                                                                        style={{ 
-                                                                            padding: '6px 8px', width: '160px', 
-                                                                            marginBottom: 6, border: '1px solid #ddd', 
-                                                                            borderRadius: 4, fontSize: 12
-                                                                        }} 
-                                                                        required 
-                                                                    />
-                                                                    <div style={{ display: 'flex', gap: 4 }}>
+                                                    return (
+                                                        <tr key={leave.id || idx}>
+                                                            <td style={{ fontWeight: 600 }}>
+                                                                <FaUserTie style={{ marginRight: 6, color: '#6366f1' }} />
+                                                                {leave.employeeName || `Employee ${leave.employeeId}`}
+                                                            </td>
+                                                            <td>{formattedFrom}</td>
+                                                            <td>{formattedTo}</td>
+                                                            <td style={{ fontWeight: 600 }}>{duration}</td>
+                                                            <td>{leave.type || 'Annual'}</td>
+                                                            <td style={{ maxWidth: '200px', wordBreak: 'break-word' }}>{leave.reason || '-'}</td>
+                                                            <td><span className={statusClass}>{statusText}</span></td>
+                                                            <td>
+                                                                {leave.status === 'PENDING' && (
+                                                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                                                                         <button 
-                                                                            type="submit" 
+                                                                            onClick={() => handleAction(leave.id, 'ACCEPT')}
+                                                                            style={{ 
+                                                                                background: '#22c55e', color: '#fff', border: 'none', 
+                                                                                padding: '6px 12px', borderRadius: 6, cursor: 'pointer',
+                                                                                fontSize: 12, fontWeight: 600
+                                                                            }}
+                                                                        >
+                                                                            ✓ Accept
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => setDenyingId(leave.id)}
                                                                             style={{ 
                                                                                 background: '#f87171', color: '#fff', border: 'none', 
-                                                                                padding: '4px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11
+                                                                                padding: '6px 12px', borderRadius: 6, cursor: 'pointer',
+                                                                                fontSize: 12, fontWeight: 600
                                                                             }}
                                                                         >
-                                                                            Submit
-                                                                        </button>
-                                                                        <button 
-                                                                            type="button" 
-                                                                            onClick={() => {setDenyingId(null); setDenyReason('');}}
-                                                                            style={{ 
-                                                                                background: '#6b7280', color: '#fff', border: 'none', 
-                                                                                padding: '4px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11
-                                                                            }}
-                                                                        >
-                                                                            Cancel
+                                                                            ✗ Deny
                                                                         </button>
                                                                     </div>
-                                                                </form>
-                                                            )}
-                                                            {leave.status !== 'PENDING' && (
-                                                                <span style={{ fontSize: 12, color: '#888', fontStyle: 'italic' }}>
-                                                                    {leave.status === 'ACCEPTED' ? 'Approved' : 'No action needed'}
-                                                                </span>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-
-                                    {/* Pagination */}
+                                                                )}
+                                                                {denyingId === leave.id && (
+                                                                    <form onSubmit={e => handleDeny(e, leave.id)} style={{ marginTop: 8 }}>
+                                                                        <input 
+                                                                            type="text" 
+                                                                            placeholder="Enter denial reason" 
+                                                                            value={denyReason} 
+                                                                            onChange={e => setDenyReason(e.target.value)} 
+                                                                            style={{ 
+                                                                                padding: '6px 8px', width: '160px', 
+                                                                                marginBottom: 6, border: '1px solid #ddd', 
+                                                                                borderRadius: 4, fontSize: 12
+                                                                            }} 
+                                                                            required 
+                                                                        />
+                                                                        <div style={{ display: 'flex', gap: 4 }}>
+                                                                            <button 
+                                                                                type="submit" 
+                                                                                style={{ 
+                                                                                    background: '#f87171', color: '#fff', border: 'none', 
+                                                                                    padding: '4px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11
+                                                                                }}
+                                                                            >
+                                                                                Submit
+                                                                            </button>
+                                                                            <button 
+                                                                                type="button" 
+                                                                                onClick={() => {setDenyingId(null); setDenyReason('');}}
+                                                                                style={{ 
+                                                                                    background: '#6b7280', color: '#fff', border: 'none', 
+                                                                                    padding: '4px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11
+                                                                                }}
+                                                                            >
+                                                                                Cancel
+                                                                            </button>
+                                                                        </div>
+                                                                    </form>
+                                                                )}
+                                                                {leave.status !== 'PENDING' && (
+                                                                    <span style={{ fontSize: 12, color: '#888', fontStyle: 'italic' }}>
+                                                                        {leave.status === 'ACCEPTED' ? 'Approved' : 'No action needed'}
+                                                                    </span>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                     {filteredLeaves.length > pageSize && (
-                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 16, gap: 12 }}>
-                                            <button 
-                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
-                                                disabled={currentPage === 1}
-                                                style={{ 
-                                                    padding: '8px 16px', background: '#6366f1', color: '#fff', 
-                                                    border: 'none', borderRadius: 6, cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                                                    opacity: currentPage === 1 ? 0.5 : 1
-                                                }}
-                                            >
-                                                Previous
-                                            </button>
-                                            <span style={{ fontWeight: 600 }}>Page {currentPage} of {totalPages}</span>
-                                            <button 
-                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
-                                                disabled={currentPage === totalPages}
-                                                style={{ 
-                                                    padding: '8px 16px', background: '#6366f1', color: '#fff', 
-                                                    border: 'none', borderRadius: 6, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                                                    opacity: currentPage === totalPages ? 0.5 : 1
-                                                }}
-                                            >
-                                                Next
-                                            </button>
-                                        </div>
+                                        <button 
+                                            className="pagination-side-btn right"
+                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                                            disabled={currentPage === totalPages}
+                                            title="Next page"
+                                        >
+                                            ›
+                                        </button>
                                     )}
                                 </div>
                             )}

@@ -61,8 +61,8 @@ const TeamMembers = () => {
                 
                 // Fallback with sample data for design purposes
                 try {
-                    const teamFallback = await axios.get('/employee');
-                    const leavesFallback = await axios.get('/employee/leaves/all');
+                    const teamFallback = await axios.get('/api/employee');
+                    const leavesFallback = await axios.get('/api/employee/leaves/all');
                     
                     const filteredTeam = teamFallback.data.filter(emp => 
                         emp.managerId === managerId || emp.managerId === parseInt(managerId)
