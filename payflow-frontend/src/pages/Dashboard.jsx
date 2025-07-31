@@ -46,47 +46,47 @@ export default function Dashboard() {
 
     useEffect(() => {
         // Fetch employee count
-        axios.get('/employee/count')
+        axios.get('/api/employee/count')
             .then(res => setEmployeeCount(res.data))
             .catch(() => setEmployeeCount(0));
 
         // Fetch gender stats (assuming endpoint exists)
-        axios.get('/employee/gender-stats')
+        axios.get('/api/employee/gender-stats')
             .then(res => setGenderStats(res.data))
             .catch(() => setGenderStats({ male: 0, female: 0 }));
 
         // Fetch announcements
-        axios.get('/announcements')
+        axios.get('/api/announcements')
             .then(res => setAnnouncements(res.data))
             .catch(() => setAnnouncements([]));
 
         // Fetch employees on leave
-        axios.get('/leave/today')
+        axios.get('/api/leave/today')
             .then(res => setOnLeave(res.data))
             .catch(() => setOnLeave([]));
 
         // Fetch calendar events
-        axios.get('/calendar/events')
+        axios.get('/api/calendar/events')
             .then(res => setCalendarEvents(res.data))
             .catch(() => setCalendarEvents([]));
 
         // Fetch onboarding summary
-        axios.get('/onboarding/summary')
+        axios.get('/api/onboarding/summary')
             .then(res => setOnboardings(res.data))
             .catch(() => setOnboardings([]));
 
         // Fetch project summary
-        axios.get('/projects/summary')
+        axios.get('/api/projects/summary')
             .then(res => setProjects(res.data))
             .catch(() => setProjects([]));
 
         // Fetch payroll summary
-        axios.get('/payroll/summary')
+        axios.get('/api/payroll/summary')
             .then(res => setPayrollSummary(res.data))
             .catch(() => setPayrollSummary({ totalPaid: 0, pending: 0, cycle: '' }));
 
         // Fetch payroll table
-        axios.get('/payroll/table')
+        axios.get('/api/payroll/table')
             .then(res => setPayrollTable(res.data))
             .catch(() => setPayrollTable([]));
     }, []);

@@ -63,7 +63,7 @@ function ManagerLeaveRequests() {
     useEffect(() => {
         console.log('ManagerLeaveRequests: managerId used for API call:', managerId);
         setLoading(true);
-        axios.get(`/manager/${managerId}/leaves`)
+        axios.get(`/api/manager/${managerId}/leaves`)
             .then(res => setLeaves(res.data))
             .catch(() => setLeaves([]))
             .finally(() => setLoading(false));
@@ -76,7 +76,7 @@ function ManagerLeaveRequests() {
     const handleAction = async (leaveId, action) => {
         try {
             const leaveToUpdate = leaves.find(l => l.id === leaveId);
-            await axios.post(`/employee/leave/${leaveId}/action`, { action });
+            await axios.post(`/api/employee/leave/${leaveId}/action`, { action });
             setLeaves(leaves => leaves.map(l => l.id === leaveId ? { ...l, status: action === 'ACCEPT' ? 'ACCEPTED' : 'DENIED' } : l));
             setDenyingId(null);
             setDenyReason('');
@@ -103,7 +103,7 @@ function ManagerLeaveRequests() {
         
         try {
             const leaveToUpdate = leaves.find(l => l.id === leaveId);
-            await axios.post(`/employee/leave/${leaveId}/action`, { action: 'DENY', reason: denyReason });
+            await axios.post(`/api/employee/leave/${leaveId}/action`, { action: 'DENY', reason: denyReason });
             setLeaves(leaves => leaves.map(l => l.id === leaveId ? { ...l, status: 'DENIED', denialReason: denyReason } : l));
             setDenyingId(null);
             setDenyReason('');
