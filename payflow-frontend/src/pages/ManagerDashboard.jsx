@@ -137,6 +137,7 @@ function ManagerDashboard() {
             try {
                 const [managerRes, teamRes, leavesRes, projectsRes] = await Promise.all([
                     axios.get(`/api/manager/${managerId}/details`),
+
                     axios.get(`/api/manager/${managerId}/team`),
                     axios.get(`/api/manager/${managerId}/leaves`),
                     axios.get(`/api/manager/${managerId}/projects`)
@@ -291,6 +292,14 @@ function ManagerDashboard() {
                     </div>
                     <div className="header-right">
                         <div className="quick-actions">
+                            <button
+                                className="quick-action-btn"
+                                onClick={() => navigate('/manager/payroll-dashboard')}
+                                title="Manage Payroll"
+                            >
+                                <FaClipboardList /> Payroll
+                            </button>
+
                             <button 
                                 className="quick-action-btn"
                                 onClick={() => navigate(`/manager/${managerId}/leaves`)}

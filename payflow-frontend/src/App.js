@@ -24,7 +24,9 @@ import NotificationsPage from "./pages/NotificationsPage";
 import EmployeeOverview from "./pages/EmployeeOverview";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import TeamMembers from "./pages/TeamMembers";
-
+import PayrollDashboard from "./pages/PayrollDashboard";
+import SchedulePayrollForm from "./pages/SchedulePayrollForm";
+import PayslipViewer from "./pages/PayslipViewer";
 // import Login from "./components/Login";
 
 
@@ -36,16 +38,16 @@ function App() {
                 <Route path="/" element={<Home/>} />
                 <Route path="/login" element={<UnifiedLogin/>}/>
                 <Route path="/hr-dashboard" element={<Dashboard/>} />
-                {/*<Route path="/login/admin" element={<AdminLoginPage />} />*/}
+                <Route path="/manager/payroll-dashboard" element={<PayrollDashboard />} />
+                <Route path="/manager/payslip-viewer" element={<PayslipViewer />} />
                 <Route path="/admin-dashboard" element={<AdminDashboard />} />
                 <Route path="/navbar" element={<Navbar/>} />
                 <Route path="/sidebar" element={<Sidebar/>}/>
                 <Route path="/create-user" element={<AddUser/>} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-<Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/manager-onboarding" element={<ManagerOnboarding />} />
-                {/*<Route path="/login/hr" element={<HRLogin />} />*/}
-                {/*<Route path="/login/manager" element={<ManagerLogin />} />*/}
+                <Route path="/manager/schedule" element={<SchedulePayrollForm />} />
                 <Route path="/employee" element={<EmployeeList />} />
                 <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
                 <Route path="/manager-dashboard" element={<ManagerDashboard />} />
