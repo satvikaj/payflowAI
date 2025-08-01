@@ -4,6 +4,10 @@ import axios from '../utils/axios';
 import './PayslipViewer.css';
 import SidebarManager from '../components/SidebarManager';
 
+import jsPDF from 'jspdf';
+import 'jspdf-autotable'; // ✅ This line is necessary
+
+
 function PayslipViewer() {
     const [employeeId, setEmployeeId] = useState('');
     const [employees, setEmployees] = useState([]);
@@ -32,13 +36,50 @@ function PayslipViewer() {
         }
     };
 
+
     const handleDownload = () => {
-        const blob = new Blob([JSON.stringify(payslip, null, 2)], { type: 'application/json' });
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = `Payslip-${payslip.employeeId}-${payslip.cycle}.json`;
-        link.click();
+        const doc = new jsPDF();
+
+        doc.setFontSize(20);
+        doc.text('PayFlow Pvt. Ltd.', 14, 20);
+        doc.setFontSize(14);
+        doc.text('Official Payslip Document', 14, 30);
+
+        doc.setFontSize(12);
+        doc.text(`Payslip for: ${payslip.cycle}`, 14, 42);
+        doc.text(`Employee Name: ${payslip.fullName || 'N/A'}`, 14, 50);
+        doc.text(`Employee ID: ${payslip.employeeId}`, 14, 58);
+        doc.text(`Department: ${payslip.department || 'N/A'}`, 14, 66);
+
+        doc.autoTable({
+            startY: 85,
+            head: [['Earnings / Deductions', 'Amount (₹)']],
+            body: [
+                ['Base Salary', payslip.baseSalary],
+                ['Leaves Taken', payslip.numberOfLeaves],
+                ['Deductions', payslip.deductionAmount],
+                ['Net Salary', payslip.netSalary],
+            ],
+            styles: { fontSize: 12 },
+            headStyles: { fillColor: [22, 160, 133], textColor: 255 }
+        });
+
+        const finalY = doc.lastAutoTable.finalY + 20;
+        doc.setFontSize(11);
+        doc.text('This is a computer-generated payslip.', 14, finalY);
+        doc.text('Authorized by PayFlow HR Department', 14, finalY + 8);
+
+        doc.save(`Payslip-${payslip.employeeId}-${payslip.cycle}.pdf`);
     };
+
+
+    // const handleDownload = () => {
+    //     const blob = new Blob([JSON.stringify(payslip, null, 2)], { type: 'application/json' });
+    //     const link = document.createElement('a');
+    //     link.href = window.URL.createObjectURL(blob);
+    //     link.download = `Payslip-${payslip.employeeId}-${payslip.cycle}.json`;
+    //     link.click();
+    // };
 
     return (
         <div className="manager-dashboard-layout">
