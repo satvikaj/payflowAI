@@ -10,7 +10,6 @@ import {
     FaClipboardList,
     FaTasks,
     FaClock,
-    FaExclamationTriangle,
     FaCheckCircle,
     FaUserClock,
     FaPlus,
