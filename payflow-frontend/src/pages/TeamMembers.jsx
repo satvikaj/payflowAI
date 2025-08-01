@@ -21,7 +21,8 @@ FaArrowLeft,
 FaArrowRight,
 FaCheckCircle,
 FaTimesCircle,
-FaHourglassHalf
+FaHourglassHalf,
+FaPhone
 } from 'react-icons/fa';
 import TeamAnalyticsChart from '../components/TeamAnalyticsChart';
 import './TeamMembers.css';
