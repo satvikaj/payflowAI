@@ -1,5 +1,6 @@
 package com.payflowapi.controller;
-
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import com.payflowapi.dto.EmployeeDto;
 import com.payflowapi.dto.LeaveRequestDto;
 import com.payflowapi.entity.Employee;
@@ -10,12 +11,15 @@ import com.payflowapi.entity.User;
 import com.payflowapi.repository.UserRepository;
 import com.payflowapi.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 import java.security.SecureRandom;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.Map;
 
 @RestController
@@ -235,7 +239,18 @@ public class EmployeeController {
         // Job & Work Info
         employee.setDepartment(dto.getDepartment());
         employee.setRole(dto.getRole());
-        employee.setJoiningDate(dto.getJoiningDate());
+//        employee.setJoiningDate(dto.getJoiningDate());
+        if (dto.getJoiningDate() != null && !dto.getJoiningDate().isBlank()) {
+            try {
+                employee.setJoiningDate(LocalDate.parse(dto.getJoiningDate())); // expects "yyyy-MM-dd"
+            } catch (DateTimeParseException e) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Invalid joiningDate format. Expected yyyy-MM-dd.",
+                        e
+                );
+            }
+        }
         employee.setManagerId(dto.getManagerId());
 
         employee.setHasExperience(dto.getHasExperience());

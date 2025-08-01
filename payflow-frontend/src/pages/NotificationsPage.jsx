@@ -1,27 +1,70 @@
+// src/pages/Notifications.jsx
 import React from 'react';
-import './NotificationsPage.css';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FaArrowLeft, FaBell } from 'react-icons/fa';
+// import './Notifications.css';
 
-function NotificationsPage() {
-    // Dummy notifications for demo
-    const notifications = [
-        { id: 1, message: 'Leave request from John Doe', date: '2025-07-24' },
-        { id: 2, message: 'Project deadline approaching: Project X', date: '2025-07-25' },
-        { id: 3, message: 'New team member onboarded: Jane Smith', date: '2025-07-23' },
-    ];
+function Notifications() {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const notifications = location.state?.notifications || [];
+
+    const getPriorityColor = (priority) => {
+        switch (priority) {
+            case 'high': return '#ef4444';
+            case 'medium': return '#f59e0b';
+            case 'low': return '#10b981';
+            default: return '#6366f1';
+        }
+    };
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'Invalid date';
+
+        const now = new Date();
+        const diff = now - date;
+        const diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        return date.toLocaleDateString();
+    };
 
     return (
-        <div className="notifications-page-container">
-            <h2>All Notifications</h2>
-            <ul className="notifications-list">
-                {notifications.map(n => (
-                    <li key={n.id} className="notification-item">
-                        <span className="notification-message">{n.message}</span>
-                        <span className="notification-date">{n.date}</span>
-                    </li>
-                ))}
-            </ul>
+        <div className="notifications-page">
+            <div className="notifications-header">
+                <button className="back-btn" onClick={() => navigate(-1)}>
+                    <FaArrowLeft /> Back
+                </button>
+                <h2><FaBell /> All Notifications</h2>
+            </div>
+
+            {notifications.length > 0 ? (
+                <ul className="notifications-list">
+                    {notifications.map((n) => (
+                        <li key={n.id} className={`notification-card priority-${n.priority}`}>
+                            <div className="notification-main">
+                                <div className="icon" style={{ color: getPriorityColor(n.priority) }}>
+                                    {n.icon || <FaBell />}
+                                </div>
+                                <div className="content">
+                                    <p>{n.message}</p>
+                                    <span className="date">{formatDate(n.date)}</span>
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <div className="no-notifications">
+                    <FaBell />
+                    <p>No notifications available.</p>
+                </div>
+            )}
         </div>
     );
 }
 
-export default NotificationsPage;
+export default Notifications;

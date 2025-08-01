@@ -34,7 +34,7 @@ export default function Sidebar() {
                 <button className={"sidebar-btn" + (isActive('/projects') ? ' active' : '')} onClick={() => navigate('/projects')}>
                     <FaTasks /> Projects
                 </button>
-                <button className={"sidebar-btn" + (isActive('/payroll') ? ' active' : '')} onClick={() => navigate('/payroll')}>
+                <button className={"sidebar-btn" + (isActive('/payroll') ? ' active' : '')} onClick={() => navigate('/manager/payroll-dashboard')}>
                     <FaMoneyBill /> Payrolls
                 </button>
                 <button className={"sidebar-btn" + (isActive('/reports') ? ' active' : '')} onClick={() => navigate('/reports')}>

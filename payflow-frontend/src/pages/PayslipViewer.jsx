@@ -22,19 +22,52 @@ function PayslipViewer() {
             .catch(err => console.error('Failed to load team:', err));
     }, []);
 
+    // helper inside component
+    const getFullName = (p) =>
+        p?.fullName || [p?.firstName, p?.lastName].filter(Boolean).join(' ') || 'N/A';
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const res = await axios.get(`/api/payrolls/payslip`, {
                 params: { employeeId, cycle }
             });
-            setPayslip(res.data);
+            const data = res.data;
+
+            // derive name from selected employee since payslip lacks fullName
+            const emp = employees.find(
+                (e) => String(e.id ?? e._id) === String(employeeId)
+            );
+
+            const fullName =
+                emp?.fullName ||
+                [emp?.firstName, emp?.lastName].filter(Boolean).join(' ') ||
+                'N/A';
+
+            setPayslip({ ...data, fullName });
             setMessage('');
         } catch (err) {
             setPayslip(null);
             setMessage('Payslip not found.');
         }
     };
+
+
+    // const handleSubmit = async (e) => {
+    //     e.preventDefault();
+    //     try {
+    //         const res = await axios.get(`/api/payrolls/payslip`, {
+    //             params: { employeeId, cycle }
+    //         });
+    //         console.log("payslip payload:", res.data);
+    //         setPayslip(res.data);
+    //         setMessage('');
+    //     } catch (err) {
+    //         setPayslip(null);
+    //         setMessage('Payslip not found.');
+    //     }
+    // };
+
 
 
     const handleDownload = () => {
@@ -47,13 +80,13 @@ function PayslipViewer() {
 
         doc.setFontSize(12);
         doc.text(`Payslip for: ${payslip.cycle}`, 14, 42);
-        doc.text(`Employee Name: ${payslip.fullName || 'N/A'}`, 14, 50);
+        // in PDF
+        doc.text(`Employee Name: ${getFullName(payslip)}`, 14, 50);
         doc.text(`Employee ID: ${payslip.employeeId}`, 14, 58);
-        doc.text(`Department: ${payslip.department || 'N/A'}`, 14, 66);
 
         doc.autoTable({
             startY: 85,
-            head: [['Earnings / Deductions', 'Amount (₹)']],
+            head: [['Earnings / Deductions', 'Amount (Rupees)']],
             body: [
                 ['Base Salary', payslip.baseSalary],
                 ['Leaves Taken', payslip.numberOfLeaves],
@@ -90,10 +123,26 @@ function PayslipViewer() {
                 <label>Employee</label>
                 <select value={employeeId} onChange={e => setEmployeeId(e.target.value)} required>
                     <option value="">Select Employee</option>
-                    {employees.map(emp => (
-                        <option key={emp.id} value={emp.id}>{emp.fullName}</option>
-                    ))}
+                    {employees.map(emp => {
+                        const displayName =
+                            emp.fullName || [emp.firstName, emp.lastName].filter(Boolean).join(' ') || 'Unknown';
+                        const value = emp.id ?? emp._id;
+                        return (
+                            <option key={value} value={value}>
+                                {displayName}
+                            </option>
+                        );
+                    })}
                 </select>
+
+
+                {/*<label>Employee</label>*/}
+                {/*<select value={employeeId} onChange={e => setEmployeeId(e.target.value)} required>*/}
+                {/*    <option value="">Select Employee</option>*/}
+                {/*    {employees.map(emp => (*/}
+                {/*        <option key={emp.id} value={emp.id}>{emp.fullName}</option>*/}
+                {/*    ))}*/}
+                {/*</select>*/}
 
                 <label>Cycle (Month & Year):</label>
                 <input
@@ -130,7 +179,7 @@ function PayslipViewer() {
                     </div>
 
                     <div className="payslip-download-btn-container">
-                        <button onClick={handleDownload}>⬇️ Download Payslip (JSON)</button>
+                        <button onClick={handleDownload}>⬇️ Download Payslip (PDF)</button>
                     </div>
                 </div>
             )}

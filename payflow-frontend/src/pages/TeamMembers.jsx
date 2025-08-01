@@ -181,7 +181,7 @@ const TeamMembers = () => {
                 member.email || '',
                 member.department || '',
                 member.position || '',
-                member.phoneNumber || ''
+                member.phone || ''
             ].join(','))
         ].join('\n');
         
@@ -407,6 +407,8 @@ const TeamMembers = () => {
                                                 </td>
                                                 <td data-label="Contact" className="contact-cell">
                                                     <div>{member.email || 'N/A'}</div>
+                                                    <div>{member.phone || 'N/A'}</div>
+
                                                 </td>
                                                 <td data-label="Status">
                                                     <span className={`status-badge status-${isOnLeave ? 'leave' : 'active'}`}>
@@ -672,21 +674,10 @@ const TeamMembers = () => {
                                                     </>
                                                 )}
                                             </div>
-                                            {/* Education Card */}
-                                            <div className="modal-card">
-                                                <h4 className="card-section-header">
-                                                    <FaGraduationCap className="section-icon" /> Education
-                                                </h4>
-                                                {!(memberDetails.qualification || memberDetails.institution || memberDetails.graduationYear || memberDetails.specialization) ? (
-                                                    <div className="detail-item"><span className="detail-value">N/A</span></div>
-                                                ) : (
-                                                    <>
-                                                        {memberDetails.qualification && <div className="detail-item"><span className="detail-label">Qualification:</span> <span className="detail-value">{memberDetails.qualification}</span></div>}
-                                                        {memberDetails.institution && <div className="detail-item"><span className="detail-label">Institution:</span> <span className="detail-value">{memberDetails.institution}</span></div>}
-                                                        {memberDetails.graduationYear && <div className="detail-item"><span className="detail-label">Graduation Year:</span> <span className="detail-value">{memberDetails.graduationYear}</span></div>}
-                                                        {memberDetails.specialization && <div className="detail-item"><span className="detail-label">Specialization:</span> <span className="detail-value">{memberDetails.specialization}</span></div>}
-                                                    </>
-                                                )}
+                                            <div className="detail-item">
+                                                <FaPhone className="detail-icon" />
+                                                <span>Phone: {selectedMember.phone || 'N/A'}</span>
+
                                             </div>
                                             {/* Experience Card */}
                                             <div className="modal-card">
@@ -703,22 +694,10 @@ const TeamMembers = () => {
                                                     </>
                                                 )}
                                             </div>
-                                            {/* Job Skills Card */}
-                                            <div className="modal-card">
-                                                <h4 className="card-section-header">
-                                                    <FaStar className="section-icon" /> Skills
-                                                </h4>
-                                                {!(memberDetails.skills && (Array.isArray(memberDetails.skills) ? memberDetails.skills.length : memberDetails.skills)) ? (
-                                                    <div className="detail-item"><span className="detail-value">N/A</span></div>
-                                                ) : (
-                                                    <>
-                                                        {memberDetails.skills && Array.isArray(memberDetails.skills) ? (
-                                                            <div className="detail-item"><span className="detail-label">Skills:</span> <span className="detail-value">{memberDetails.skills.join(', ')}</span></div>
-                                                        ) : memberDetails.skills ? (
-                                                            <div className="detail-item"><span className="detail-label">Skills:</span> <span className="detail-value">{memberDetails.skills}</span></div>
-                                                        ) : null}
-                                                    </>
-                                                )}
+                                            <div className="detail-item">
+                                                <FaBriefcase className="detail-icon" />
+                                                <span>Role: {selectedMember.role || 'N/A'}</span>
+
                                             </div>
                                             {/* Work Info Card (existing) */}
                                             <div className="modal-card">

@@ -16,7 +16,10 @@ export default function Dashboard() {
     const [projects, setProjects] = useState([]);
     const [payrollSummary, setPayrollSummary] = useState({ totalPaid: 0, pending: 0, cycle: '' });
     const [payrollTable, setPayrollTable] = useState([]);
-    // Search state for Employees tab
+    const [recentOnboardings, setRecentOnboardings] = useState([]);
+    const [onboardingsLoading, setOnboardingsLoading] = useState(true);
+    const [onboardingsError, setOnboardingsError] = useState(null);
+
     const [payrollSearch, setPayrollSearch] = useState("");
 
     // Payroll pagination state and logic (must be after payrollTable is declared)
@@ -70,16 +73,49 @@ export default function Dashboard() {
             .then(res => setCalendarEvents(res.data))
             .catch(() => setCalendarEvents([]));
 
-        // Fetch onboarding summary
-        axios.get('/api/onboarding/summary')
-            .then(res => setOnboardings(res.data))
-            .catch(() => setOnboardings([]));
 
-        // Fetch project summary
+
+        // Fetch recent onboarded employees summary
+        axios.get('/api/onboarding/summary')
+            .then(res => {
+                if (Array.isArray(res.data)) {
+                    setRecentOnboardings(res.data);
+                } else {
+                    console.warn('Unexpected onboarding summary format:', res.data);
+                    setRecentOnboardings([]);
+                    setOnboardingsError('Unexpected data format');
+                }
+            })
+            .catch(err => {
+                console.error('Failed to load onboarding summary:', err);
+                setRecentOnboardings([]);
+                setOnboardingsError('Failed to load onboardings');
+            })
+            .finally(() => setOnboardingsLoading(false));
+
+        // Fetch onboarding summary
+        // axios.get('/api/onboarding/summary')
+        //     .then(res => setOnboardings(res.data))
+        //     .catch(() => setOnboardings([]));
+
+        // axios.get('/api/onboarding/summary')
+        //     .then(res => {
+        //         setOnboardings(Array.isArray(res.data) ? res.data : []);
+        //     })
+        //     .catch(() => setOnboardings([]));
+
         axios.get('/api/projects/summary')
-            .then(res => setProjects(res.data))
+            .then(res => {
+                setProjects(Array.isArray(res.data) ? res.data : []);
+            })
             .catch(() => setProjects([]));
 
+
+        // Fetch project summary
+        // axios.get('/api/projects/summary')
+        //     .then(res => setProjects(res.data))
+        //     .catch(() => setProjects([]));
+        //
         // Fetch payroll summary
         axios.get('/api/payroll/summary')
             .then(res => setPayrollSummary(res.data))
@@ -403,67 +439,126 @@ export default function Dashboard() {
                     </div>
                 </section>
 
-                {/* Section 2: Project Summary Table */}
                 <section className="dashboard-section">
-                    <div className="card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 4px 24px rgba(30,64,175,0.07), 0 1.5px 6px rgba(0,0,0,0.04)', padding: '28px 24px 22px 24px', transition: 'box-shadow 0.2s, transform 0.18s' }}>
-                        <h2 className="section-title">CURRENT ONBOARDINGS SUMMARY</h2>
+                    <div className="card">
+                        <h2 className="section-title">RECENT ONBOARDINGS</h2>
                         <table className="onboarding-table">
                             <thead>
                             <tr>
-                                <th>Code</th>
-                                <th>Position</th>
-                                <th>Candidates</th>
-                                <th>Deadline</th>
+                                <th>Full Name</th>
+                                <th>Department</th>
+                                <th>Role</th>
+                                <th>Joining Date</th>
+                                {/*<th>Manager</th>*/}
                                 <th>Status</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {onboardings.length === 0 ? (
-                                <tr><td colSpan="5">No onboardings</td></tr>
-                            ) : onboardings.map((o, i) => (
-                                <tr key={i}>
-                                    <td>{o.code}</td>
-                                    <td>{o.position}</td>
-                                    <td><div className="avatars">{o.candidates.map((c, j) => <img key={j} src={c.avatar} alt="" />)}<span>{o.candidates.length}+</span></div></td>
-                                    <td>{o.deadline}</td>
-                                    <td><span className={`status ${o.status.toLowerCase()}`}>{o.status}</span></td>
+                            {onboardingsLoading ? (
+                                <tr>
+                                    <td colSpan="6" style={{ textAlign: 'center' }}>Loading...</td>
                                 </tr>
-                            ))}
+                            ) : onboardingsError ? (
+                                <tr>
+                                    <td colSpan="6" style={{ textAlign: 'center', color: 'red' }}>
+                                        {onboardingsError}
+                                    </td>
+                                </tr>
+                            ) : recentOnboardings.length === 0 ? (
+                                <tr>
+                                    <td colSpan="6">No recent onboardings</td>
+                                </tr>
+                            ) : (
+                                recentOnboardings.map((o, i) => (
+                                    <tr key={`${o.fullName || 'unknown'}-${i}`}>
+                                        <td>{o.fullName || '-'}</td>
+                                        <td>{o.department || '-'}</td>
+                                        <td>{o.role || '-'}</td>
+                                        <td>{o.joiningDate || '-'}</td>
+                                        {/*<td>{o.managerName || '-'}</td>*/}
+                                        <td>
+                <span className={`status ${(o.status || '').toLowerCase()}`}>
+                  {o.status || 'Unknown'}
+                </span>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                             </tbody>
                         </table>
                     </div>
                 </section>
 
+
+                {/* Section 2: Project Summary Table */}
+                {/*<section className="dashboard-section">*/}
+                {/*    <div className="card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 4px 24px rgba(30,64,175,0.07), 0 1.5px 6px rgba(0,0,0,0.04)', padding: '28px 24px 22px 24px', transition: 'box-shadow 0.2s, transform 0.18s' }}>*/}
+                {/*        <h2 className="section-title">CURRENT ONBOARDINGS SUMMARY</h2>*/}
+                {/*        <table className="onboarding-table">*/}
+                {/*            <thead>*/}
+                {/*            <tr>*/}
+                {/*                <th>Code</th>*/}
+                {/*                <th>Position</th>*/}
+                {/*                <th>Candidates</th>*/}
+                {/*                <th>Deadline</th>*/}
+                {/*                <th>Status</th>*/}
+                {/*            </tr>*/}
+                {/*            </thead>*/}
+                {/*            <tbody>*/}
+                {/*            {onboardings.length === 0 ? (*/}
+                {/*                <tr><td colSpan="5">No onboardings</td></tr>*/}
+                {/*            ) : onboardings.map((o, i) => (*/}
+                {/*                <tr key={i}>*/}
+                {/*                    <td>{o.code}</td>*/}
+                {/*                    <td>{o.position}</td>*/}
+                {/*                    <td><div className="avatars">{Array.isArray(o.candidates) && o.candidates.map((c, j) => (*/}
+                {/*                        <img key={j} src={c.avatar || '/placeholder-avatar.png'} alt="" />*/}
+                {/*                    ))}*/}
+                {/*                        <span>{(Array.isArray(o.candidates) ? o.candidates.length : 0) > 0 ? `${o.candidates.length}+` : '0'}</span>*/}
+                {/*                    </div></td>*/}
+                {/*                    <td>{o.deadline}</td>*/}
+                {/*                    <td><span className={`status ${o.status.toLowerCase()}`}>{o.status}</span></td>*/}
+                {/*                </tr>*/}
+                {/*            ))}*/}
+                {/*            </tbody>*/}
+                {/*        </table>*/}
+                {/*    </div>*/}
+                {/*</section>*/}
+
                 {/* Section 4: Project Summary */}
-                <section className="dashboard-section">
-                    <div className="card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 4px 24px rgba(30,64,175,0.07), 0 1.5px 6px rgba(0,0,0,0.04)', padding: '28px 24px 22px 24px', transition: 'box-shadow 0.2s, transform 0.18s' }}>
-                        <h2 className="section-title">PROJECT SUMMARY</h2>
-                        <table className="onboarding-table">
-                            <thead>
-                            <tr>
-                                <th>Project Name</th>
-                                <th>Manager</th>
-                                <th>Team Members</th>
-                                <th>Status</th>
-                                <th>Deadline</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {projects.length === 0 ? (
-                                <tr><td colSpan="5">No projects</td></tr>
-                            ) : projects.map((p, i) => (
-                                <tr key={i}>
-                                    <td>{p.name}</td>
-                                    <td>{p.manager}</td>
-                                    <td><div className="avatars">{p.team.map((m, j) => <img key={j} src={m.avatar} alt="" />)}<span>+{p.team.length}</span></div></td>
-                                    <td><span className={`status ${p.status.toLowerCase()}`}>{p.status}</span></td>
-                                    <td>{p.deadline}</td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
+                {/*<section className="dashboard-section">*/}
+                {/*    <div className="card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 4px 24px rgba(30,64,175,0.07), 0 1.5px 6px rgba(0,0,0,0.04)', padding: '28px 24px 22px 24px', transition: 'box-shadow 0.2s, transform 0.18s' }}>*/}
+                {/*        <h2 className="section-title">PROJECT SUMMARY</h2>*/}
+                {/*        <table className="onboarding-table">*/}
+                {/*            <thead>*/}
+                {/*            <tr>*/}
+                {/*                <th>Project Name</th>*/}
+                {/*                <th>Manager</th>*/}
+                {/*                <th>Team Members</th>*/}
+                {/*                <th>Status</th>*/}
+                {/*                <th>Deadline</th>*/}
+                {/*            </tr>*/}
+                {/*            </thead>*/}
+                {/*            <tbody>*/}
+                {/*            {projects.length === 0 ? (*/}
+                {/*                <tr><td colSpan="5">No projects</td></tr>*/}
+                {/*            ) : projects.map((p, i) => (*/}
+                {/*                <tr key={i}>*/}
+                {/*                    <td>{p.name}</td>*/}
+                {/*                    <td>{p.manager}</td>*/}
+                {/*                    <td><div className="avatars">{Array.isArray(p.team) && p.team.map((m, j) => (*/}
+                {/*                        <img key={j} src={m.avatar || '/placeholder-avatar.png'} alt="" />*/}
+                {/*                    ))}*/}
+                {/*                        <span>{(Array.isArray(p.team) ? `+${p.team.length}` : '+0')}</span>*/}
+                {/*                    </div></td>*/}
+                {/*                    <td><span className={`status ${p.status.toLowerCase()}`}>{p.status}</span></td>*/}
+                {/*                    <td>{p.deadline}</td>*/}
+                {/*                </tr>*/}
+                {/*            ))}*/}
+                {/*            </tbody>*/}
+                {/*        </table>*/}
+                {/*    </div>*/}
+                {/*</section>*/}
 
                 {/* Section 5: Payroll Summary */}
                 <section className="dashboard-section">
@@ -520,7 +615,7 @@ export default function Dashboard() {
                             <thead>
                             <tr>
                                 <th>Employee</th>
-                                <th>Department</th>
+                                {/*<th>Department</th>*/}
                                 <th>Net Salary</th>
                                 <th>Status</th>
                                 <th>Payment Date</th>
@@ -532,7 +627,7 @@ export default function Dashboard() {
                             ) : paginatedPayroll.map((row, i) => (
                                 <tr key={i}>
                                     <td>{row.employee}</td>
-                                    <td>{row.department}</td>
+                                    {/*<td>{row.department}</td>*/}
                                     <td>₹{row.netSalary.toLocaleString()}</td>
                                     <td><span className={`status ${row.status.toLowerCase()}`}>{row.status}</span></td>
                                     <td>{row.paymentDate}</td>
