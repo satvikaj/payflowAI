@@ -154,7 +154,7 @@ const TeamMembers = () => {
                 member.email || '',
                 member.department || '',
                 member.position || '',
-                member.phoneNumber || ''
+                member.phone || ''
             ].join(','))
         ].join('\n');
         
@@ -327,7 +327,7 @@ const TeamMembers = () => {
                                                 </td>
                                                 <td data-label="Contact" className="contact-cell">
                                                     <div>{member.email || 'N/A'}</div>
-                                                    <div>{member.phoneNumber || 'N/A'}</div>
+                                                    <div>{member.phone || 'N/A'}</div>
                                                 </td>
                                                 <td data-label="Status">
                                                     <span className={`status-badge status-${isOnLeave ? 'leave' : 'active'}`}>
@@ -400,7 +400,7 @@ const TeamMembers = () => {
                                             </div>
                                             <div className="detail-item">
                                                 <FaPhone className="detail-icon" />
-                                                <span>Phone: {selectedMember.phoneNumber || 'N/A'}</span>
+                                                <span>Phone: {selectedMember.phone || 'N/A'}</span>
                                             </div>
                                         </div>
                                         
@@ -412,7 +412,7 @@ const TeamMembers = () => {
                                             </div>
                                             <div className="detail-item">
                                                 <FaBriefcase className="detail-icon" />
-                                                <span>Position: {selectedMember.position || 'N/A'}</span>
+                                                <span>Role: {selectedMember.role || 'N/A'}</span>
                                             </div>
                                             <div className="detail-item">
                                                 <FaUserTie className="detail-icon" />

@@ -91,7 +91,7 @@ const AddUser = () => {
                         >
                             <option value="HR">HR</option>
                             <option value="Manager">Manager</option>
-                            <option value="Employee">Employee</option>
+                            {/*<option value="Employee">Employee</option>*/}
                         </select>
                         <input
                             type="password"

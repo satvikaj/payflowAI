@@ -3,6 +3,8 @@ package com.payflowapi.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Entity
 @Data
 public class Employee {
@@ -14,7 +16,10 @@ public class Employee {
     private String fullName;
     private String dob;
     private String gender;
-    private String joiningDate;
+    @Column(name = "joining_date")
+//    private String joiningDate;
+    private LocalDate joiningDate;
+
     private String address;
     private String email;
     private String phone;
@@ -49,4 +54,7 @@ public class Employee {
     private String certifications;
     private String skills;
     private String languages;
+
+    public LocalDate getJoiningDate() { return joiningDate; }
+    public void setJoiningDate(LocalDate joiningDate) { this.joiningDate = joiningDate; }
 }

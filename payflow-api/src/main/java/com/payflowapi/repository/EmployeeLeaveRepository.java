@@ -18,6 +18,11 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 
     List<EmployeeLeave> findByEmployeeIdAndStatus(Long employeeId, String status);
 
+    @Query("SELECT el FROM EmployeeLeave el WHERE el.employeeId = :employeeId AND el.status = 'ACCEPTED' " +
+            "AND el.toDate >= :startDate AND el.fromDate <= :endDate")
+    List<EmployeeLeave> findApprovedLeavesInMonth(@Param("employeeId") Long employeeId,
+                                                  @Param("startDate") LocalDate startDate,
+                                                  @Param("endDate") LocalDate endDate);
 
 
     // Find overlapping leave requests for the same employee

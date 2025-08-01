@@ -541,7 +541,63 @@ const AdminDashboard = () => {
                 `}</style>
 
                 {/* Summary Cards */}
-                <div className="admin-card-grid">
+                {/*<div className="admin-card-grid">*/}
+                {/*    <div className="admin-card highlight-card">*/}
+                {/*        <h2 className="admin-section-title">TOTAL HRs</h2>*/}
+                {/*        <div className="admin-count">{hrUsers.length}</div>*/}
+                {/*        <div className="stats">*/}
+                {/*            <span>Active: {activeHRs}</span>*/}
+                {/*            <span>Inactive: {inactiveHRs}</span>*/}
+                {/*        </div>*/}
+                {/*    </div>*/}
+                {/*    <div className="admin-card highlight-card">*/}
+                {/*        <h2 className="admin-section-title">TOTAL MANAGERS</h2>*/}
+                {/*        <div className="admin-count">{managerUsers.length}</div>*/}
+                {/*        <div className="stats">*/}
+                {/*            <span>Active: {activeManagers}</span>*/}
+                {/*            <span>Inactive: {inactiveManagers}</span>*/}
+                {/*        </div>*/}
+                {/*    </div>*/}
+                {/*    <div className="admin-card highlight-card">*/}
+                {/*        <h2 className="admin-section-title">TOTAL EMPLOYEES</h2>*/}
+                {/*        <div className="admin-count">{employeeCount}</div>*/}
+                {/*        <div className="stats">*/}
+                {/*            <span>Active: {employeeUsers.filter(u => u.active).length}</span>*/}
+                {/*            <span>Inactive: {employeeUsers.filter(u => !u.active).length}</span>*/}
+                {/*        </div>*/}
+                {/*    </div>*/}
+                {/*    <div className="admin-card info-card">*/}
+                {/*        <h2 className="admin-section-title">Pending Leave Requests</h2>*/}
+                {/*        <div className="admin-count">{leaves.filter(leave => leave.status === 'PENDING').length}</div>*/}
+                {/*        <div className="stats">*/}
+                {/*            <span>Approved: {leaves.filter(leave => leave.status === 'ACCEPTED').length}</span>*/}
+                {/*        </div>*/}
+                {/*    </div>*/}
+                {/*    <div className="admin-card info-card">*/}
+                {/*        <h2 className="admin-section-title">New Joinings This Month</h2>*/}
+                {/*        <div className="admin-count">*/}
+                {/*            {(() => {*/}
+                {/*                const currentMonth = new Date().getMonth();*/}
+                {/*                const currentYear = new Date().getFullYear();*/}
+                {/*                return employees.filter(emp => {*/}
+                {/*                    if (!emp.joiningDate) return false;*/}
+                {/*                    try {*/}
+                {/*                        const joinDate = new Date(emp.joiningDate);*/}
+                {/*                        return joinDate.getMonth() === currentMonth && joinDate.getFullYear() === currentYear;*/}
+                {/*                    } catch {*/}
+                {/*                        return false;*/}
+                {/*                    }*/}
+                {/*                }).length;*/}
+                {/*            })()}*/}
+                {/*        </div>*/}
+                {/*        <div className="stats">*/}
+                {/*            <span>Total: {employees.length}</span>*/}
+                {/*        </div>*/}
+                {/*    </div>*/}
+                {/*</div>*/}
+
+                {/* Summary Cards */}
+                <div className="summary-cards-row">
                     <div className="admin-card highlight-card">
                         <h2 className="admin-section-title">TOTAL HRs</h2>
                         <div className="admin-count">{hrUsers.length}</div>
@@ -595,6 +651,7 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                 </div>
+
 
                 {/* Charts & Visualizations */}
                 <div className="dashboard-charts-row">

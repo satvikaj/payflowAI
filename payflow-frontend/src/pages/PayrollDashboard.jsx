@@ -4,12 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import axios from '../utils/axios';
 import SidebarManager from '../components/SidebarManager';
 import './PayrollDashboard.css';
+import Sidebar from "../components/Sidebar";
 
 function PayrollDashboard() {
     const managerId = localStorage.getItem('managerId');
     const [payrolls, setPayrolls] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const role = localStorage.getItem('role')?.toUpperCase();
+
 
     useEffect(() => {
         async function fetchPayrolls() {
@@ -50,7 +53,13 @@ function PayrollDashboard() {
 
     return (
         <div className="manager-dashboard-layout">
-            <SidebarManager />
+            {/*<SidebarManager />*/}
+            {role === 'MANAGER' ? (
+                <SidebarManager />
+            ) : role === 'HR' ? (
+                <Sidebar/>
+            ) : null}
+
             <main className="manager-dashboard-main">
                 <div className="payroll-header">
                     <h2>Payroll Summary</h2>

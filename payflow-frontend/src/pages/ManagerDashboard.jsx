@@ -21,6 +21,7 @@ import {
 import './ManagerDashboard.css';
 import axios from '../utils/axios';
 
+
 function ManagerDashboard() {
     // Use managerId from localStorage (set after login)
     const managerId = localStorage.getItem('managerId');
@@ -40,7 +41,7 @@ function ManagerDashboard() {
     const [currentLeavePage, setCurrentLeavePage] = useState(1);
     const activitiesPerPage = 5;
     const leavesPerPage = 6;
-    
+
     const navigate = useNavigate();
 
     // Dynamic notifications based on actual data
@@ -131,6 +132,13 @@ function ManagerDashboard() {
 
     const dynamicNotifications = generateDynamicNotifications();
 
+
+
+    const handleViewAllNotifications = () => {
+        const dynamicNotifications = generateDynamicNotifications();
+        navigate('/notifications', { state: { notifications: dynamicNotifications } });
+    };
+
     useEffect(() => {
         async function fetchData() {
             setLoading(true);
@@ -203,7 +211,8 @@ function ManagerDashboard() {
         ...leaves.map(l => ({
             type: 'leave',
             message: `Leave request from ${l.employeeName || team.find(t => t.id === l.employeeId)?.fullName || 'Employee'}`,
-            time: l.createdAt || 'Recently',
+            time: l.createdAt || new Date().toISOString(),
+
             status: l.status,
             id: l.id,
             sortKey: `leave_${l.id}`
@@ -269,16 +278,35 @@ function ManagerDashboard() {
     };
 
     const formatDate = (dateString) => {
+        if (!dateString) return 'Date not available';
+
         const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'Invalid date';
+
         const now = new Date();
-        const diffTime = Math.abs(now - date);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 1) return 'Yesterday';
+        const diffTime = now - date;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
         if (diffDays === 0) return 'Today';
-        if (diffDays <= 7) return `${diffDays} days ago`;
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+
         return date.toLocaleDateString();
     };
+
+
+
+    // const formatDate = (dateString) => {
+    //     const date = new Date(dateString);
+    //     const now = new Date();
+    //     const diffTime = Math.abs(now - date);
+    //     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    //
+    //     if (diffDays === 1) return 'Yesterday';
+    //     if (diffDays === 0) return 'Today';
+    //     if (diffDays <= 7) return `${diffDays} days ago`;
+    //     return date.toLocaleDateString();
+    // };
 
     return (
         <div className="manager-dashboard-layout">
@@ -496,7 +524,7 @@ function ManagerDashboard() {
                                                     </div>
                                                     <div className="activity-content">
                                                         <p>{activity.message}</p>
-                                                        <span className="activity-time">{formatDate(activity.time)}</span>
+                                                        {/*<span className="activity-time">{formatDate(activity.time)}</span>*/}
                                                     </div>
                                                     <div className={`activity-status ${activity.status?.toLowerCase()}`}>
                                                         {activity.status}
