@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayFlow API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error {
+            background: #ffe6e6;
+            color: #d00;
+        }
+        .success {
+            background: #e6ffe6;
+            color: #060;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PayFlow Payroll & CTC Management - API Test</h1>
+        
+        <div class="test-section">
+            <h3>1. Test Backend Connection</h3>
+            <button onclick="testConnection()">Test Connection</button>
+            <div id="connectionResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Test CTC Management Endpoints</h3>
+            <button onclick="testGetEmployees()">Get Employees</button>
+            <button onclick="testAddCTC()">Add Sample CTC</button>
+            <button onclick="testGetCTCHistory()">Get CTC History</button>
+            <div id="ctcResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Test Payroll Endpoints</h3>
+            <button onclick="testGeneratePayslip()">Generate Sample Payslip</button>
+            <button onclick="testGetPayslips()">Get All Payslips</button>
+            <div id="payrollResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Database Tables Status</h3>
+            <button onclick="checkTables()">Check Database Tables</button>
+            <div id="tableResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+
+        function displayResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${isError ? 'error' : 'success'}`;
+            element.innerHTML = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+        }
+
+        async function testConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/actuator/health`);
+                if (response.ok) {
+                    displayResult('connectionResult', '✅ Backend is running and accessible!');
+                } else {
+                    displayResult('connectionResult', '❌ Backend responded with error: ' + response.status, true);
+                }
+            } catch (error) {
+                displayResult('connectionResult', '❌ Cannot connect to backend: ' + error.message, true);
+            }
+        }
+
+        async function testGetEmployees() {
+            try {
+                const response = await fetch(`${API_BASE}/employees`);
+                const data = await response.json();
+                displayResult('ctcResult', '✅ Employees fetched: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                displayResult('ctcResult', '❌ Error fetching employees: ' + error.message, true);
+            }
+        }
+
+        async function testAddCTC() {
+            const sampleCTC = {
+                employeeId: 1,
+                effectiveFrom: '2025-01-01',
+                basicSalary: 50000,
+                hra: 15000,
+                allowances: 10000,
+                bonuses: 5000,
+                pfContribution: 3000,
+                gratuity: 2000,
+                revisionReason: 'Annual salary revision',
+                createdBy: 'HR Admin'
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/ctc/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(sampleCTC)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayResult('ctcResult', '✅ CTC added successfully: ' + JSON.stringify(data, null, 2));
+                } else {
+                    displayResult('ctcResult', '❌ Error adding CTC: ' + response.status, true);
+                }
+            } catch (error) {
+                displayResult('ctcResult', '❌ Error adding CTC: ' + error.message, true);
+            }
+        }
+
+        async function testGetCTCHistory() {
+            try {
+                const response = await fetch(`${API_BASE}/ctc/history/1`);
+                const data = await response.json();
+                displayResult('ctcResult', '✅ CTC History: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                displayResult('ctcResult', '❌ Error fetching CTC history: ' + error.message, true);
+            }
+        }
+
+        async function testGeneratePayslip() {
+            const samplePayslip = {
+                employeeId: 1,
+                payrollMonth: 'January',
+                payrollYear: 2025,
+                workingDays: 22,
+                attendedDays: 22,
+                overtime: 0,
+                medicalAllowance: 1000,
+                travelAllowance: 500,
+                professionalTax: 200,
+                incomeTax: 2000,
+                otherDeductions: 0,
+                notes: 'Regular monthly payslip'
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/payslips/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(samplePayslip)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayResult('payrollResult', '✅ Payslip generated: ' + JSON.stringify(data, null, 2));
+                } else {
+                    displayResult('payrollResult', '❌ Error generating payslip: ' + response.status, true);
+                }
+            } catch (error) {
+                displayResult('payrollResult', '❌ Error generating payslip: ' + error.message, true);
+            }
+        }
+
+        async function testGetPayslips() {
+            try {
+                const response = await fetch(`${API_BASE}/payslips/all`);
+                const data = await response.json();
+                displayResult('payrollResult', '✅ All Payslips: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                displayResult('payrollResult', '❌ Error fetching payslips: ' + error.message, true);
+            }
+        }
+
+        async function checkTables() {
+            displayResult('tableResult', `
+📊 Expected Database Tables:
+1. ctc_details - CTC management table
+2. payslips - Payslip records table
+
+🔧 Table Structure:
+ctc_details:
+- ctc_id (Primary Key)
+- employee_id
+- effective_from
+- basic_salary, hra, allowances, bonuses
+- pf_contribution, gratuity, total_ctc
+- created_by, created_at, updated_at
+- revision_reason, status
+
+payslips:
+- payslip_id (Primary Key) 
+- employee_id, payroll_month, payroll_year
+- basic_salary, hra, allowances, gross_salary
+- pf_deduction, professional_tax, income_tax
+- total_deductions, net_pay
+- working_days, attended_days
+- generated_at, status
+
+✅ Tables will be auto-created when backend starts!
+            `);
+        }
+
+        // Test connection on page load
+        window.onload = function() {
+            testConnection();
+        };
+    </script>
+</body>
+</html>

@@ -27,6 +27,10 @@ import TeamMembers from "./pages/TeamMembers";
 import PayrollDashboard from "./pages/PayrollDashboard";
 import SchedulePayrollForm from "./pages/SchedulePayrollForm";
 import PayslipViewer from "./pages/PayslipViewer";
+import CTCManagement from "./pages/CTCManagement";
+import EmployeeCTCDashboard from "./pages/EmployeeCTCDashboard";
+import HRCTCManagement from "./pages/HRCTCManagement";
+import ManagerTeamPayroll from "./pages/ManagerTeamPayroll";
 // import Login from "./components/Login";
 
 
@@ -56,7 +60,12 @@ function App() {
                 <Route path="/employee-leave" element={<EmployeeLeave />} />
                 <Route path="/employee-overview" element={<EmployeeOverview />} />
                 <Route path="/employee-profile" element={<EmployeeProfile />} />
+                <Route path="/employee-ctc-dashboard" element={<EmployeeCTCDashboard />} />
+                <Route path="/hr-ctc-management" element={<HRCTCManagement />} />
+                <Route path="/manager-team-payroll" element={<ManagerTeamPayroll />} />
                 <Route path="/team-members" element={<TeamMembers />} />
+                <Route path="/ctc-management" element={<CTCManagement />} />
+                <Route path="/payroll-dashboard" element={<PayrollDashboard />} />
 
             </Routes>
         </BrowserRouter>

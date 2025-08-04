@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FaTachometerAlt, FaUserTie, FaUsers, FaCogs, FaUserPlus, FaSignOutAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaTachometerAlt, FaUserTie, FaUsers, FaCogs, FaUserPlus, FaSignOutAlt, FaChevronLeft, FaChevronRight, FaMoneyBillWave, FaFileInvoiceDollar } from 'react-icons/fa';
 import './SidebarAdmin.css';
 
 const SidebarAdmin = () => {
@@ -72,6 +72,30 @@ const SidebarAdmin = () => {
                             >
                                 <FaUserPlus className="nav-icon" />
                                 {!isCollapsed && <span className="nav-text">Add User</span>}
+                                {!isCollapsed && <div className="nav-indicator"></div>}
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink 
+                                to="/ctc-management" 
+                                className={({ isActive }) => `nav-link ${isActive ? 'active-link' : ''}`}
+                                title={isCollapsed ? 'CTC Management' : ''}
+                                end
+                            >
+                                <FaMoneyBillWave className="nav-icon" />
+                                {!isCollapsed && <span className="nav-text">CTC Management</span>}
+                                {!isCollapsed && <div className="nav-indicator"></div>}
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink 
+                                to="/payroll-dashboard" 
+                                className={({ isActive }) => `nav-link ${isActive ? 'active-link' : ''}`}
+                                title={isCollapsed ? 'Payroll Dashboard' : ''}
+                                end
+                            >
+                                <FaFileInvoiceDollar className="nav-icon" />
+                                {!isCollapsed && <span className="nav-text">Payroll Dashboard</span>}
                                 {!isCollapsed && <div className="nav-indicator"></div>}
                             </NavLink>
                         </li>

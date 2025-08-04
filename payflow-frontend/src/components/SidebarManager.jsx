@@ -44,7 +44,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { FaTachometerAlt, FaUsers, FaProjectDiagram, FaEnvelopeOpenText } from 'react-icons/fa';
+import { FaTachometerAlt, FaUsers, FaProjectDiagram, FaEnvelopeOpenText, FaMoneyBill } from 'react-icons/fa';
 import './SidebarManager.css';
 
 const SidebarManager = () => {
@@ -73,6 +73,11 @@ const SidebarManager = () => {
                 <li>
                     <NavLink to="/manager-onboarding" className={({ isActive }) => isActive ? 'active-link' : ''} end>
                         <FaUsers /> Onboarding
+                    </NavLink>
+                </li>
+                <li>
+                    <NavLink to="/manager-team-payroll" className={({ isActive }) => isActive ? 'active-link' : ''} end>
+                        <FaMoneyBill /> Team Payroll
                     </NavLink>
                 </li>
                 <li>

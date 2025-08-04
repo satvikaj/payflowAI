@@ -1,6 +1,6 @@
 import React from 'react';
 import './Sidebar.css';
-import { FaTachometerAlt, FaUser, FaMoneyBill, FaCalendarAlt, FaEnvelope } from 'react-icons/fa';
+import { FaTachometerAlt, FaUser, FaMoneyBill, FaCalendarAlt, FaEnvelope, FaFileInvoiceDollar } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 
@@ -19,9 +19,12 @@ export default function EmployeeSidebar() {
                 <NavLink to="/employee-profile" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
                     <FaUser /> Profile
                 </NavLink>
-                <NavLink to="/employee-payroll" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
-                    <FaMoneyBill /> Payroll
+                <NavLink to="/employee-ctc-dashboard" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
+                    <FaFileInvoiceDollar /> My CTC & Payslips
                 </NavLink>
+                {/* <NavLink to="/employee-payroll" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
+                    <FaMoneyBill /> Payroll
+                </NavLink> */}
                 <NavLink to="/employee-leave" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
                     <FaCalendarAlt /> Leave
                 </NavLink>
