@@ -28,7 +28,8 @@ public class UserController {
     // LOGIN endpoint
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginDto loginDto) {
-        // Calls the login logic in the service and returns token, role, and firstLogin info
+        // Calls the login logic in the service and returns token, role, and firstLogin
+        // info
 
         return ResponseEntity.ok(userService.login(loginDto));
     }
@@ -37,8 +38,7 @@ public class UserController {
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(
             @RequestBody Map<String, String> body,
-            @RequestHeader("Authorization") String authHeader
-    ) {
+            @RequestHeader("Authorization") String authHeader) {
         String newPassword = body.get("newPassword");
         String token = authHeader.replace("Bearer ", ""); // Extract token from header
 
@@ -57,7 +57,6 @@ public class UserController {
 
         return ResponseEntity.ok(Map.of("message", "Password reset successful"));
     }
-
 
     @PostMapping("/admin/add-user")
     public ResponseEntity<?> addUser(@RequestBody Map<String, String> body) {
@@ -94,11 +93,13 @@ public class UserController {
                     .body(Map.of("message", "User saved, but failed to send email"));
         }
     }
+
     // GET all users
     @GetMapping("/admin/users")
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userRepository.findAll());
     }
+
     // DISABLE user by email (username)
     @PutMapping("/admin/disable-user")
     public ResponseEntity<?> disableUser(@RequestBody Map<String, String> body) {
@@ -116,10 +117,28 @@ public class UserController {
 
         return ResponseEntity.ok(Map.of("message", "User disabled successfully"));
     }
+
+    // ENABLE user by email (username)
+    @PutMapping("/admin/enable-user")
+    public ResponseEntity<?> enableUser(@RequestBody Map<String, String> body) {
+        String username = body.get("username");
+
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "User not found"));
+        }
+
+        User user = optionalUser.get();
+        user.setActive(true);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(Map.of("message", "User enabled successfully"));
+    }
+
     @GetMapping("/test")
     public String testApi() {
         return "✅ Controller is working!";
     }
-
 
 }

@@ -1,27 +1,103 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { FaTachometerAlt, FaUserTie, FaUsers, FaCogs } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { FaTachometerAlt, FaUserTie, FaUsers, FaCogs, FaUserPlus, FaSignOutAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import './SidebarAdmin.css';
 
 const SidebarAdmin = () => {
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        localStorage.clear();
+        navigate('/');
+    };
+
+    const toggleSidebar = () => {
+        setIsCollapsed(!isCollapsed);
+    };
+
     return (
-        <div className="sidebar">
-            <h2 className="logo">WELCOME!</h2>
-            <ul className="nav-list">
-                <li>
-                    <NavLink to="/admin-dashboard" className={({ isActive }) => isActive ? 'active-link' : ''} end>
-                        <FaTachometerAlt /> Dashboard
-                    </NavLink>
-                </li>
-                <li>
-                    <NavLink to="/employee-overview" className={({ isActive }) => isActive ? 'active-link' : ''} end>
-                        <FaUsers /> Employee Overview
-                    </NavLink>
-                </li>
-                <li className="nav-placeholder">
-                    <FaCogs /> Settings
-                </li>
-            </ul>
+        <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+            <div className="sidebar-header">
+                <div className="logo-section">
+                    <div className="logo-icon">👑</div>
+                    {!isCollapsed && (
+                        <div className="logo-text">
+                            <h2 className="logo-title">ADMIN</h2>
+                            <span className="logo-subtitle">Control Panel</span>
+                        </div>
+                    )}
+                </div>
+                <button className="toggle-btn" onClick={toggleSidebar}>
+                    {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+                </button>
+            </div>
+
+            <div className="sidebar-content">
+                <nav className="nav-section">
+                    <div className="nav-header">
+                        {!isCollapsed && <span>NAVIGATION</span>}
+                    </div>
+                    <ul className="nav-list">
+                        <li>
+                            <NavLink 
+                                to="/admin-dashboard" 
+                                className={({ isActive }) => `nav-link ${isActive ? 'active-link' : ''}`}
+                                title={isCollapsed ? 'Dashboard' : ''}
+                                end
+                            >
+                                <FaTachometerAlt className="nav-icon" />
+                                {!isCollapsed && <span className="nav-text">Dashboard</span>}
+                                {!isCollapsed && <div className="nav-indicator"></div>}
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink 
+                                to="/employee-overview" 
+                                className={({ isActive }) => `nav-link ${isActive ? 'active-link' : ''}`}
+                                title={isCollapsed ? 'Employee Overview' : ''}
+                                end
+                            >
+                                <FaUsers className="nav-icon" />
+                                {!isCollapsed && <span className="nav-text">Employee Overview</span>}
+                                {!isCollapsed && <div className="nav-indicator"></div>}
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink 
+                                to="/create-user" 
+                                className={({ isActive }) => `nav-link ${isActive ? 'active-link' : ''}`}
+                                title={isCollapsed ? 'Add User' : ''}
+                                end
+                            >
+                                <FaUserPlus className="nav-icon" />
+                                {!isCollapsed && <span className="nav-text">Add User</span>}
+                                {!isCollapsed && <div className="nav-indicator"></div>}
+                            </NavLink>
+                        </li>
+                        <li>
+                            <div 
+                                className="nav-link nav-placeholder"
+                                title={isCollapsed ? 'Settings' : ''}
+                            >
+                                <FaCogs className="nav-icon" />
+                                {!isCollapsed && <span className="nav-text">Settings</span>}
+                            </div>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div className="sidebar-footer">
+                    <button 
+                        className="logout-btn" 
+                        onClick={handleLogout}
+                        title={isCollapsed ? 'Logout' : ''}
+                    >
+                        <FaSignOutAlt className="logout-icon" />
+                        {!isCollapsed && <span className="logout-text">Logout</span>}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };
