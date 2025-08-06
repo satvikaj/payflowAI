@@ -262,6 +262,30 @@ public class CTCManagementController {
         }
     }
 
+    // Download payslip as PDF
+    @GetMapping("/payslip/download/{payslipId}")
+    public ResponseEntity<?> downloadPayslip(@PathVariable Long payslipId) {
+        try {
+            Optional<Payslip> payslipOpt = payslipService.getPayslipById(payslipId);
+            if (!payslipOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Payslip not found"));
+            }
+            
+            Payslip payslip = payslipOpt.get();
+            // Return payslip data with employee information for frontend PDF generation
+            Employee employee = employeeRepository.findById(payslip.getEmployeeId()).orElse(null);
+            
+            return ResponseEntity.ok(Map.of(
+                    "payslip", payslip,
+                    "employee", employee,
+                    "message", "Payslip data retrieved successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
     // ==================== UTILITY ENDPOINTS ====================
 
     // Get all employees for CTC management

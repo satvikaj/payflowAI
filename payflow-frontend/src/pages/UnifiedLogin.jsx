@@ -62,8 +62,20 @@ const UnifiedLogin = () => {
             // Store userEmail for employee dashboard fetch
             if (role === "EMPLOYEE") {
                 localStorage.setItem("userEmail", finalEmail);
+                
+                // Also fetch and store employeeId for the employee
+                try {
+                    const employeeRes = await axios.get(`http://localhost:8080/api/employee?email=${finalEmail}`);
+                    if (employeeRes.data && employeeRes.data.id) {
+                        localStorage.setItem("employeeId", employeeRes.data.id);
+                        console.log('Stored employeeId:', employeeRes.data.id);
+                    }
+                } catch (empError) {
+                    console.error('Error fetching employee details during login:', empError);
+                }
             } else {
                 localStorage.removeItem("userEmail");
+                localStorage.removeItem("employeeId");
             }
 
             setPopup({ show: true, title: 'Login Successful', message: `Welcome ${res.data.name || role}!`, type: 'success' });

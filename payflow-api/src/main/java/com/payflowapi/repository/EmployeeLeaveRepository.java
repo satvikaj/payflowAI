@@ -24,6 +24,24 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
                                                   @Param("startDate") LocalDate startDate,
                                                   @Param("endDate") LocalDate endDate);
 
+    // Find approved paid leaves for the current year
+    @Query("SELECT el FROM EmployeeLeave el WHERE el.employeeId = :employeeId AND el.status = 'ACCEPTED' " +
+            "AND el.isPaid = true AND YEAR(el.fromDate) = :year")
+    List<EmployeeLeave> findApprovedPaidLeavesInYear(@Param("employeeId") Long employeeId,
+                                                     @Param("year") int year);
+
+    // Find approved unpaid leaves for a specific month
+    @Query("SELECT el FROM EmployeeLeave el WHERE el.employeeId = :employeeId AND el.status = 'ACCEPTED' " +
+            "AND el.isPaid = false AND YEAR(el.fromDate) = :year AND MONTH(el.fromDate) = :month")
+    List<EmployeeLeave> findApprovedUnpaidLeavesInMonth(@Param("employeeId") Long employeeId,
+                                                        @Param("year") int year,
+                                                        @Param("month") int month);
+
+    // Find all approved unpaid leaves for the current year
+    @Query("SELECT el FROM EmployeeLeave el WHERE el.employeeId = :employeeId AND el.status = 'ACCEPTED' " +
+            "AND el.isPaid = false AND YEAR(el.fromDate) = :year")
+    List<EmployeeLeave> findApprovedUnpaidLeavesInYear(@Param("employeeId") Long employeeId,
+                                                       @Param("year") int year);
 
     // Find overlapping leave requests for the same employee
     @Query("SELECT el FROM EmployeeLeave el WHERE el.employeeId = :employeeId " +

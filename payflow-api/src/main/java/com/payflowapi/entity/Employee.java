@@ -1,12 +1,10 @@
 package com.payflowapi.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
 
 import java.time.LocalDate;
 
 @Entity
-@Data
 public class Employee {
 
     @Id
@@ -17,7 +15,6 @@ public class Employee {
     private String dob;
     private String gender;
     @Column(name = "joining_date")
-//    private String joiningDate;
     private LocalDate joiningDate;
 
     private String address;
@@ -42,19 +39,91 @@ public class Employee {
     private java.util.List<Experience> experiences;
 
     @Embeddable
-    @lombok.Data
     public static class Experience {
         private String years;
         private String role;
         private String company;
         private String fromDate;
         private String toDate;
+
+        // Getters and Setters for Experience
+        public String getYears() { return years; }
+        public void setYears(String years) { this.years = years; }
+        public String getRole() { return role; }
+        public void setRole(String role) { this.role = role; }
+        public String getCompany() { return company; }
+        public void setCompany(String company) { this.company = company; }
+        public String getFromDate() { return fromDate; }
+        public void setFromDate(String fromDate) { this.fromDate = fromDate; }
+        public String getToDate() { return toDate; }
+        public void setToDate(String toDate) { this.toDate = toDate; }
     }
 
     private String certifications;
     private String skills;
     private String languages;
 
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    
+    public String getDob() { return dob; }
+    public void setDob(String dob) { this.dob = dob; }
+    
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
+    
     public LocalDate getJoiningDate() { return joiningDate; }
     public void setJoiningDate(LocalDate joiningDate) { this.joiningDate = joiningDate; }
+    
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    
+    public String getEmergencyContact() { return emergencyContact; }
+    public void setEmergencyContact(String emergencyContact) { this.emergencyContact = emergencyContact; }
+    
+    public String getQualification() { return qualification; }
+    public void setQualification(String qualification) { this.qualification = qualification; }
+    
+    public String getInstitution() { return institution; }
+    public void setInstitution(String institution) { this.institution = institution; }
+    
+    public String getGraduationYear() { return graduationYear; }
+    public void setGraduationYear(String graduationYear) { this.graduationYear = graduationYear; }
+    
+    public String getSpecialization() { return specialization; }
+    public void setSpecialization(String specialization) { this.specialization = specialization; }
+    
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
+    
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+    
+    public Long getManagerId() { return managerId; }
+    public void setManagerId(Long managerId) { this.managerId = managerId; }
+    
+    public String getHasExperience() { return hasExperience; }
+    public void setHasExperience(String hasExperience) { this.hasExperience = hasExperience; }
+    
+    public java.util.List<Experience> getExperiences() { return experiences; }
+    public void setExperiences(java.util.List<Experience> experiences) { this.experiences = experiences; }
+    
+    public String getCertifications() { return certifications; }
+    public void setCertifications(String certifications) { this.certifications = certifications; }
+    
+    public String getSkills() { return skills; }
+    public void setSkills(String skills) { this.skills = skills; }
+    
+    public String getLanguages() { return languages; }
+    public void setLanguages(String languages) { this.languages = languages; }
 }

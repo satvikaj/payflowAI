@@ -130,13 +130,31 @@ const EmployeeDashboard = () => {
 
     // Leave state
     const [leaveHistory, setLeaveHistory] = useState([]);
+    const [leaveStats, setLeaveStats] = useState({
+        totalPaidLeaves: 12,
+        usedPaidLeaves: 0,
+        remainingPaidLeaves: 12,
+        usedUnpaidLeaves: 0,
+        unpaidLeavesThisMonth: 0,
+        currentMonth: new Date().getMonth() + 1,
+        currentYear: new Date().getFullYear()
+    });
+
     const totalLeaves = 12;
 
     const usedLeaves = useMemo(() => {
-        return leaveHistory.filter(l => l.status === 'ACCEPTED').length;
+        return leaveHistory.filter(l => l.status === 'ACCEPTED').reduce((total, leave) => {
+            if (leave.leaveDays) {
+                return total + leave.leaveDays;
+            } else if (leave.fromDate && leave.toDate) {
+                const days = Math.ceil((new Date(leave.toDate) - new Date(leave.fromDate)) / (1000 * 60 * 60 * 24)) + 1;
+                return total + days;
+            }
+            return total;
+        }, 0);
     }, [leaveHistory]);
 
-    const remainingLeaves = totalLeaves - usedLeaves;
+    const remainingLeaves = Math.max(0, totalLeaves - leaveStats.usedPaidLeaves);
 
     useEffect(() => {
         if (email) {
@@ -158,6 +176,15 @@ const EmployeeDashboard = () => {
                 })
                 .catch(() => {
                     setLeaveHistory([]);
+                });
+
+            // Fetch leave statistics
+            axios.get(`http://localhost:8080/api/employee/leave/stats?email=${email}`)
+                .then(res => {
+                    setLeaveStats(res.data);
+                })
+                .catch(err => {
+                    console.error('Failed to fetch leave stats', err);
                 });
         }
     }, [email]);
@@ -192,9 +219,24 @@ const EmployeeDashboard = () => {
 
                     <div className="dashboard-card leave-card">
                         <h3><FaClipboardList /> Leave Summary</h3>
-                        <p><b>Total Leaves:</b> <span style={{ color: '#6366f1' }}>{totalLeaves} days</span></p>
-                        <p><b>Used:</b> <span style={{ color: 'tomato' }}>{usedLeaves} days</span></p>
-                        <p><b>Remaining:</b> <span style={{ color: '#22c55e' }}>{remainingLeaves} days</span></p>
+                        <div style={{ marginBottom: '12px' }}>
+                            <p style={{ margin: '4px 0' }}><b>Paid Leaves:</b></p>
+                            <p style={{ margin: '2px 0', fontSize: '14px' }}>
+                                <span style={{ color: '#6366f1' }}>Total: {leaveStats.totalPaidLeaves}</span> | 
+                                <span style={{ color: 'tomato', marginLeft: '8px' }}>Used: {leaveStats.usedPaidLeaves}</span> | 
+                                <span style={{ color: '#22c55e', marginLeft: '8px' }}>Remaining: {leaveStats.remainingPaidLeaves}</span>
+                            </p>
+                        </div>
+                        <div style={{ marginBottom: '12px' }}>
+                            <p style={{ margin: '4px 0' }}><b>Unpaid Leaves:</b></p>
+                            <p style={{ margin: '2px 0', fontSize: '14px' }}>
+                                <span style={{ color: 'orange' }}>Year Total: {leaveStats.usedUnpaidLeaves}</span> | 
+                                <span style={{ color: 'red', marginLeft: '8px' }}>This Month: {leaveStats.unpaidLeavesThisMonth}</span>
+                            </p>
+                        </div>
+                        <p style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>
+                            Note: After using all paid leaves, additional requests will be unpaid.
+                        </p>
                     </div>
 
                     <div className="dashboard-card payroll-card">

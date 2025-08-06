@@ -3,6 +3,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import com.payflowapi.dto.EmployeeDto;
 import com.payflowapi.dto.LeaveRequestDto;
+import com.payflowapi.dto.LeaveStatsDto;
 import com.payflowapi.entity.Employee;
 import com.payflowapi.entity.Project;
 import com.payflowapi.entity.EmployeeLeave;
@@ -10,6 +11,7 @@ import com.payflowapi.repository.EmployeeRepository;
 import com.payflowapi.entity.User;
 import com.payflowapi.repository.UserRepository;
 import com.payflowapi.service.EmailService;
+import com.payflowapi.service.LeaveService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -106,6 +108,37 @@ public class EmployeeController {
         return "Updated managerId for " + updated + " leave requests.";
     }
 
+    // FIX: Migrate existing leave data to include isPaid and leaveDays fields
+    @PostMapping("/leaves/migrate-data")
+    public ResponseEntity<String> migrateLeaveData() {
+        List<EmployeeLeave> leaves = employeeLeaveRepository.findAll();
+        int updated = 0;
+        
+        for (EmployeeLeave leave : leaves) {
+            boolean wasUpdated = false;
+            
+            // Set isPaid to true for existing leaves (assuming they were all paid)
+            if (leave.getIsPaid() == null) {
+                leave.setIsPaid(true);
+                wasUpdated = true;
+            }
+            
+            // Calculate and set leaveDays if not already set
+            if (leave.getLeaveDays() == null && leave.getFromDate() != null && leave.getToDate() != null) {
+                int days = leaveService.calculateLeaveDays(leave.getFromDate(), leave.getToDate());
+                leave.setLeaveDays(days);
+                wasUpdated = true;
+            }
+            
+            if (wasUpdated) {
+                employeeLeaveRepository.save(leave);
+                updated++;
+            }
+        }
+        
+        return ResponseEntity.ok("Migrated data for " + updated + " leave requests.");
+    }
+
     // DEBUG: List all leave requests and their managerId
     @GetMapping("/leaves/all")
     public List<EmployeeLeave> getAllLeaves() {
@@ -120,6 +153,17 @@ public class EmployeeController {
             return List.of();
         }
         return employeeLeaveRepository.findByEmployeeId(employee.getId());
+    }
+
+    // Endpoint to get leave statistics for an employee
+    @GetMapping("/leave/stats")
+    public ResponseEntity<LeaveStatsDto> getLeaveStats(@RequestParam String email) {
+        Employee employee = employeeRepository.findByEmail(email).orElse(null);
+        if (employee == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        LeaveStatsDto stats = leaveService.getLeaveStats(employee.getId());
+        return ResponseEntity.ok(stats);
     }
 
     // Endpoint to apply for leave
@@ -141,29 +185,7 @@ public class EmployeeController {
         }
 
         // Calculate days requested
-        long daysRequested = java.time.temporal.ChronoUnit.DAYS.between(fromDate, toDate) + 1;
-
-        // Check leave balance - count accepted leaves for this employee
-        List<EmployeeLeave> acceptedLeaves = employeeLeaveRepository.findByEmployeeIdAndStatus(employee.getId(), "ACCEPTED");
-        long usedLeaves = 0;
-        for (EmployeeLeave leave : acceptedLeaves) {
-            if (leave.getFromDate() != null && leave.getToDate() != null) {
-                usedLeaves += java.time.temporal.ChronoUnit.DAYS.between(leave.getFromDate(), leave.getToDate()) + 1;
-            }
-        }
-        
-        final int TOTAL_ANNUAL_LEAVES = 12;
-        long remainingLeaves = TOTAL_ANNUAL_LEAVES - usedLeaves;
-
-        // Check if employee has any remaining leaves
-        if (remainingLeaves <= 0) {
-            return ResponseEntity.badRequest().body("You have no remaining leaves. You have already used all " + TOTAL_ANNUAL_LEAVES + " annual leaves.");
-        }
-
-        // Check if requested days exceed remaining leaves
-        if (daysRequested > remainingLeaves) {
-            return ResponseEntity.badRequest().body("You are requesting " + daysRequested + " days but only have " + remainingLeaves + " leaves remaining.");
-        }
+        int daysRequested = leaveService.calculateLeaveDays(fromDate, toDate);
 
         // Check for overlapping leave requests
         List<EmployeeLeave> overlappingLeaves = employeeLeaveRepository.findOverlappingLeaves(
@@ -187,6 +209,9 @@ public class EmployeeController {
             return ResponseEntity.badRequest().body(message);
         }
 
+        // Determine if this should be paid or unpaid leave
+        boolean isPaidLeave = leaveService.shouldBePaidLeave(employee.getId(), daysRequested);
+        
         // Create new leave request
         EmployeeLeave leave = new EmployeeLeave();
         leave.setEmployeeId(employee.getId());
@@ -197,9 +222,19 @@ public class EmployeeController {
         leave.setToDate(toDate);
         leave.setReason(dto.getReason());
         leave.setStatus("PENDING");
+        leave.setIsPaid(isPaidLeave);
+        leave.setLeaveDays(daysRequested);
 
         EmployeeLeave savedLeave = employeeLeaveRepository.save(leave);
-        return ResponseEntity.ok(savedLeave);
+        
+        // Return response with leave type information
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("leave", savedLeave);
+        response.put("leaveType", isPaidLeave ? "Paid Leave" : "Unpaid Leave");
+        response.put("message", String.format("Leave request submitted successfully as %s (%d days)", 
+                isPaidLeave ? "Paid Leave" : "Unpaid Leave", daysRequested));
+        
+        return ResponseEntity.ok(response);
     }
 
     @Autowired
@@ -210,6 +245,9 @@ public class EmployeeController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private LeaveService leaveService;
 
     @Autowired
     private com.payflowapi.repository.EmployeeLeaveRepository employeeLeaveRepository;

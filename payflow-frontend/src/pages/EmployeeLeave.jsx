@@ -13,9 +13,30 @@ import {
 const EmployeeLeave = () => {
     const email = localStorage.getItem('userEmail');
     const [leaveHistory, setLeaveHistory] = useState([]);
+    const [leaveStats, setLeaveStats] = useState({
+        totalPaidLeaves: 12,
+        usedPaidLeaves: 0,
+        remainingPaidLeaves: 12,
+        usedUnpaidLeaves: 0,
+        unpaidLeavesThisMonth: 0,
+        currentMonth: new Date().getMonth() + 1,
+        currentYear: new Date().getFullYear()
+    });
+    
     const totalLeaves = 12;
-    const usedLeaves = useMemo(() => leaveHistory.filter(l => l.status === 'ACCEPTED').length, [leaveHistory]);
-    const remainingLeaves = totalLeaves - usedLeaves;
+    const usedLeaves = useMemo(() => {
+        return leaveHistory.filter(l => l.status === 'ACCEPTED').reduce((total, leave) => {
+            if (leave.leaveDays) {
+                return total + leave.leaveDays;
+            } else if (leave.fromDate && leave.toDate) {
+                const days = Math.ceil((new Date(leave.toDate) - new Date(leave.fromDate)) / (1000 * 60 * 60 * 24)) + 1;
+                return total + days;
+            }
+            return total;
+        }, 0);
+    }, [leaveHistory]);
+    
+    const remainingLeaves = Math.max(0, totalLeaves - leaveStats.usedPaidLeaves);
     const totalRequests = leaveHistory.length;
     const pendingRequests = leaveHistory.filter(l => l.status === 'PENDING').length;
     const approvedRequests = leaveHistory.filter(l => l.status === 'ACCEPTED').length;
@@ -58,12 +79,22 @@ const EmployeeLeave = () => {
 
     useEffect(() => {
         if (email) {
+            // Fetch leave history
             axios.get(`http://localhost:8080/api/employee/leave/history?email=${email}`)
                 .then(res => {
                     setLeaveHistory(res.data || []);
                 })
                 .catch(() => {
                     setLeaveHistory([]);
+                });
+
+            // Fetch leave statistics
+            axios.get(`http://localhost:8080/api/employee/leave/stats?email=${email}`)
+                .then(res => {
+                    setLeaveStats(res.data);
+                })
+                .catch(err => {
+                    console.error('Failed to fetch leave stats', err);
                 });
         }
     }, [email]);
@@ -101,34 +132,10 @@ const EmployeeLeave = () => {
             return;
         }
 
-        // Check if employee has any remaining leaves
-        if (remainingLeaves <= 0) {
-            setLeaveError(`You have no remaining leaves. You have already used all ${totalLeaves} annual leaves.`);
-            setPopupMsg({
-                title: 'Leave Limit Exceeded',
-                message: `You have no remaining leaves. You have already used all ${totalLeaves} annual leaves.`,
-                type: 'error'
-            });
-            setShowPopup(true);
-            return;
-        }
-
         // Calculate days requested for this leave
         const startDate = new Date(leaveForm.startDate);
         const endDate = new Date(leaveForm.endDate);
         const daysRequested = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-
-        // Check if requested days exceed remaining leaves
-        if (daysRequested > remainingLeaves) {
-            setLeaveError(`You are requesting ${daysRequested} days but only have ${remainingLeaves} leaves remaining.`);
-            setPopupMsg({
-                title: 'Insufficient Leave Balance',
-                message: `You are requesting ${daysRequested} days but only have ${remainingLeaves} leaves remaining.`,
-                type: 'error'
-            });
-            setShowPopup(true);
-            return;
-        }
 
         // Client-side validation
         if (startDate > endDate) {
@@ -142,6 +149,10 @@ const EmployeeLeave = () => {
             return;
         }
 
+        // Determine if this will be paid or unpaid leave
+        const willBePaid = leaveStats.remainingPaidLeaves >= daysRequested;
+        const leaveType = willBePaid ? "Paid Leave" : "Unpaid Leave";
+
         setLeaveLoading(true);
         
         axios.post('http://localhost:8080/api/employee/leave/apply', {
@@ -152,19 +163,26 @@ const EmployeeLeave = () => {
             reason: leaveForm.reason
         })
             .then(res => {
-                setLeaveSuccess('Leave request submitted successfully!');
+                const message = res.data.message || `Leave request submitted successfully as ${leaveType}!`;
+                setLeaveSuccess(message);
                 setLeaveError('');
                 setLeaveForm({ startDate: '', endDate: '', reason: '' });
                 setPopupMsg({
                     title: 'Success',
-                    message: 'Leave request submitted successfully!',
+                    message: message,
                     type: 'success'
                 });
                 setShowPopup(true);
-                return axios.get(`http://localhost:8080/api/employee/leave/history?email=${email}`);
+                
+                // Refresh both leave history and stats
+                return Promise.all([
+                    axios.get(`http://localhost:8080/api/employee/leave/history?email=${email}`),
+                    axios.get(`http://localhost:8080/api/employee/leave/stats?email=${email}`)
+                ]);
             })
-            .then(res => {
-                setLeaveHistory(res.data || []);
+            .then(([historyRes, statsRes]) => {
+                setLeaveHistory(historyRes.data || []);
+                setLeaveStats(statsRes.data);
             })
             .catch(err => {
                 // Handle both string error messages and error responses
@@ -195,11 +213,19 @@ const EmployeeLeave = () => {
                     {[
                         {
                             icon: <FaFileAlt size={32} color="#6366f1" style={{ marginBottom: 8 }} />,
-                            label: 'Total/Used/Remaining',
-                            value: <span><span style={{ color: '#6366f1' }}>{totalLeaves}</span> / <span style={{ color: 'tomato' }}>{usedLeaves}</span> / <span style={{ color: '#22c55e' }}>{remainingLeaves}</span></span>,
-                            sub: 'leaves',
+                            label: 'Paid Leaves',
+                            value: <span><span style={{ color: '#6366f1' }}>{leaveStats.totalPaidLeaves}</span> / <span style={{ color: 'tomato' }}>{leaveStats.usedPaidLeaves}</span> / <span style={{ color: '#22c55e' }}>{leaveStats.remainingPaidLeaves}</span></span>,
+                            sub: 'Total/Used/Remaining',
                             border: '2px solid #6366f1',
                             bg: 'linear-gradient(135deg,#f5f6fa 80%,#e0e7ff 100%)',
+                        },
+                        {
+                            icon: <FaFileAlt size={32} color="#f97316" style={{ marginBottom: 8 }} />,
+                            label: 'Unpaid Leaves',
+                            value: <span><span style={{ color: '#f97316' }}>{leaveStats.usedUnpaidLeaves}</span> / <span style={{ color: '#dc2626' }}>{leaveStats.unpaidLeavesThisMonth}</span></span>,
+                            sub: 'Year Total / This Month',
+                            border: '2px solid #f97316',
+                            bg: 'linear-gradient(135deg,#fff7ed 80%,#fed7aa 100%)',
                         },
                         {
                             icon: <FaClipboardList size={32} color="#6366f1" style={{ marginBottom: 8 }} />,
@@ -319,6 +345,7 @@ const EmployeeLeave = () => {
                                             <th>Start Date</th>
                                             <th>End Date</th>
                                             <th>Duration</th>
+                                            <th>Leave Type</th>
                                             <th>Reason</th>
                                             <th>Status</th>
                                             <th>Manager Denial Reason</th>
@@ -371,6 +398,18 @@ const EmployeeLeave = () => {
                                                     <td>{formattedFrom}</td>
                                                     <td>{formattedTo}</td>
                                                     <td>{duration}</td>
+                                                    <td>
+                                                        <span style={{
+                                                            padding: '4px 8px',
+                                                            borderRadius: '4px',
+                                                            fontSize: '12px',
+                                                            fontWeight: '500',
+                                                            background: leave.isPaid === false ? '#fef3c7' : '#dbeafe',
+                                                            color: leave.isPaid === false ? '#d97706' : '#1d4ed8'
+                                                        }}>
+                                                            {leave.isPaid === false ? 'Unpaid' : 'Paid'}
+                                                        </span>
+                                                    </td>
                                                     <td>{leave.reason || '-'}</td>
                                                     <td><span className={statusClass}>{statusText}</span></td>
                                                     <td>
@@ -496,6 +535,23 @@ const EmployeeLeave = () => {
                                     <label style={{ fontWeight: 600, fontSize: 14, color: '#444', marginBottom: 4, display: 'block' }}>Reason</label>
                                     <textarea name="reason" value={leaveForm.reason} onChange={handleLeaveFormChange} required rows={2} placeholder="Reason for leave..." style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #bbb', fontSize: 15, background: '#f5f6fa', outline: 'none', resize: 'vertical', minHeight: 48 }} />
                                 </div>
+
+                                {/* Leave Policy Note */}
+                                <div style={{ 
+                                    background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', 
+                                    border: '1px solid #0ea5e9', 
+                                    borderRadius: 8, 
+                                    padding: 12, 
+                                    marginBottom: 18,
+                                    fontSize: 13,
+                                    color: '#075985'
+                                }}>
+                                    <div style={{ fontWeight: '600', marginBottom: 4 }}>📋 Leave Policy:</div>
+                                    <div>• You have <strong>{leaveStats.remainingPaidLeaves} paid leaves</strong> remaining out of {leaveStats.totalPaidLeaves} annual quota</div>
+                                    <div>• After exhausting paid leaves, additional requests will be processed as <strong>unpaid leaves</strong></div>
+                                    <div>• Unpaid leaves this month: <strong>{leaveStats.unpaidLeavesThisMonth}</strong> | Total unpaid this year: <strong>{leaveStats.usedUnpaidLeaves}</strong></div>
+                                </div>
+
                                 <button className="quick-link-btn" type="submit" disabled={leaveLoading} style={{ width: '100%', fontSize: 18, padding: '13px 0', background: '#6366f1', color: '#fff', borderRadius: 10, border: 'none', fontWeight: 700, boxShadow: '0 2px 8px #6366f122', marginTop: 2, marginBottom: 6, letterSpacing: 0.5 }}>
                                     {leaveLoading ? 'Submitting...' : 'Submit Leave Request'}
                                 </button>
