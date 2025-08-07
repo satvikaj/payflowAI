@@ -90,4 +90,48 @@ public class LeaveService {
             employeeLeaveRepository.save(leave);
         }
     }
+
+    /**
+     * Migrate existing leave records to properly set isPaid field
+     * This method should be called once to fix historical data
+     */
+    public void migrateExistingLeaveRecords() {
+        List<EmployeeLeave> allLeaves = employeeLeaveRepository.findAll();
+        
+        for (EmployeeLeave leave : allLeaves) {
+            // Only process leaves that don't have isPaid set or have null values
+            if (leave.getIsPaid() == null) {
+                // Calculate leave days if not set
+                if (leave.getLeaveDays() == null && leave.getFromDate() != null && leave.getToDate() != null) {
+                    int days = calculateLeaveDays(leave.getFromDate(), leave.getToDate());
+                    leave.setLeaveDays(days);
+                }
+                
+                // For historical data, we'll apply the logic retroactively
+                // Get the employee's leave stats up to this leave's date
+                if (leave.getStatus() != null && leave.getStatus().equals("ACCEPTED")) {
+                    // Check how many paid leaves were taken before this leave in the same year
+                    int yearOfLeave = leave.getFromDate().getYear();
+                    List<EmployeeLeave> previousPaidLeaves = employeeLeaveRepository
+                        .findPreviousPaidLeavesInYear(leave.getEmployeeId(), yearOfLeave, leave.getFromDate());
+                    
+                    int usedPaidDays = 0;
+                    for (EmployeeLeave prevLeave : previousPaidLeaves) {
+                        if (prevLeave.getLeaveDays() != null) {
+                            usedPaidDays += prevLeave.getLeaveDays();
+                        }
+                    }
+                    
+                    int requestedDays = leave.getLeaveDays() != null ? leave.getLeaveDays() : 0;
+                    // If there's enough paid leave remaining, mark as paid, otherwise unpaid
+                    leave.setIsPaid(usedPaidDays + requestedDays <= 12);
+                } else {
+                    // For non-accepted leaves, default to paid
+                    leave.setIsPaid(true);
+                }
+                
+                employeeLeaveRepository.save(leave);
+            }
+        }
+    }
 }

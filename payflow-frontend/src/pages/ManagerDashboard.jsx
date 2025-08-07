@@ -205,6 +205,17 @@ function ManagerDashboard() {
     const activeProjects = projects.filter(p => p.status === 'ACTIVE' || !p.status).length;
     const completedProjects = projects.filter(p => p.status === 'COMPLETED').length;
     
+    // Calculate employees who joined this month
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const newJoinersThisMonth = team.filter(member => {
+        if (member.joiningDate) {
+            const joinDate = new Date(member.joiningDate);
+            return joinDate.getMonth() === currentMonth && joinDate.getFullYear() === currentYear;
+        }
+        return false;
+    }).length;
+    
     // Get recent activities with pagination (sorted chronologically - newest first)
     const allRecentActivities = [
         ...leaves.map(l => ({
@@ -432,7 +443,7 @@ function ManagerDashboard() {
                                         <div className="stat-content">
                                             <h3>{team.length}</h3>
                                             <p>Team Members</p>
-                                            <span className="stat-trend">+2 this month</span>
+                                            <span className="stat-trend">+{newJoinersThisMonth} this month</span>
                                         </div>
                                     </div>
                                     

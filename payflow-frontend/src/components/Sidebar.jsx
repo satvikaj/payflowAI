@@ -8,7 +8,8 @@ import {
     FaTasks,
     FaMoneyBill,
     FaChartBar,
-    FaCog
+    FaCog,
+    FaFileInvoice
 } from 'react-icons/fa';
 
 export default function Sidebar() {
@@ -39,6 +40,9 @@ export default function Sidebar() {
                 </button>
                 <button className={"sidebar-btn" + (isActive('/hr-ctc-management') ? ' active' : '')} onClick={() => navigate('/hr-ctc-management')}>
                     <FaMoneyBill /> CTC Management
+                </button>
+                <button className={"sidebar-btn" + (isActive('/dynamic-payslip') ? ' active' : '')} onClick={() => navigate('/dynamic-payslip')}>
+                    <FaFileInvoice /> Dynamic Payslip
                 </button>
                 <button className={"sidebar-btn" + (isActive('/reports') ? ' active' : '')} onClick={() => navigate('/reports')}>
                     <FaChartBar /> Reports

@@ -1,5 +1,6 @@
 package com.payflowapi.controller;
 
+import com.payflowapi.dto.CTCCreationDto;
 import com.payflowapi.entity.CTCDetails;
 import com.payflowapi.entity.Employee;
 import com.payflowapi.entity.Payslip;
@@ -30,6 +31,61 @@ public class CTCManagementController {
     private EmployeeRepository employeeRepository;
 
     // ==================== CTC MANAGEMENT ====================
+
+    // Add new CTC with auto-calculation (simplified)
+    @PostMapping("/ctc/add-auto")
+    public ResponseEntity<?> addCTCWithAutoCalculation(@RequestBody CTCCreationDto ctcCreationDto) {
+        try {
+            // Fetch employee details
+            Optional<Employee> employeeOpt = employeeRepository.findById(ctcCreationDto.getEmployeeId());
+            if (!employeeOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Employee not found"));
+            }
+            
+            Employee employee = employeeOpt.get();
+            
+            // Create CTC Details with auto-calculation
+            CTCDetails ctcDetails = new CTCDetails();
+            ctcDetails.setEmployeeId(employee.getId());
+            ctcDetails.setEmployeeName(employee.getFullName());
+            ctcDetails.setEmployeePosition(employee.getPosition());
+            ctcDetails.setAnnualCtc(ctcCreationDto.getAnnualCtc());
+            ctcDetails.setEffectiveFrom(ctcCreationDto.getEffectiveFrom());
+            ctcDetails.setRevisionReason(ctcCreationDto.getRevisionReason());
+            ctcDetails.setCreatedBy(ctcCreationDto.getCreatedBy());
+            ctcDetails.setStatus("ACTIVE");
+            
+            // Auto-calculate components
+            ctcDetails.calculateCTCStructure();
+            
+            CTCDetails savedCTC = ctcService.addCTC(ctcDetails);
+            return ResponseEntity.ok(Map.of(
+                    "message", "CTC added successfully with auto-calculated components",
+                    "ctc", savedCTC));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // Get employees for CTC creation dropdown
+    @GetMapping("/employees/dropdown")
+    public ResponseEntity<?> getEmployeesForDropdown() {
+        try {
+            List<Employee> employees = employeeRepository.findAll();
+            return ResponseEntity.ok(employees.stream()
+                .map(emp -> Map.of(
+                    "id", emp.getId(),
+                    "name", emp.getFullName(),
+                    "position", emp.getPosition() != null ? emp.getPosition() : "Not Set"
+                ))
+                .toList());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
 
     // Add new CTC for employee
     @PostMapping("/ctc/add")

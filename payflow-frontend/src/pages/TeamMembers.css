@@ -637,12 +637,12 @@
 }
 
 .status-active {
-    background: #dcfce7;
+    background: #5cb97d;
     color: #166534;
 }
 
 .status-leave {
-    background: #fef3c7;
+    background: #e3c755;
     color: #92400e;
 }
 

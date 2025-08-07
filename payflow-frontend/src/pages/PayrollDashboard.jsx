@@ -38,6 +38,8 @@ const PayrollDashboard = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [selectedPayslip, setSelectedPayslip] = useState(null);
+    const [calculatedPayslip, setCalculatedPayslip] = useState(null);
+    const [autoCalculating, setAutoCalculating] = useState(false);
 
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -124,13 +126,176 @@ const PayrollDashboard = () => {
         }
     };
 
+    // Function to automatically calculate payslip when employee, month, and year are selected
+    const calculateAutomaticPayslip = async () => {
+        if (!selectedEmployee || !payslipData.payrollMonth || !payslipData.payrollYear) {
+            setCalculatedPayslip(null);
+            return;
+        }
+
+        setAutoCalculating(true);
+        try {
+            const monthIndex = months.indexOf(payslipData.payrollMonth) + 1;
+            const response = await axios.get(
+                `/api/payslip/calculate/${selectedEmployee}/${payslipData.payrollYear}/${monthIndex}`
+            );
+            setCalculatedPayslip(response.data);
+        } catch (error) {
+            console.error('Error calculating payslip:', error);
+            showMessage('error', 'Failed to calculate payslip automatically');
+            setCalculatedPayslip(null);
+        } finally {
+            setAutoCalculating(false);
+        }
+    };
+
+    // Effect to trigger automatic calculation when selections change
+    useEffect(() => {
+        calculateAutomaticPayslip();
+    }, [selectedEmployee, payslipData.payrollMonth, payslipData.payrollYear]);
+
+    // Function to generate and save payslip to database
+    const generateAndSavePayslip = async () => {
+        if (!calculatedPayslip) return;
+
+        setLoading(true);
+        try {
+            // Prepare payslip data for backend
+            const payslipData = {
+                employeeId: calculatedPayslip.employeeId,
+                employeeName: calculatedPayslip.employeeName,
+                payrollMonth: months[calculatedPayslip.month - 1],
+                payrollYear: calculatedPayslip.year,
+                workingDays: calculatedPayslip.totalWorkingDays,
+                attendedDays: calculatedPayslip.effectiveWorkingDays,
+                grossSalary: calculatedPayslip.monthlyNetSalary,
+                totalDeductions: calculatedPayslip.monthlyNetSalary - calculatedPayslip.finalNetSalary,
+                netPay: calculatedPayslip.finalNetSalary,
+                unpaidLeaveDays: calculatedPayslip.unpaidLeaveDays,
+                unpaidLeaveDeduction: calculatedPayslip.unpaidLeaveDeduction,
+                basicSalary: calculatedPayslip.basicSalary,
+                hra: calculatedPayslip.hra,
+                medicalAllowance: calculatedPayslip.medicalAllowance,
+                conveyanceAllowance: calculatedPayslip.conveyanceAllowance,
+                specialAllowance: calculatedPayslip.specialAllowance,
+                performanceBonus: calculatedPayslip.performanceBonus,
+                providentFund: calculatedPayslip.providentFund,
+                professionalTax: calculatedPayslip.professionalTax,
+                incomeTax: calculatedPayslip.incomeTax,
+                insurancePremium: calculatedPayslip.insurancePremium,
+                status: 'GENERATED'
+            };
+
+            // Save to database
+            await axios.post('/api/ctc-management/payslip/generate', payslipData);
+            
+            showMessage('success', 'Payslip generated and saved successfully!');
+            
+            // Reset form and close modal
+            resetForm();
+            
+            // Refresh payslips table
+            fetchAllPayslips();
+            
+        } catch (error) {
+            console.error('Error saving payslip:', error);
+            showMessage('error', error.response?.data?.message || 'Failed to generate payslip');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Function to generate PDF from calculated payslip
+    const generateCalculatedPayslipPDF = () => {
+        if (!calculatedPayslip) return;
+
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.width;
+        
+        // Document styling
+        doc.setLineWidth(2);
+        doc.rect(10, 10, pageWidth - 20, 250);
+        
+        // Header
+        doc.setFontSize(20);
+        doc.setFont(undefined, 'bold');
+        doc.text('PAYSLIP', pageWidth / 2, 30, { align: 'center' });
+        
+        // Employee details
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Employee: ${calculatedPayslip.employeeName}`, 20, 50);
+        doc.text(`Position: ${calculatedPayslip.employeePosition}`, 20, 60);
+        doc.text(`Month/Year: ${months[calculatedPayslip.month - 1]} ${calculatedPayslip.year}`, 20, 70);
+        
+        // Working days information
+        doc.text(`Total Working Days: ${calculatedPayslip.totalWorkingDays}`, 20, 85);
+        doc.text(`Unpaid Leave Days: ${calculatedPayslip.unpaidLeaveDays}`, 20, 95);
+        doc.text(`Effective Working Days: ${calculatedPayslip.effectiveWorkingDays}`, 20, 105);
+        
+        // Salary breakdown
+        let yPos = 125;
+        doc.setFont(undefined, 'bold');
+        doc.text('EARNINGS', 20, yPos);
+        yPos += 10;
+        
+        doc.setFont(undefined, 'normal');
+        doc.text(`Basic Salary: ₹${calculatedPayslip.basicSalary?.toFixed(2) || '0.00'}`, 25, yPos);
+        yPos += 10;
+        doc.text(`HRA: ₹${calculatedPayslip.hra?.toFixed(2) || '0.00'}`, 25, yPos);
+        yPos += 10;
+        doc.text(`Medical Allowance: ₹${calculatedPayslip.medicalAllowance?.toFixed(2) || '0.00'}`, 25, yPos);
+        yPos += 10;
+        doc.text(`Conveyance Allowance: ₹${calculatedPayslip.conveyanceAllowance?.toFixed(2) || '0.00'}`, 25, yPos);
+        yPos += 10;
+        doc.text(`Special Allowance: ₹${calculatedPayslip.specialAllowance?.toFixed(2) || '0.00'}`, 25, yPos);
+        yPos += 10;
+        doc.text(`Performance Bonus: ₹${calculatedPayslip.performanceBonus?.toFixed(2) || '0.00'}`, 25, yPos);
+        
+        yPos += 20;
+        doc.setFont(undefined, 'bold');
+        doc.text('DEDUCTIONS', 20, yPos);
+        yPos += 10;
+        
+        doc.setFont(undefined, 'normal');
+        doc.text(`Provident Fund: ₹${calculatedPayslip.providentFund?.toFixed(2) || '0.00'}`, 25, yPos);
+        yPos += 10;
+        doc.text(`Professional Tax: ₹${calculatedPayslip.professionalTax?.toFixed(2) || '0.00'}`, 25, yPos);
+        yPos += 10;
+        doc.text(`Income Tax: ₹${calculatedPayslip.incomeTax?.toFixed(2) || '0.00'}`, 25, yPos);
+        yPos += 10;
+        doc.text(`Insurance Premium: ₹${calculatedPayslip.insurancePremium?.toFixed(2) || '0.00'}`, 25, yPos);
+        yPos += 10;
+        doc.text(`Unpaid Leave Deduction: ₹${calculatedPayslip.unpaidLeaveDeduction?.toFixed(2) || '0.00'}`, 25, yPos);
+        
+        yPos += 20;
+        doc.setFont(undefined, 'bold');
+        doc.text(`NET SALARY: ₹${calculatedPayslip.finalNetSalary?.toFixed(2) || '0.00'}`, 20, yPos);
+        
+        // Footer
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 245);
+        
+        // Save the PDF
+        doc.save(`${calculatedPayslip.employeeName}_${months[calculatedPayslip.month - 1]}_${calculatedPayslip.year}_Payslip.pdf`);
+    };
+
     const downloadPayslip = async (payslipId) => {
         try {
             // Get payslip data from backend
             const response = await axios.get(`/api/ctc-management/payslip/download/${payslipId}`);
-            const { payslip: fullPayslip, employee } = response.data;
+            const payslipData = response.data;
+            
+            // Debug: Log the full response to understand the data structure
+            console.log('Full payslip response:', response.data);
+            console.log('Payslip data keys:', Object.keys(payslipData));
+            
+            // Check if the data is nested in another object
+            const actualPayslipData = payslipData.payslip || payslipData.data || payslipData;
+            console.log('Actual payslip data:', actualPayslipData);
 
-            // Generate PDF using jsPDF
+            // Generate PDF using the professional template format
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.width;
             
@@ -142,7 +307,7 @@ const PayrollDashboard = () => {
             doc.setLineWidth(1);
             doc.rect(10, 10, pageWidth - 20, 50);
             
-            // Company logo placeholder (building icon area)
+            // Company logo placeholder
             doc.setFillColor(70, 130, 180);
             doc.rect(15, 20, 20, 25, 'F');
             doc.setTextColor(255, 255, 255);
@@ -163,16 +328,20 @@ const PayrollDashboard = () => {
             // Pay Slip title
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
-            doc.text(`Pay Slip for ${fullPayslip.cycle}`, pageWidth / 2, 52, { align: 'center' });
+            doc.text(`Pay Slip for ${actualPayslipData.payrollMonth || actualPayslipData.month || 'N/A'} ${actualPayslipData.payrollYear || actualPayslipData.year || 'N/A'}`, pageWidth / 2, 52, { align: 'center' });
             
             // Employee Details Table
             let currentY = 70;
+            
+            // Debug log to see what data we have
+            console.log('Payslip data for PDF:', actualPayslipData);
+            
             const employeeData = [
-                ['Employee ID', fullPayslip.employeeId?.toString() || '7', 'UAN', '-'],
-                ['Employee Name', employee?.fullName || employee?.firstName || 'Employee', 'PF No.', '-'],
-                ['Designation', employee?.designation || 'Employee', 'ESI No.', '-'],
-                ['Department', employee?.department || 'General', 'Bank', '-'],
-                ['Date of Joining', employee?.joinDate || '2025-07-30', 'Account No.', '-']
+                ['Employee ID', actualPayslipData.employeeId?.toString() || actualPayslipData.id?.toString() || '-', 'UAN', '-'],
+                ['Employee Name', actualPayslipData.employeeName || actualPayslipData.name || actualPayslipData.fullName || '-', 'PF No.', '-'],
+                ['Designation', actualPayslipData.employeePosition || actualPayslipData.designation || actualPayslipData.position || '-', 'ESI No.', '-'],
+                ['Department', actualPayslipData.department || 'IT', 'Bank', '-'],
+                ['Date of Joining', actualPayslipData.joiningDate || actualPayslipData.dateOfJoining || actualPayslipData.joinDate || '-', 'Account No.', '-']
             ];
             
             doc.autoTable({
@@ -197,14 +366,10 @@ const PayrollDashboard = () => {
             // Working Days Section
             currentY = doc.lastAutoTable.finalY + 5;
             
-            // Use dynamic data or fallback to sample values
-            const baseSalary = fullPayslip.baseSalary || 41666.67;
-            const grossWages = fullPayslip.grossSalary || 61166.67;
-            
             const workingDaysData = [
-                ['Gross Wages', `₹${grossWages.toLocaleString()}`, '', ''],
-                ['Total Working Days', '22', 'Leaves', fullPayslip.numberOfLeaves?.toString() || '0'],
-                ['LOP Days', '0', 'Paid Days', '22']
+                ['Gross Wages', `₹${actualPayslipData.grossSalary?.toLocaleString() || '0'}`, '', ''],
+                ['Total Working Days', actualPayslipData.workingDays?.toString() || '22', 'Leaves', actualPayslipData.unpaidLeaveDays?.toString() || '0'],
+                ['LOP Days', actualPayslipData.unpaidLeaveDays?.toString() || '0', 'Paid Days', actualPayslipData.attendedDays?.toString() || '22']
             ];
             
             doc.autoTable({
@@ -228,20 +393,6 @@ const PayrollDashboard = () => {
             
             // Earnings and Deductions Section
             currentY = doc.lastAutoTable.finalY + 5;
-            
-            // Calculate exact values to match the format
-            const hra = 12500.00;
-            const conveyanceAllowance = 6666.67;
-            const medicalAllowance = 250;
-            const otherAllowances = 333.33;
-            const totalEarnings = 61166.67;
-            
-            const epf = 500.00;
-            const esi = 0;
-            const professionalTax = 4033.33;
-            const totalDeductions = 4533.33;
-            
-            const netSalary = 56633.34;
             
             // Create Earnings and Deductions table header
             const earningsDeductionsHeader = [
@@ -271,13 +422,74 @@ const PayrollDashboard = () => {
             
             // Earnings and Deductions data
             currentY = doc.lastAutoTable.finalY;
-            const earningsDeductionsData = [
-                ['Basic', `₹${baseSalary.toLocaleString()}`, 'EPF', `₹${epf.toLocaleString()}`],
-                ['HRA', `₹${hra.toLocaleString()}`, 'ESI', `₹${esi.toLocaleString()}`],
-                ['Conveyance Allowance', `₹${conveyanceAllowance.toLocaleString()}`, 'Professional Tax', `₹${professionalTax.toLocaleString()}`],
-                ['Medical Allowance', `₹${medicalAllowance.toLocaleString()}`, '', ''],
-                ['Other Allowances', `₹${otherAllowances.toLocaleString()}`, '', '']
-            ];
+            
+            // Prepare earnings and deductions data with real employee data
+            const earningsDeductionsData = [];
+            
+            // Add earnings with corresponding deductions in parallel
+            const earningsItems = [];
+            const deductionsItems = [];
+            
+            // Collect earnings
+            if (actualPayslipData.basicSalary && actualPayslipData.basicSalary > 0) {
+                earningsItems.push(['Basic', `₹${actualPayslipData.basicSalary.toLocaleString()}`]);
+            }
+            if (actualPayslipData.hra && actualPayslipData.hra > 0) {
+                earningsItems.push(['HRA', `₹${actualPayslipData.hra.toLocaleString()}`]);
+            }
+            if (actualPayslipData.conveyanceAllowance && actualPayslipData.conveyanceAllowance > 0) {
+                earningsItems.push(['Conveyance Allowance', `₹${actualPayslipData.conveyanceAllowance.toLocaleString()}`]);
+            }
+            if (actualPayslipData.medicalAllowance && actualPayslipData.medicalAllowance > 0) {
+                earningsItems.push(['Medical Allowance', `₹${actualPayslipData.medicalAllowance.toLocaleString()}`]);
+            }
+            if (actualPayslipData.specialAllowance && actualPayslipData.specialAllowance > 0) {
+                earningsItems.push(['Other Allowances', `₹${actualPayslipData.specialAllowance.toLocaleString()}`]);
+            }
+            if (actualPayslipData.performanceBonus && actualPayslipData.performanceBonus > 0) {
+                earningsItems.push(['Performance Bonus', `₹${actualPayslipData.performanceBonus.toLocaleString()}`]);
+            }
+            
+            // Collect deductions
+            if (actualPayslipData.providentFund && actualPayslipData.providentFund > 0) {
+                deductionsItems.push(['EPF', `₹${actualPayslipData.providentFund.toLocaleString()}`]);
+            }
+            if (actualPayslipData.incomeTax && actualPayslipData.incomeTax > 0) {
+                deductionsItems.push(['Income Tax', `₹${actualPayslipData.incomeTax.toLocaleString()}`]);
+            }
+            if (actualPayslipData.professionalTax && actualPayslipData.professionalTax > 0) {
+                deductionsItems.push(['Professional Tax', `₹${actualPayslipData.professionalTax.toLocaleString()}`]);
+            }
+            if (actualPayslipData.insurancePremium && actualPayslipData.insurancePremium > 0) {
+                deductionsItems.push(['Insurance', `₹${actualPayslipData.insurancePremium.toLocaleString()}`]);
+            }
+            if (actualPayslipData.unpaidLeaveDeduction && actualPayslipData.unpaidLeaveDeduction > 0) {
+                deductionsItems.push(['LOP Deduction', `₹${actualPayslipData.unpaidLeaveDeduction.toLocaleString()}`]);
+            }
+            
+            // Add ESI as zero if no ESI data
+            if (deductionsItems.length === 0 || !deductionsItems.find(item => item[0] === 'ESI')) {
+                deductionsItems.push(['ESI', '₹0']);
+            }
+            
+            // Combine earnings and deductions in parallel rows
+            const maxRows = Math.max(earningsItems.length, deductionsItems.length);
+            
+            for (let i = 0; i < maxRows; i++) {
+                const earningsRow = earningsItems[i] || ['', ''];
+                const deductionsRow = deductionsItems[i] || ['', ''];
+                earningsDeductionsData.push([
+                    earningsRow[0], 
+                    earningsRow[1], 
+                    deductionsRow[0], 
+                    deductionsRow[1]
+                ]);
+            }
+            
+            // If no data, add placeholder row
+            if (earningsDeductionsData.length === 0) {
+                earningsDeductionsData.push(['', '₹0', '', '₹0']);
+            }
             
             doc.autoTable({
                 startY: currentY,
@@ -301,7 +513,7 @@ const PayrollDashboard = () => {
             // Total Earnings and Total Deductions row
             currentY = doc.lastAutoTable.finalY;
             const totalsData = [
-                ['Total Earnings', `₹${totalEarnings.toLocaleString()}`, 'Total Deductions', `₹${totalDeductions.toLocaleString()}`]
+                ['Total Earnings', `₹${actualPayslipData.grossSalary?.toLocaleString() || '0'}`, 'Total Deductions', `₹${actualPayslipData.totalDeductions?.toLocaleString() || '0'}`]
             ];
             
             doc.autoTable({
@@ -327,7 +539,7 @@ const PayrollDashboard = () => {
             // Net Salary Section
             currentY = doc.lastAutoTable.finalY;
             const netSalaryData = [
-                ['Net Salary', `₹${netSalary.toLocaleString()}`]
+                ['Net Salary', `₹${actualPayslipData.netPay?.toLocaleString() || actualPayslipData.finalNetSalary?.toLocaleString() || '0'}`]
             ];
             
             doc.autoTable({
@@ -348,7 +560,14 @@ const PayrollDashboard = () => {
                 }
             });
 
-            doc.save(`Payslip-${employee?.fullName || fullPayslip.employeeId}-${fullPayslip.cycle}.pdf`);
+            // Footer
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 15, 255);
+            
+            // Save the PDF
+            const fileName = `Payslip-${actualPayslipData.employeeName || 'Employee'}-${actualPayslipData.payrollMonth || actualPayslipData.month || 'Unknown'}_${actualPayslipData.payrollYear || actualPayslipData.year || 'Unknown'}.pdf`;
+            doc.save(fileName);
             
             showMessage('success', 'Payslip downloaded successfully');
             
@@ -510,7 +729,8 @@ const PayrollDashboard = () => {
                             <button className="close-btn" onClick={resetForm}>×</button>
                         </div>
 
-                        <form onSubmit={generateIndividualPayslip} className="payslip-form">
+                        <div className="payslip-form">
+                            {/* Selection Section */}
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Employee</label>
@@ -556,133 +776,139 @@ const PayrollDashboard = () => {
                                         required
                                     />
                                 </div>
-                                <div className="form-group">
-                                    <label>Working Days</label>
-                                    <input
-                                        type="number"
-                                        name="workingDays"
-                                        value={payslipData.workingDays}
-                                        onChange={handleInputChange}
-                                        min="1"
-                                        max="31"
-                                        required
-                                    />
-                                </div>
                             </div>
 
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Attended Days</label>
-                                    <input
-                                        type="number"
-                                        name="attendedDays"
-                                        value={payslipData.attendedDays}
-                                        onChange={handleInputChange}
-                                        min="0"
-                                        max={payslipData.workingDays}
-                                        required
-                                    />
+                            {/* Automatic Calculation Display */}
+                            {autoCalculating && (
+                                <div className="calculation-loading">
+                                    <p>Calculating payslip...</p>
                                 </div>
-                                <div className="form-group">
-                                    <label>Overtime Hours</label>
-                                    <input
-                                        type="number"
-                                        name="overtime"
-                                        value={payslipData.overtime}
-                                        onChange={handleInputChange}
-                                        min="0"
-                                        step="0.5"
-                                    />
-                                </div>
-                            </div>
+                            )}
 
-                            <div className="form-section">
-                                <h4>Additional Allowances</h4>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Medical Allowance</label>
-                                        <input
-                                            type="number"
-                                            name="medicalAllowance"
-                                            value={payslipData.medicalAllowance}
-                                            onChange={handleInputChange}
-                                            min="0"
-                                            step="0.01"
-                                        />
+                            {calculatedPayslip && !autoCalculating && (
+                                <div className="calculated-payslip">
+                                    <h4>Calculated Payslip Details</h4>
+                                    
+                                    <div className="payslip-summary">
+                                        <div className="summary-row">
+                                            <span>Employee:</span>
+                                            <span>{calculatedPayslip.employeeName}</span>
+                                        </div>
+                                        <div className="summary-row">
+                                            <span>Position:</span>
+                                            <span>{calculatedPayslip.employeePosition}</span>
+                                        </div>
+                                        <div className="summary-row">
+                                            <span>Period:</span>
+                                            <span>{months[calculatedPayslip.month - 1]} {calculatedPayslip.year}</span>
+                                        </div>
                                     </div>
-                                    <div className="form-group">
-                                        <label>Travel Allowance</label>
-                                        <input
-                                            type="number"
-                                            name="travelAllowance"
-                                            value={payslipData.travelAllowance}
-                                            onChange={handleInputChange}
-                                            min="0"
-                                            step="0.01"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div className="form-section">
-                                <h4>Deductions</h4>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Professional Tax</label>
-                                        <input
-                                            type="number"
-                                            name="professionalTax"
-                                            value={payslipData.professionalTax}
-                                            onChange={handleInputChange}
-                                            min="0"
-                                            step="0.01"
-                                        />
+                                    <div className="working-days-info">
+                                        <h5>Working Days Information</h5>
+                                        <div className="info-grid">
+                                            <div className="info-item">
+                                                <span>Total Working Days:</span>
+                                                <span className="value">{calculatedPayslip.totalWorkingDays}</span>
+                                            </div>
+                                            <div className="info-item">
+                                                <span>Unpaid Leave Days:</span>
+                                                <span className="value highlight-red">{calculatedPayslip.unpaidLeaveDays}</span>
+                                            </div>
+                                            <div className="info-item">
+                                                <span>Effective Working Days:</span>
+                                                <span className="value">{calculatedPayslip.effectiveWorkingDays}</span>
+                                            </div>
+                                            <div className="info-item">
+                                                <span>Daily Rate:</span>
+                                                <span className="value">₹{calculatedPayslip.dailyRate?.toFixed(2)}</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="form-group">
-                                        <label>Income Tax</label>
-                                        <input
-                                            type="number"
-                                            name="incomeTax"
-                                            value={payslipData.incomeTax}
-                                            onChange={handleInputChange}
-                                            min="0"
-                                            step="0.01"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="form-group">
-                                    <label>Other Deductions</label>
-                                    <input
-                                        type="number"
-                                        name="otherDeductions"
-                                        value={payslipData.otherDeductions}
-                                        onChange={handleInputChange}
-                                        min="0"
-                                        step="0.01"
-                                    />
-                                </div>
-                            </div>
 
-                            <div className="form-group full-width">
-                                <label>Notes</label>
-                                <textarea
-                                    name="notes"
-                                    value={payslipData.notes}
-                                    onChange={handleInputChange}
-                                    placeholder="Additional notes for payslip..."
-                                    rows="3"
-                                />
-                            </div>
+                                    <div className="salary-breakdown">
+                                        <div className="earnings-section">
+                                            <h5>Earnings</h5>
+                                            <div className="breakdown-item">
+                                                <span>Basic Salary:</span>
+                                                <span>₹{calculatedPayslip.basicSalary?.toFixed(2) || '0.00'}</span>
+                                            </div>
+                                            <div className="breakdown-item">
+                                                <span>HRA:</span>
+                                                <span>₹{calculatedPayslip.hra?.toFixed(2) || '0.00'}</span>
+                                            </div>
+                                            <div className="breakdown-item">
+                                                <span>Medical Allowance:</span>
+                                                <span>₹{calculatedPayslip.medicalAllowance?.toFixed(2) || '0.00'}</span>
+                                            </div>
+                                            <div className="breakdown-item">
+                                                <span>Conveyance Allowance:</span>
+                                                <span>₹{calculatedPayslip.conveyanceAllowance?.toFixed(2) || '0.00'}</span>
+                                            </div>
+                                            <div className="breakdown-item">
+                                                <span>Special Allowance:</span>
+                                                <span>₹{calculatedPayslip.specialAllowance?.toFixed(2) || '0.00'}</span>
+                                            </div>
+                                            <div className="breakdown-item">
+                                                <span>Performance Bonus:</span>
+                                                <span>₹{calculatedPayslip.performanceBonus?.toFixed(2) || '0.00'}</span>
+                                            </div>
+                                            <div className="breakdown-total">
+                                                <span><strong>Gross Monthly Salary:</strong></span>
+                                                <span><strong>₹{calculatedPayslip.monthlyNetSalary?.toFixed(2)}</strong></span>
+                                            </div>
+                                        </div>
+
+                                        <div className="deductions-section">
+                                            <h5>Deductions</h5>
+                                            <div className="breakdown-item">
+                                                <span>Provident Fund:</span>
+                                                <span>₹{calculatedPayslip.providentFund?.toFixed(2) || '0.00'}</span>
+                                            </div>
+                                            <div className="breakdown-item">
+                                                <span>Professional Tax:</span>
+                                                <span>₹{calculatedPayslip.professionalTax?.toFixed(2) || '0.00'}</span>
+                                            </div>
+                                            <div className="breakdown-item">
+                                                <span>Income Tax:</span>
+                                                <span>₹{calculatedPayslip.incomeTax?.toFixed(2) || '0.00'}</span>
+                                            </div>
+                                            <div className="breakdown-item">
+                                                <span>Insurance Premium:</span>
+                                                <span>₹{calculatedPayslip.insurancePremium?.toFixed(2) || '0.00'}</span>
+                                            </div>
+                                            <div className="breakdown-item highlight-red">
+                                                <span>Unpaid Leave Deduction:</span>
+                                                <span>₹{calculatedPayslip.unpaidLeaveDeduction?.toFixed(2) || '0.00'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="final-salary">
+                                        <div className="final-amount">
+                                            <span><strong>Final Net Salary:</strong></span>
+                                            <span className="amount"><strong>₹{calculatedPayslip.finalNetSalary?.toFixed(2)}</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="form-actions">
                                 <button type="button" className="btn-cancel" onClick={resetForm}>
                                     Cancel
                                 </button>
-                                <button type="submit" className="btn-primary" disabled={loading}>
-                                    {loading ? 'Generating...' : 'Generate Payslip'}
-                                </button>
+                                {calculatedPayslip && (
+                                    <button 
+                                        type="button" 
+                                        className="btn-primary" 
+                                        onClick={generateAndSavePayslip}
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Generating...' : 'Generate'}
+                                    </button>
+                                )}
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             )}

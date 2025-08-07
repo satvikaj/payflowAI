@@ -111,35 +111,15 @@ public class EmployeeController {
         return "Updated managerId for " + updated + " leave requests.";
     }
 
-    // FIX: Migrate existing leave data to include isPaid and leaveDays fields
+    // FIX: Migrate existing leave data to include isPaid and leaveDays fields using smart logic
     @PostMapping("/leaves/migrate-data")
     public ResponseEntity<String> migrateLeaveData() {
-        List<EmployeeLeave> leaves = employeeLeaveRepository.findAll();
-        int updated = 0;
-        
-        for (EmployeeLeave leave : leaves) {
-            boolean wasUpdated = false;
-            
-            // Set isPaid to true for existing leaves (assuming they were all paid)
-            if (leave.getIsPaid() == null) {
-                leave.setIsPaid(true);
-                wasUpdated = true;
-            }
-            
-            // Calculate and set leaveDays if not already set
-            if (leave.getLeaveDays() == null && leave.getFromDate() != null && leave.getToDate() != null) {
-                int days = leaveService.calculateLeaveDays(leave.getFromDate(), leave.getToDate());
-                leave.setLeaveDays(days);
-                wasUpdated = true;
-            }
-            
-            if (wasUpdated) {
-                employeeLeaveRepository.save(leave);
-                updated++;
-            }
+        try {
+            leaveService.migrateExistingLeaveRecords();
+            return ResponseEntity.ok("Leave data migration completed successfully. Historical leaves have been properly categorized as paid/unpaid based on annual limits.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Leave migration failed: " + e.getMessage());
         }
-        
-        return ResponseEntity.ok("Migrated data for " + updated + " leave requests.");
     }
 
     // DEBUG: List all leave requests and their managerId

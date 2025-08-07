@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FaTachometerAlt, FaUserTie, FaUsers, FaCogs, FaUserPlus, FaSignOutAlt, FaChevronLeft, FaChevronRight, FaMoneyBillWave, FaFileInvoiceDollar } from 'react-icons/fa';
+import { FaTachometerAlt, FaUserTie, FaUsers, FaCogs, FaUserPlus, FaSignOutAlt, FaChevronLeft, FaChevronRight, FaMoneyBillWave, FaFileInvoiceDollar, FaCalculator } from 'react-icons/fa';
 import './SidebarAdmin.css';
 
 const SidebarAdmin = () => {
@@ -79,11 +79,23 @@ const SidebarAdmin = () => {
                             <NavLink 
                                 to="/ctc-management" 
                                 className={({ isActive }) => `nav-link ${isActive ? 'active-link' : ''}`}
-                                title={isCollapsed ? 'CTC Management' : ''}
+                                title={isCollapsed ? 'CTC Management (Manual)' : ''}
                                 end
                             >
                                 <FaMoneyBillWave className="nav-icon" />
-                                {!isCollapsed && <span className="nav-text">CTC Management</span>}
+                                {!isCollapsed && <span className="nav-text">CTC Management (Manual)</span>}
+                                {!isCollapsed && <div className="nav-indicator"></div>}
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink 
+                                to="/ctc-management-new" 
+                                className={({ isActive }) => `nav-link ${isActive ? 'active-link' : ''}`}
+                                title={isCollapsed ? 'CTC Auto-Calculator' : ''}
+                                end
+                            >
+                                <FaCalculator className="nav-icon" />
+                                {!isCollapsed && <span className="nav-text">CTC Auto-Calculator</span>}
                                 {!isCollapsed && <div className="nav-indicator"></div>}
                             </NavLink>
                         </li>
