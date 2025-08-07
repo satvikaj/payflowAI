@@ -17,6 +17,7 @@ public class EmployeeDto {
 
     private String department;
     private String role;
+    private String position;
     private String joiningDate;
     private Long managerId;
 
@@ -82,6 +83,9 @@ public class EmployeeDto {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public String getPosition() { return position; }
+    public void setPosition(String position) { this.position = position; }
 
     public String getJoiningDate() { return joiningDate; }
     public void setJoiningDate(String joiningDate) { this.joiningDate = joiningDate; }

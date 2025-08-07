@@ -29,6 +29,7 @@ public class Employee {
 
     private String department;
     private String role;
+    private String position; // JUNIOR, SENIOR - employee position level
     private Long managerId; // Manager's user ID
 
     private String hasExperience;
@@ -108,6 +109,9 @@ public class Employee {
     
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    
+    public String getPosition() { return position; }
+    public void setPosition(String position) { this.position = position; }
     
     public Long getManagerId() { return managerId; }
     public void setManagerId(Long managerId) { this.managerId = managerId; }

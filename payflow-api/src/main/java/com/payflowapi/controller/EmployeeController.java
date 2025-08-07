@@ -2,12 +2,15 @@ package com.payflowapi.controller;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import com.payflowapi.dto.EmployeeDto;
+import com.payflowapi.dto.EmployeeUpdateDto;
 import com.payflowapi.dto.LeaveRequestDto;
 import com.payflowapi.dto.LeaveStatsDto;
 import com.payflowapi.entity.Employee;
 import com.payflowapi.entity.Project;
 import com.payflowapi.entity.EmployeeLeave;
+import com.payflowapi.entity.EmployeePositionHistory;
 import com.payflowapi.repository.EmployeeRepository;
+import com.payflowapi.repository.EmployeePositionHistoryRepository;
 import com.payflowapi.entity.User;
 import com.payflowapi.repository.UserRepository;
 import com.payflowapi.service.EmailService;
@@ -255,6 +258,9 @@ public class EmployeeController {
     @Autowired
     private com.payflowapi.repository.ProjectRepository projectRepository;
 
+    @Autowired
+    private EmployeePositionHistoryRepository employeePositionHistoryRepository;
+
     @PostMapping("/onboard")
     public Employee onboardEmployee(@RequestBody EmployeeDto dto) {
         Employee employee = new Employee();
@@ -277,6 +283,8 @@ public class EmployeeController {
         // Job & Work Info
         employee.setDepartment(dto.getDepartment());
         employee.setRole(dto.getRole());
+        // Set position - default to JUNIOR if not provided
+        employee.setPosition(dto.getPosition() != null && !dto.getPosition().isBlank() ? dto.getPosition() : "JUNIOR");
 //        employee.setJoiningDate(dto.getJoiningDate());
         if (dto.getJoiningDate() != null && !dto.getJoiningDate().isBlank()) {
             try {
@@ -383,5 +391,96 @@ public class EmployeeController {
     @GetMapping("/count")
     public long getEmployeeCount() {
         return employeeRepository.count();
+    }
+
+    // Endpoint to update employee position, role, and department
+    @PutMapping("/update-position")
+    public ResponseEntity<?> updateEmployeePosition(@RequestBody EmployeeUpdateDto updateDto) {
+        try {
+            Employee employee = employeeRepository.findById(updateDto.getEmployeeId())
+                    .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+            // Store current values for history
+            String previousDepartment = employee.getDepartment();
+            String previousRole = employee.getRole();
+            String previousPosition = employee.getPosition();
+
+            // Check if there are any changes
+            boolean hasChanges = false;
+            if (!previousDepartment.equals(updateDto.getDepartment()) ||
+                !previousRole.equals(updateDto.getRole()) ||
+                !previousPosition.equals(updateDto.getPosition())) {
+                hasChanges = true;
+            }
+
+            if (hasChanges) {
+                // Update employee details
+                employee.setDepartment(updateDto.getDepartment());
+                employee.setRole(updateDto.getRole());
+                employee.setPosition(updateDto.getPosition());
+                employeeRepository.save(employee);
+
+                // Create history record
+                EmployeePositionHistory history = new EmployeePositionHistory(
+                        employee.getId(),
+                        employee.getFullName(),
+                        previousDepartment,
+                        updateDto.getDepartment(),
+                        previousRole,
+                        updateDto.getRole(),
+                        previousPosition,
+                        updateDto.getPosition(),
+                        updateDto.getChangedBy(),
+                        updateDto.getReason()
+                );
+                employeePositionHistoryRepository.save(history);
+
+                return ResponseEntity.ok(Map.of(
+                        "message", "Employee position updated successfully",
+                        "employee", employee
+                ));
+            } else {
+                return ResponseEntity.ok(Map.of(
+                        "message", "No changes detected",
+                        "employee", employee
+                ));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Failed to update employee position: " + e.getMessage()
+            ));
+        }
+    }
+
+    // Endpoint to get position history for an employee
+    @GetMapping("/{employeeId}/position-history")
+    public ResponseEntity<List<EmployeePositionHistory>> getEmployeePositionHistory(@PathVariable Long employeeId) {
+        try {
+            List<EmployeePositionHistory> history = employeePositionHistoryRepository.findByEmployeeIdOrderByChangeDateDesc(employeeId);
+            return ResponseEntity.ok(history);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // Endpoint to migrate existing employees to have default position if null
+    @PostMapping("/migrate-positions")
+    public ResponseEntity<String> migrateEmployeePositions() {
+        try {
+            List<Employee> employees = employeeRepository.findAll();
+            int updated = 0;
+
+            for (Employee employee : employees) {
+                if (employee.getPosition() == null || employee.getPosition().isEmpty()) {
+                    employee.setPosition("JUNIOR");
+                    employeeRepository.save(employee);
+                    updated++;
+                }
+            }
+
+            return ResponseEntity.ok("Updated " + updated + " employees with default position 'JUNIOR'");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Migration failed: " + e.getMessage());
+        }
     }
 }
