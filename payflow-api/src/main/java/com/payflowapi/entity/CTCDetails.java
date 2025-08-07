@@ -144,15 +144,15 @@ public class CTCDetails {
         // Gratuity: 4.81% of Basic Salary
         this.gratuity = basicSalary.multiply(new BigDecimal("0.0481")).setScale(2, RoundingMode.HALF_UP);
         
+        // Other Benefits: Fixed ₹25,000/year - insurance, LTA etc.
+        this.otherBenefits = new BigDecimal("25000");
+        
         // Special Allowance: Remaining amount to reach Annual CTC
         BigDecimal totalCalculated = basicSalary.add(hra).add(conveyanceAllowance)
                 .add(medicalAllowance).add(performanceBonus)
-                .add(employerPfContribution).add(gratuity);
+                .add(employerPfContribution).add(gratuity).add(otherBenefits);
         
         this.specialAllowance = annualCtc.subtract(totalCalculated).setScale(2, RoundingMode.HALF_UP);
-        
-        // Other Benefits: 2% of Annual CTC
-        this.otherBenefits = annualCtc.multiply(new BigDecimal("0.02")).setScale(2, RoundingMode.HALF_UP);
         
         // Calculate Monthly Deductions
         // Employee PF: 12% of Basic Salary (monthly)
@@ -188,7 +188,7 @@ public class CTCDetails {
         }
         
         // Calculate Monthly Salary Components
-        this.grossMonthlySalary = (basicSalary.add(hra).add(conveyanceAllowance).add(medicalAllowance).add(specialAllowance).add(performanceBonus))
+        this.grossMonthlySalary = (basicSalary.add(hra).add(conveyanceAllowance).add(medicalAllowance).add(specialAllowance).add(performanceBonus).add(otherBenefits))
                 .divide(new BigDecimal("12"), 2, RoundingMode.HALF_UP);
         
         // Set grossSalary same as grossMonthlySalary for database compatibility
@@ -574,7 +574,8 @@ public class CTCDetails {
                 .add(this.conveyanceAllowance)
                 .add(this.medicalAllowance)
                 .add(this.specialAllowance)
-                .add(this.performanceBonus);
+                .add(this.performanceBonus)
+                .add(this.otherBenefits);
         
         this.grossMonthlySalary = grossAnnualEarnings.divide(new BigDecimal("12"), 2, RoundingMode.HALF_UP);
 

@@ -17,7 +17,8 @@ const ManagerTeamPayroll = () => {
     const testBackendConnection = async () => {
         try {
             console.log('Testing backend connection...');
-            const response = await axios.get('/api/ctc-management/employees');
+            const managerId = localStorage.getItem('managerId');
+            const response = await axios.get(`/api/ctc-management/employees?managerId=${managerId}`);
             console.log('Backend connection test successful:', response.status);
             return true;
         } catch (error) {
@@ -168,7 +169,7 @@ const ManagerTeamPayroll = () => {
             let currentY = 70;
             const employeeData = [
                 ['Employee ID', fullPayslip.employeeId?.toString() || '7', 'UAN', '-'],
-                ['Employee Name', employee?.fullName || employee?.firstName || 'Employee', 'PF No.', '-'],
+                ['Employee Name', employee?.fullName || employee?.firstName || getEmployeeName(fullPayslip.employeeId), 'PF No.', '-'],
                 ['Designation', employee?.designation || 'Employee', 'ESI No.', '-'],
                 ['Department', employee?.department || 'General', 'Bank', '-'],
                 ['Date of Joining', employee?.joinDate || '2025-07-30', 'Account No.', '-']
@@ -347,7 +348,7 @@ const ManagerTeamPayroll = () => {
                 }
             });
 
-            doc.save(`Payslip-${employee?.fullName || fullPayslip.employeeId}-${fullPayslip.cycle}.pdf`);
+            doc.save(`Payslip-${employee?.fullName || getEmployeeName(fullPayslip.employeeId)}-${fullPayslip.cycle}.pdf`);
             
             setMessage({ text: 'Payslip downloaded successfully', type: 'success' });
             
@@ -378,6 +379,11 @@ const ManagerTeamPayroll = () => {
             case 'REVISED': return '#FF9800';
             default: return '#666';
         }
+    };
+
+    const getEmployeeName = (employeeId) => {
+        const employee = teamMembers.find(member => member.id === employeeId);
+        return employee ? employee.fullName : `Employee ID: ${employeeId}`;
     };
 
     return (
@@ -450,7 +456,7 @@ const ManagerTeamPayroll = () => {
                                         {teamCTCData.map(member => (
                                             <div key={member.employeeId} className="ctc-table-row">
                                                 <div className="ctc-table-item">
-                                                    <span className="employee-name">{member.employeeName || `Employee ${member.employeeId}`}</span>
+                                                    <span className="employee-name">{getEmployeeName(member.employeeId)}</span>
                                                 </div>
                                                 <div className="ctc-table-item">
                                                     <span className="employee-id">ID: {member.employeeId}</span>
@@ -516,7 +522,7 @@ const ManagerTeamPayroll = () => {
                                             <div key={payslip.payslipId} className="payslip-row">
                                                 <div className="row-item">
                                                     <span className="employee-name">
-                                                        {payslip.employeeName || `ID: ${payslip.employeeId}`}
+                                                        {getEmployeeName(payslip.employeeId)}
                                                     </span>
                                                 </div>
                                                 

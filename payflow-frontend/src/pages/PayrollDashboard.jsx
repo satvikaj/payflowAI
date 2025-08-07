@@ -109,8 +109,23 @@ const PayrollDashboard = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post('/api/ctc-management/payslip/generate-bulk', bulkData);
-            showMessage('success', `Generated ${response.data.count} payslips successfully`);
+            // Prepare the request data
+            const requestData = {
+                payrollMonth: bulkData.payrollMonth,
+                payrollYear: bulkData.payrollYear,
+                generatedBy: 'HR_ADMIN' // You can get this from user context
+            };
+
+            console.log('Generating bulk payslips for:', requestData);
+            
+            const response = await axios.post('/api/ctc-management/payslip/generate-bulk', requestData);
+            
+            // Extract count from response
+            const count = response.data.payslips ? response.data.payslips.length : response.data.count || 0;
+            
+            showMessage('success', `Generated ${count} payslips successfully for employees with current CTC`);
+            
+            // Reset form
             setBulkData({
                 payrollMonth: '',
                 payrollYear: new Date().getFullYear(),
@@ -120,7 +135,8 @@ const PayrollDashboard = () => {
             fetchAllPayslips();
         } catch (error) {
             console.error('Error generating bulk payslips:', error);
-            showMessage('error', error.response?.data?.message || 'Failed to generate bulk payslips');
+            const errorMessage = error.response?.data?.message || 'Failed to generate bulk payslips';
+            showMessage('error', errorMessage);
         } finally {
             setLoading(false);
         }
@@ -626,6 +642,11 @@ const PayrollDashboard = () => {
         }
     };
 
+    const getEmployeeName = (employeeId) => {
+        const employee = employees.find(emp => emp.id === employeeId);
+        return employee ? (employee.fullName || employee.firstName) : `Employee ${employeeId}`;
+    };
+
     return (
         <div className={isHRRoute ? "hr-dashboard-layout" : "admin-dashboard-layout"}>
             {isHRRoute ? <Sidebar /> : <SidebarAdmin />}
@@ -678,7 +699,16 @@ const PayrollDashboard = () => {
                                 <tbody>
                                     {payslips.map(payslip => (
                                         <tr key={payslip.payslipId}>
-                                            <td>{payslip.employeeName || `Employee ID: ${payslip.employeeId}`}</td>
+                                            <td>
+                                                <div className="employee-info">
+                                                    <div className="employee-name" style={{ fontWeight: 'bold', color: '#333' }}>
+                                                        {getEmployeeName(payslip.employeeId)}
+                                                    </div>
+                                                    <div className="employee-id" style={{ fontSize: '0.9em', color: '#666' }}>
+                                                        ID: {payslip.employeeId}
+                                                    </div>
+                                                </div>
+                                            </td>
                                             <td>{payslip.month} {payslip.year}</td>
                                             <td>{formatCurrency(payslip.grossSalary)}</td>
                                             <td>{formatCurrency(payslip.totalDeductions)}</td>
@@ -952,21 +982,18 @@ const PayrollDashboard = () => {
                                 </div>
                             </div>
 
-                            <div className="form-group">
-                                <label>Working Days</label>
-                                <input
-                                    type="number"
-                                    name="workingDays"
-                                    value={bulkData.workingDays}
-                                    onChange={handleBulkInputChange}
-                                    min="1"
-                                    max="31"
-                                    required
-                                />
-                            </div>
-
                             <div className="bulk-info">
-                                <p><strong>Note:</strong> This will generate payslips for all active employees with default values. Individual adjustments can be made after generation.</p>
+                                <p><strong>Note:</strong> This will generate payslips for all employees who have current CTC details. Employees who already have payslips for the selected month/year will be skipped.</p>
+                                <div className="bulk-info-details">
+                                    <h4>What happens when you generate bulk payslips:</h4>
+                                    <ul>
+                                        <li>✓ System finds all employees with active CTC</li>
+                                        <li>✓ Automatically calculates working days and salary components</li>
+                                        <li>✓ Includes unpaid leave deductions if applicable</li>
+                                        <li>✓ Skips employees who already have payslips for this period</li>
+                                        <li>✓ Individual adjustments can be made after generation</li>
+                                    </ul>
+                                </div>
                             </div>
 
                             <div className="form-actions">
@@ -974,7 +1001,7 @@ const PayrollDashboard = () => {
                                     Cancel
                                 </button>
                                 <button type="submit" className="btn-primary" disabled={loading}>
-                                    {loading ? 'Generating...' : 'Generate All Payslips'}
+                                    {loading ? 'Generating Payslips...' : 'Generate Payslips for All Employees with CTC'}
                                 </button>
                             </div>
                         </form>

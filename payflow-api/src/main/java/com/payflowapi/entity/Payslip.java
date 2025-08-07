@@ -283,10 +283,4 @@ public class Payslip {
     public void setGeneratedBy(String generatedBy) {
         this.generatedBy = generatedBy;
     }
-
-    @PrePersist
-    @PreUpdate
-    public void prePersist() {
-        this.calculateNetPay();
-    }
 }

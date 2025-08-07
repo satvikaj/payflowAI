@@ -39,8 +39,7 @@ const CTCManagementNew = () => {
                 setSelectedEmployee(employee);
                 setCTCData(prev => ({ 
                     ...prev, 
-                    employeeId: employeeId,
-                    ...(currentCTC && { annualCtc: currentCTC })
+                    employeeId: employeeId
                 }));
                 fetchCTCHistory(employeeId);
             }
@@ -49,7 +48,13 @@ const CTCManagementNew = () => {
 
     const fetchEmployeesForDropdown = async () => {
         try {
-            const response = await axios.get('/api/ctc-management/employees/dropdown');
+            // Check if user is a manager (has managerId in localStorage)
+            const managerId = localStorage.getItem('managerId');
+            const url = managerId 
+                ? `/api/ctc-management/employees/dropdown?managerId=${managerId}`
+                : '/api/ctc-management/employees/dropdown';
+            
+            const response = await axios.get(url);
             setEmployees(response.data);
         } catch (error) {
             console.error('Error fetching employees:', error);
@@ -60,7 +65,13 @@ const CTCManagementNew = () => {
     const fetchCTCHistory = async (employeeId) => {
         try {
             const response = await axios.get(`/api/ctc-management/ctc/history/${employeeId}`);
-            setCTCHistory(response.data);
+            const history = response.data;
+            setCTCHistory(history);
+            
+            // Auto-populate form with current active CTC when viewing existing employee
+            if (history.length > 0) {
+                populateCurrentCTC(history);
+            }
         } catch (error) {
             console.error('Error fetching CTC history:', error);
             setCTCHistory([]);
@@ -72,12 +83,27 @@ const CTCManagementNew = () => {
         setSelectedEmployee(employee);
         setCTCData({ 
             ...ctcData, 
-            employeeId: employeeId
+            employeeId: employeeId,
+            annualCtc: '' // Reset CTC field initially
         });
         setShowCalculation(false);
         setCalculatedComponents(null);
         if (employeeId) {
             fetchCTCHistory(employeeId);
+        }
+    };
+
+    // Function to populate form with current active CTC
+    const populateCurrentCTC = (ctcHistory) => {
+        if (ctcHistory.length > 0) {
+            // Find the active CTC record, fallback to most recent if no active record found
+            const currentActiveCTC = ctcHistory.find(ctc => ctc.status === 'ACTIVE') || ctcHistory[0];
+            setCTCData(prev => ({
+                ...prev,
+                annualCtc: currentActiveCTC.annualCtc || '',
+                effectiveFrom: currentActiveCTC.effectiveFrom || '',
+                status: currentActiveCTC.status || 'ACTIVE'
+            }));
         }
     };
 
@@ -107,13 +133,14 @@ const CTCManagementNew = () => {
         const performanceBonus = annualCtc * 0.10;
         const employerPfContribution = basicSalary * 0.12;
         const gratuity = basicSalary * 0.0481;
+        const otherBenefits = 25000; // Fixed - insurance, LTA etc.
         
         const totalCalculated = basicSalary + hra + conveyanceAllowance + medicalAllowance + 
-                               performanceBonus + employerPfContribution + gratuity;
+                               performanceBonus + employerPfContribution + gratuity + otherBenefits;
         const specialAllowance = annualCtc - totalCalculated;
         
         // Monthly calculations
-        const grossMonthlySalary = (basicSalary + hra + conveyanceAllowance + medicalAllowance + specialAllowance + performanceBonus) / 12;
+        const grossMonthlySalary = (basicSalary + hra + conveyanceAllowance + medicalAllowance + specialAllowance + performanceBonus + otherBenefits) / 12;
         const employeePf = (basicSalary * 0.12) / 12;
         const professionalTax = 200;
         const monthlyGross = annualCtc / 12;
@@ -124,8 +151,47 @@ const CTCManagementNew = () => {
             tds = monthlyGross * 0.05;
         }
         const insurancePremium = monthlyGross * 0.01;
-        const totalMonthlyDeductions = employeePf + professionalTax + tds + insurancePremium;
-        const netMonthlySalary = grossMonthlySalary - totalMonthlyDeductions;
+        
+        // Use actual deduction values from current CTC record if available, otherwise default to 0
+        let otherDeductions = 0;
+        let incomeTax = 0;
+        let netMonthlySalary;
+        let totalMonthlyDeductions;
+        let storedEmployeePf = employeePf;
+        let storedProfessionalTax = professionalTax;
+        let storedTds = tds;
+        let storedInsurancePremium = insurancePremium;
+        let storedGrossMonthlySalary = grossMonthlySalary;
+        
+        // For CTC breakdown display, always use fresh calculations to show current logic
+        // Only use stored values for additional deductions (otherDeductions, incomeTax)
+        if (ctcHistory.length > 0 && selectedEmployee) {
+            const currentCTC = ctcHistory[0]; // Most recent CTC record
+            otherDeductions = parseFloat(currentCTC.otherDeductions || 0);
+            incomeTax = parseFloat(currentCTC.incomeTax || 0);
+        }
+        
+        // Always calculate fresh values for display consistency
+        totalMonthlyDeductions = employeePf + professionalTax + tds + insurancePremium + otherDeductions + incomeTax;
+        netMonthlySalary = grossMonthlySalary - totalMonthlyDeductions;
+
+        // Debug log to verify calculation consistency with backend
+        console.log('Frontend CTC Calculation Debug:', {
+            annualCtc,
+            grossMonthlySalary,
+            deductions: {
+                employeePf,
+                professionalTax,
+                tds,
+                insurancePremium,
+                otherDeductions,
+                incomeTax,
+                total: totalMonthlyDeductions
+            },
+            netMonthlySalary,
+            usedStoredValues: false, // Always using fresh calculations for display
+            isExistingEmployee: selectedEmployee ? true : false
+        });
 
         const components = {
             // Annual components
@@ -137,13 +203,16 @@ const CTCManagementNew = () => {
             performanceBonus: performanceBonus.toFixed(2),
             employerPfContribution: employerPfContribution.toFixed(2),
             gratuity: gratuity.toFixed(2),
+            otherBenefits: otherBenefits.toFixed(2),
             
-            // Monthly components
+            // Monthly components - always use fresh calculations for display
             grossMonthlySalary: grossMonthlySalary.toFixed(2),
             employeePf: employeePf.toFixed(2),
             professionalTax: professionalTax.toFixed(2),
             tds: tds.toFixed(2),
             insurancePremium: insurancePremium.toFixed(2),
+            otherDeductions: otherDeductions.toFixed(2),
+            incomeTax: incomeTax.toFixed(2),
             totalMonthlyDeductions: totalMonthlyDeductions.toFixed(2),
             netMonthlySalary: netMonthlySalary.toFixed(2)
         };
@@ -250,6 +319,7 @@ const CTCManagementNew = () => {
                                         onChange={(e) => handleEmployeeSelect(e.target.value)}
                                         required
                                         className="form-control"
+                                        disabled={selectedEmployee && ctcHistory.length > 0}
                                     >
                                         <option value="">Choose an employee...</option>
                                         {employees.map(employee => (
@@ -258,6 +328,11 @@ const CTCManagementNew = () => {
                                             </option>
                                         ))}
                                     </select>
+                                    {selectedEmployee && ctcHistory.length > 0 && (
+                                        <small className="form-text text-muted">
+                                            Employee selection is locked while updating existing CTC
+                                        </small>
+                                    )}
                                 </div>
                                 
                                 {selectedEmployee && (
@@ -388,6 +463,10 @@ const CTCManagementNew = () => {
                                         <span>Gratuity (4.81%)</span>
                                         <span>{formatCurrency(calculatedComponents.gratuity)}</span>
                                     </div>
+                                    <div className="calculation-item">
+                                        <span>Other Benefits</span>
+                                        <span>{formatCurrency(calculatedComponents.otherBenefits)}</span>
+                                    </div>
                                     <div className="calculation-total">
                                         <span>Total Annual CTC</span>
                                         <span>{formatCurrency(ctcData.annualCtc)}</span>
@@ -417,6 +496,18 @@ const CTCManagementNew = () => {
                                         <span>Insurance Premium</span>
                                         <span>{formatCurrency(calculatedComponents.insurancePremium)}</span>
                                     </div>
+                                    {parseFloat(calculatedComponents.otherDeductions) > 0 && (
+                                        <div className="calculation-item">
+                                            <span>Other Deductions</span>
+                                            <span>{formatCurrency(calculatedComponents.otherDeductions)}</span>
+                                        </div>
+                                    )}
+                                    {parseFloat(calculatedComponents.incomeTax) > 0 && (
+                                        <div className="calculation-item">
+                                            <span>Income Tax</span>
+                                            <span>{formatCurrency(calculatedComponents.incomeTax)}</span>
+                                        </div>
+                                    )}
                                     <div className="calculation-item">
                                         <span>Total Deductions</span>
                                         <span>{formatCurrency(calculatedComponents.totalMonthlyDeductions)}</span>
