@@ -26,7 +26,7 @@ export default function PopupMessage({ title, message, type = 'success', onClose
     useEffect(() => {
         const timer = setTimeout(() => {
             onClose();
-        }, 2500); // 2.5 seconds
+        }, 5000); // 5 seconds
         return () => clearTimeout(timer);
     }, [onClose]);
 

@@ -262,6 +262,7 @@ function ManagerLeaveRequests() {
                                                     <th>Start Date</th>
                                                     <th>End Date</th>
                                                     <th>Duration</th>
+                                                    <th>Leave Type</th>
                                                     <th>Type</th>
                                                     <th>Reason</th>
                                                     <th>Status</th>
@@ -301,6 +302,18 @@ function ManagerLeaveRequests() {
                                                             <td>{formattedFrom}</td>
                                                             <td>{formattedTo}</td>
                                                             <td style={{ fontWeight: 600 }}>{duration}</td>
+                                                            <td>
+                                                                <span style={{
+                                                                    padding: '4px 8px',
+                                                                    borderRadius: '4px',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: '500',
+                                                                    background: leave.isPaid === false ? '#fef3c7' : '#dbeafe',
+                                                                    color: leave.isPaid === false ? '#d97706' : '#1d4ed8'
+                                                                }}>
+                                                                    {leave.isPaid === false ? 'Unpaid' : 'Paid'}
+                                                                </span>
+                                                            </td>
                                                             <td>{leave.type || 'Annual'}</td>
                                                             <td style={{ maxWidth: '200px', wordBreak: 'break-word' }}>{leave.reason || '-'}</td>
                                                             <td><span className={statusClass}>{statusText}</span></td>

@@ -159,15 +159,17 @@ const TeamMembers = () => {
     }).length;
 
     const handleViewMember = async (member) => {
-    // ...existing code...
         setSelectedMember(member);
         setShowModal(true);
         setModalLoading(true);
         try {
             // Try to fetch full details from backend
+            console.log('Fetching member details for ID:', member.id);
             const res = await axios.get(`/api/employee/${member.id}`);
+            console.log('Member details response:', res.data);
             setMemberDetails(res.data);
         } catch (err) {
+            console.log('Error fetching member details, using fallback:', err);
             // Fallback to summary if error
             setMemberDetails(member);
         }
@@ -252,7 +254,7 @@ const TeamMembers = () => {
                                     </div>
                                     <button className="modal-close" onClick={()=>setShowAnalytics(false)}><FaTimes/></button>
                                 </div>
-                                <div className="modal-body" style={{padding:'2rem 1.5rem'}}>
+                                <div className="modal-body" style={{padding:'2rem 1.5rem', maxHeight: '70vh', overflowY: 'auto'}}>
                                     <TeamAnalyticsChart team={team} leaves={leaves} />
                                     <div style={{
                                         marginTop:'2.5rem',
@@ -454,7 +456,7 @@ const TeamMembers = () => {
                                         <FaTimes />
                                     </button>
                                 </div>
-                                <div className="modal-body">
+                                <div className="modal-body" style={{maxHeight: '70vh', overflowY: 'auto'}}>
                                     {/* Leave Summary */}
                                     {(() => {
                                         const history = leaves.filter(l => l.employeeId === leaveHistoryMember.id);
@@ -645,7 +647,7 @@ const TeamMembers = () => {
                                         <FaTimes />
                                     </button>
                                 </div>
-                                <div className="modal-body">
+                                <div className="modal-body" style={{maxHeight: '70vh', overflowY: 'auto'}}>
                                     {modalLoading ? (
                                         <div className="modal-loading">Loading details...</div>
                                     ) : memberDetails ? (
@@ -675,11 +677,40 @@ const TeamMembers = () => {
                                                     </>
                                                 )}
                                             </div>
-                                            <div className="detail-item">
-                                                <FaPhone className="detail-icon" />
-                                                <span>Phone: {selectedMember.phone || 'N/A'}</span>
-
+                                            
+                                            {/* Education Card */}
+                                            <div className="modal-card">
+                                                <h4 className="card-section-header">
+                                                    <FaGraduationCap className="section-icon" /> Education
+                                                </h4>
+                                                {!(memberDetails.qualification || memberDetails.institution || memberDetails.graduationYear || memberDetails.specialization) ? (
+                                                    <div className="detail-item"><span className="detail-value">N/A</span></div>
+                                                ) : (
+                                                    <>
+                                                        {memberDetails.qualification && <div className="detail-item"><span className="detail-label">Qualification:</span> <span className="detail-value">{memberDetails.qualification}</span></div>}
+                                                        {memberDetails.institution && <div className="detail-item"><span className="detail-label">Institution:</span> <span className="detail-value">{memberDetails.institution}</span></div>}
+                                                        {memberDetails.graduationYear && <div className="detail-item"><span className="detail-label">Graduation Year:</span> <span className="detail-value">{memberDetails.graduationYear}</span></div>}
+                                                        {memberDetails.specialization && <div className="detail-item"><span className="detail-label">Specialization:</span> <span className="detail-value">{memberDetails.specialization}</span></div>}
+                                                    </>
+                                                )}
                                             </div>
+                                            
+                                            {/* Skills Card */}
+                                            <div className="modal-card">
+                                                <h4 className="card-section-header">
+                                                    <FaStar className="section-icon" /> Skills & Expertise
+                                                </h4>
+                                                {!(memberDetails.skills || memberDetails.certifications || memberDetails.languages) ? (
+                                                    <div className="detail-item"><span className="detail-value">N/A</span></div>
+                                                ) : (
+                                                    <>
+                                                        {memberDetails.skills && <div className="detail-item"><span className="detail-label">Skills:</span> <span className="detail-value">{memberDetails.skills}</span></div>}
+                                                        {memberDetails.certifications && <div className="detail-item"><span className="detail-label">Certifications:</span> <span className="detail-value">{memberDetails.certifications}</span></div>}
+                                                        {memberDetails.languages && <div className="detail-item"><span className="detail-label">Languages:</span> <span className="detail-value">{memberDetails.languages}</span></div>}
+                                                    </>
+                                                )}
+                                            </div>
+                                            
                                             {/* Experience Card */}
                                             <div className="modal-card">
                                                 <h4 className="card-section-header">
@@ -695,11 +726,7 @@ const TeamMembers = () => {
                                                     </>
                                                 )}
                                             </div>
-                                            <div className="detail-item">
-                                                <FaBriefcase className="detail-icon" />
-                                                <span>Role: {selectedMember.role || 'N/A'}</span>
-
-                                            </div>
+                                            
                                             {/* Work Info Card (existing) */}
                                             <div className="modal-card">
                                                 <h4 className="card-section-header">

@@ -3,9 +3,11 @@ package com.payflowapi.controller;
 import com.payflowapi.dto.PayrollRequest;
 import com.payflowapi.entity.Employee;
 import com.payflowapi.entity.EmployeeLeave;
+import com.payflowapi.entity.CTCDetails;
 import com.payflowapi.entity.Payroll;
 import com.payflowapi.repository.EmployeeLeaveRepository;
 import com.payflowapi.repository.EmployeeRepository;
+import com.payflowapi.repository.CTCDetailsRepository;
 import com.payflowapi.repository.PayrollRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +16,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/payrolls")
@@ -31,6 +37,9 @@ public class PayrollController {
 
     @Autowired
     private EmployeeLeaveRepository employeeLeaveRepo;
+
+    @Autowired
+    private CTCDetailsRepository ctcDetailsRepo;
 
 
     @GetMapping("/payslip")
@@ -173,6 +182,153 @@ public class PayrollController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Payroll with ID " + payrollId + " not found");
         }
+    }
+
+    // Dynamic payslip generation endpoint
+    @GetMapping("/generate-payslip")
+    public ResponseEntity<?> generateDynamicPayslip(
+            @RequestParam Long employeeId,
+            @RequestParam String month,
+            @RequestParam Integer year) {
+        try {
+            // Get employee details
+            Optional<Employee> employeeOpt = employeeRepo.findById(employeeId);
+            if (!employeeOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Employee not found"));
+            }
+            Employee employee = employeeOpt.get();
+
+            // Get current CTC details
+            Optional<CTCDetails> ctcOpt = ctcDetailsRepo.findCurrentCTCByEmployeeId(employeeId, LocalDate.now());
+            if (!ctcOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "No active CTC found for employee"));
+            }
+            CTCDetails ctc = ctcOpt.get();
+
+            // Calculate working days for the month
+            YearMonth yearMonth = YearMonth.of(year, getMonthNumber(month));
+            int totalDaysInMonth = yearMonth.lengthOfMonth();
+            int workingDays = calculateWorkingDays(yearMonth);
+
+            // Calculate daily net salary
+            BigDecimal monthlyNetSalary = ctc.getNetMonthlySalary();
+            BigDecimal dailyNetSalary = monthlyNetSalary.divide(BigDecimal.valueOf(workingDays), 2, RoundingMode.HALF_UP);
+
+            // Get unpaid leaves for the specific month
+            List<EmployeeLeave> unpaidLeaves = getUnpaidLeavesForMonth(employeeId, yearMonth);
+            int unpaidLeaveDays = calculateUnpaidLeaveDaysInMonth(unpaidLeaves, yearMonth);
+
+            // Calculate final net salary after deducting unpaid leaves
+            BigDecimal unpaidLeaveDeduction = dailyNetSalary.multiply(BigDecimal.valueOf(unpaidLeaveDays));
+            BigDecimal finalNetSalary = monthlyNetSalary.subtract(unpaidLeaveDeduction);
+
+            // Prepare response
+            Map<String, Object> payslipData = new HashMap<>();
+            payslipData.put("employee", Map.of(
+                    "id", employee.getId(),
+                    "name", employee.getFullName(),
+                    "email", employee.getEmail(),
+                    "position", employee.getPosition()
+            ));
+            payslipData.put("period", Map.of(
+                    "month", month,
+                    "year", year
+            ));
+            payslipData.put("salary", Map.of(
+                    "basicSalary", ctc.getBasicSalary(),
+                    "hra", ctc.getHra(),
+                    "conveyanceAllowance", ctc.getConveyanceAllowance(),
+                    "medicalAllowance", ctc.getMedicalAllowance(),
+                    "specialAllowance", ctc.getSpecialAllowance(),
+                    "performanceBonus", ctc.getPerformanceBonus(),
+                    "grossMonthlySalary", ctc.getGrossMonthlySalary(),
+                    "monthlyNetSalary", monthlyNetSalary
+            ));
+            payslipData.put("deductions", Map.of(
+                    "employeePf", ctc.getEmployeePf(),
+                    "professionalTax", ctc.getProfessionalTax(),
+                    "tds", ctc.getTds(),
+                    "insurancePremium", ctc.getInsurancePremium(),
+                    "totalMonthlyDeductions", ctc.getTotalMonthlyDeductions()
+            ));
+            payslipData.put("attendance", Map.of(
+                    "totalDaysInMonth", totalDaysInMonth,
+                    "workingDays", workingDays,
+                    "unpaidLeaveDays", unpaidLeaveDays,
+                    "effectiveWorkingDays", workingDays - unpaidLeaveDays
+            ));
+            payslipData.put("calculations", Map.of(
+                    "dailyNetSalary", dailyNetSalary,
+                    "unpaidLeaveDeduction", unpaidLeaveDeduction,
+                    "finalNetSalary", finalNetSalary
+            ));
+
+            return ResponseEntity.ok(payslipData);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Error generating payslip: " + e.getMessage()));
+        }
+    }
+
+    // Helper method to get month number from name
+    private int getMonthNumber(String monthName) {
+        switch (monthName.toLowerCase()) {
+            case "january": return 1;
+            case "february": return 2;
+            case "march": return 3;
+            case "april": return 4;
+            case "may": return 5;
+            case "june": return 6;
+            case "july": return 7;
+            case "august": return 8;
+            case "september": return 9;
+            case "october": return 10;
+            case "november": return 11;
+            case "december": return 12;
+            default: throw new IllegalArgumentException("Invalid month name: " + monthName);
+        }
+    }
+
+    // Calculate working days (excluding weekends)
+    private int calculateWorkingDays(YearMonth yearMonth) {
+        int workingDays = 0;
+        for (int day = 1; day <= yearMonth.lengthOfMonth(); day++) {
+            LocalDate date = yearMonth.atDay(day);
+            // Monday = 1, Sunday = 7
+            if (date.getDayOfWeek().getValue() <= 5) { // Monday to Friday
+                workingDays++;
+            }
+        }
+        return workingDays;
+    }
+
+    // Get unpaid leaves for a specific month
+    private List<EmployeeLeave> getUnpaidLeavesForMonth(Long employeeId, YearMonth yearMonth) {
+        return employeeLeaveRepo.findApprovedUnpaidLeavesInMonth(
+                employeeId, yearMonth.getYear(), yearMonth.getMonthValue());
+    }
+
+    // Calculate unpaid leave days that fall within the specific month
+    private int calculateUnpaidLeaveDaysInMonth(List<EmployeeLeave> unpaidLeaves, YearMonth yearMonth) {
+        int unpaidDays = 0;
+        LocalDate monthStart = yearMonth.atDay(1);
+        LocalDate monthEnd = yearMonth.atEndOfMonth();
+
+        for (EmployeeLeave leave : unpaidLeaves) {
+            LocalDate leaveStart = leave.getFromDate().isBefore(monthStart) ? monthStart : leave.getFromDate();
+            LocalDate leaveEnd = leave.getToDate().isAfter(monthEnd) ? monthEnd : leave.getToDate();
+            
+            // Count working days in the leave period
+            for (LocalDate date = leaveStart; !date.isAfter(leaveEnd); date = date.plusDays(1)) {
+                if (date.getDayOfWeek().getValue() <= 5) { // Monday to Friday
+                    unpaidDays++;
+                }
+            }
+        }
+        return unpaidDays;
     }
 
 }

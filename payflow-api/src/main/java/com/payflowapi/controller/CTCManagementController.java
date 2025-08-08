@@ -1,8 +1,10 @@
 package com.payflowapi.controller;
 
+import com.payflowapi.dto.CTCCreationDto;
 import com.payflowapi.entity.CTCDetails;
 import com.payflowapi.entity.Employee;
 import com.payflowapi.entity.Payslip;
+import com.payflowapi.repository.CTCDetailsRepository;
 import com.payflowapi.repository.EmployeeRepository;
 import com.payflowapi.service.CTCService;
 import com.payflowapi.service.PayslipService;
@@ -29,7 +31,124 @@ public class CTCManagementController {
     @Autowired
     private EmployeeRepository employeeRepository;
 
+    @Autowired
+    private CTCDetailsRepository ctcDetailsRepository;
+
     // ==================== CTC MANAGEMENT ====================
+
+    // Add new CTC with auto-calculation (simplified)
+    @PostMapping("/ctc/add-auto")
+    public ResponseEntity<?> addCTCWithAutoCalculation(@RequestBody CTCCreationDto ctcCreationDto) {
+        try {
+            // Fetch employee details
+            Optional<Employee> employeeOpt = employeeRepository.findById(ctcCreationDto.getEmployeeId());
+            if (!employeeOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Employee not found"));
+            }
+            
+            Employee employee = employeeOpt.get();
+            
+            // Create CTC Details with auto-calculation
+            CTCDetails ctcDetails = new CTCDetails();
+            ctcDetails.setEmployeeId(employee.getId());
+            ctcDetails.setEmployeeName(employee.getFullName());
+            ctcDetails.setEmployeePosition(employee.getPosition());
+            ctcDetails.setAnnualCtc(ctcCreationDto.getAnnualCtc());
+            ctcDetails.setEffectiveFrom(ctcCreationDto.getEffectiveFrom());
+            ctcDetails.setRevisionReason(ctcCreationDto.getRevisionReason());
+            ctcDetails.setCreatedBy(ctcCreationDto.getCreatedBy());
+            ctcDetails.setStatus("ACTIVE");
+            
+            // Auto-calculate components
+            ctcDetails.calculateCTCStructure();
+            
+            CTCDetails savedCTC = ctcService.addCTC(ctcDetails);
+            return ResponseEntity.ok(Map.of(
+                    "message", "CTC added successfully with auto-calculated components",
+                    "ctc", savedCTC));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // Get employees for CTC creation dropdown - Manager sees only their team
+    @GetMapping("/employees/dropdown")
+    public ResponseEntity<?> getEmployeesForDropdown(@RequestParam(required = false) Long managerId) {
+        try {
+            List<Employee> employees;
+            if (managerId != null) {
+                // Manager can only see their team members
+                employees = employeeRepository.findByManagerId(managerId);
+            } else {
+                // HR/Admin can see all employees
+                employees = employeeRepository.findAll();
+            }
+            return ResponseEntity.ok(employees.stream()
+                .map(emp -> Map.of(
+                    "id", emp.getId(),
+                    "name", emp.getFullName(),
+                    "position", emp.getPosition() != null ? emp.getPosition() : "Not Set"
+                ))
+                .toList());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // Debug endpoint to check stored CTC data
+    @GetMapping("/ctc/debug/{employeeId}")
+    public ResponseEntity<?> debugCTCData(@PathVariable Long employeeId) {
+        try {
+            Optional<CTCDetails> ctcOpt = ctcService.getCurrentCTC(employeeId);
+            if (ctcOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            CTCDetails ctc = ctcOpt.get();
+            
+            // Create detailed breakdown map
+            Map<String, Object> breakdown = Map.of(
+                "employeeId", ctc.getEmployeeId(),
+                "employeeName", ctc.getEmployeeName(),
+                "annualCtc", ctc.getAnnualCtc(),
+                "earnings", Map.of(
+                    "basicSalary", ctc.getBasicSalary(),
+                    "hra", ctc.getHra(),
+                    "conveyanceAllowance", ctc.getConveyanceAllowance(),
+                    "medicalAllowance", ctc.getMedicalAllowance(),
+                    "specialAllowance", ctc.getSpecialAllowance(),
+                    "performanceBonus", ctc.getPerformanceBonus(),
+                    "employerPfContribution", ctc.getEmployerPfContribution(),
+                    "gratuity", ctc.getGratuity()
+                ),
+                "deductions", Map.of(
+                    "employeePf", ctc.getEmployeePf(),
+                    "professionalTax", ctc.getProfessionalTax(),
+                    "tds", ctc.getTds(),
+                    "insurancePremium", ctc.getInsurancePremium(),
+                    "incomeTax", ctc.getIncomeTax()
+                ),
+                "calculated", Map.of(
+                    "grossMonthlySalary", ctc.getGrossMonthlySalary(),
+                    "totalMonthlyDeductions", ctc.getTotalMonthlyDeductions(),
+                    "netMonthlySalary", ctc.getNetMonthlySalary()
+                ),
+                "metadata", Map.of(
+                    "effectiveFrom", ctc.getEffectiveFrom(),
+                    "status", ctc.getStatus(),
+                    "createdAt", ctc.getCreatedAt()
+                )
+            );
+            
+            return ResponseEntity.ok(breakdown);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
 
     // Add new CTC for employee
     @PostMapping("/ctc/add")
@@ -262,13 +381,44 @@ public class CTCManagementController {
         }
     }
 
+    // Download payslip as PDF
+    @GetMapping("/payslip/download/{payslipId}")
+    public ResponseEntity<?> downloadPayslip(@PathVariable Long payslipId) {
+        try {
+            Optional<Payslip> payslipOpt = payslipService.getPayslipById(payslipId);
+            if (!payslipOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Payslip not found"));
+            }
+            
+            Payslip payslip = payslipOpt.get();
+            // Return payslip data with employee information for frontend PDF generation
+            Employee employee = employeeRepository.findById(payslip.getEmployeeId()).orElse(null);
+            
+            return ResponseEntity.ok(Map.of(
+                    "payslip", payslip,
+                    "employee", employee,
+                    "message", "Payslip data retrieved successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
     // ==================== UTILITY ENDPOINTS ====================
 
-    // Get all employees for CTC management
+    // Get all employees for CTC management - Manager sees only their team
     @GetMapping("/employees")
-    public ResponseEntity<?> getAllEmployees() {
+    public ResponseEntity<?> getAllEmployees(@RequestParam(required = false) Long managerId) {
         try {
-            List<Employee> employees = employeeRepository.findAll();
+            List<Employee> employees;
+            if (managerId != null) {
+                // Manager can only see their team members
+                employees = employeeRepository.findByManagerId(managerId);
+            } else {
+                // HR/Admin can see all employees
+                employees = employeeRepository.findAll();
+            }
             return ResponseEntity.ok(employees);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -303,9 +453,8 @@ public class CTCManagementController {
     @GetMapping("/manager/{managerId}/team-members")
     public ResponseEntity<?> getTeamMembers(@PathVariable Long managerId) {
         try {
-            // For now, return all employees as team members
-            // In a real application, you'd filter by manager relationship
-            List<Employee> teamMembers = employeeRepository.findAll();
+            // Return only employees managed by this manager
+            List<Employee> teamMembers = employeeRepository.findByManagerId(managerId);
             return ResponseEntity.ok(teamMembers);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -317,8 +466,16 @@ public class CTCManagementController {
     @GetMapping("/manager/{managerId}/team-ctc")
     public ResponseEntity<?> getTeamCTC(@PathVariable Long managerId) {
         try {
-            // Get all active CTCs for team members
-            List<CTCDetails> teamCTCs = ctcService.getAllActiveCTCs();
+            // Get team members first
+            List<Employee> teamMembers = employeeRepository.findByManagerId(managerId);
+            List<Long> teamMemberIds = teamMembers.stream().map(Employee::getId).toList();
+            
+            // Get active CTCs only for team members
+            List<CTCDetails> allActiveCTCs = ctcService.getAllActiveCTCs();
+            List<CTCDetails> teamCTCs = allActiveCTCs.stream()
+                .filter(ctc -> teamMemberIds.contains(ctc.getEmployeeId()))
+                .toList();
+                
             return ResponseEntity.ok(teamCTCs);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -330,9 +487,68 @@ public class CTCManagementController {
     @GetMapping("/manager/{managerId}/team-payslips")
     public ResponseEntity<?> getTeamPayslips(@PathVariable Long managerId) {
         try {
-            // Get all payslips for team members
-            List<Payslip> teamPayslips = payslipService.getAllPayslips();
+            // Get team members first
+            List<Employee> teamMembers = employeeRepository.findByManagerId(managerId);
+            List<Long> teamMemberIds = teamMembers.stream().map(Employee::getId).toList();
+            
+            // Get payslips only for team members
+            List<Payslip> allPayslips = payslipService.getAllPayslips();
+            List<Payslip> teamPayslips = allPayslips.stream()
+                .filter(payslip -> teamMemberIds.contains(payslip.getEmployeeId()))
+                .toList();
+                
             return ResponseEntity.ok(teamPayslips);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // Recalculate existing CTC records with updated logic
+    @PostMapping("/ctc/recalculate/{employeeId}")
+    public ResponseEntity<?> recalculateEmployeeCTC(@PathVariable Long employeeId) {
+        try {
+            // Get current CTC
+            Optional<CTCDetails> currentCTC = ctcService.getCurrentCTC(employeeId);
+            if (currentCTC.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "No active CTC found for employee"));
+            }
+
+            CTCDetails ctc = currentCTC.get();
+            // Recalculate using the updated logic
+            ctc.calculateCTCStructure();
+            
+            // Save the updated values using the repository directly
+            CTCDetails updatedCTC = ctcDetailsRepository.save(ctc);
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "CTC recalculated successfully",
+                "updatedCTC", updatedCTC
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // Recalculate all existing CTC records
+    @PostMapping("/ctc/recalculate/all")
+    public ResponseEntity<?> recalculateAllCTCs() {
+        try {
+            List<CTCDetails> allActiveCTCs = ctcService.getAllActiveCTCs();
+            int recalculatedCount = 0;
+            
+            for (CTCDetails ctc : allActiveCTCs) {
+                ctc.calculateCTCStructure();
+                ctcDetailsRepository.save(ctc);
+                recalculatedCount++;
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "All CTCs recalculated successfully",
+                "recalculatedCount", recalculatedCount
+            ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", e.getMessage()));

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from '../utils/axios';
 import SidebarAdmin from '../components/SidebarAdmin';
 import './CTCManagement.css';
 
 const CTCManagement = () => {
+    const navigate = useNavigate();
     const [employees, setEmployees] = useState([]);
     const [selectedEmployee, setSelectedEmployee] = useState('');
     const [ctcData, setCTCData] = useState({
@@ -161,7 +163,14 @@ const CTCManagement = () => {
                         <div className="action-buttons">
                             <button
                                 className="btn-primary"
-                                onClick={() => setShowModal(true)}
+                                onClick={() => {
+                                    const currentCTC = ctcHistory.length > 0 ? ctcHistory[0] : null;
+                                    const queryParams = new URLSearchParams({
+                                        employeeId: selectedEmployee,
+                                        ...(currentCTC && { currentCTC: currentCTC.annualCtc || currentCTC.totalCtc })
+                                    });
+                                    navigate(`/ctc-management-new?${queryParams.toString()}`);
+                                }}
                             >
                                 Add New CTC Structure
                             </button>

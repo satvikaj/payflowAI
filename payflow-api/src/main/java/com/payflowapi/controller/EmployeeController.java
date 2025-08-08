@@ -2,14 +2,19 @@ package com.payflowapi.controller;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import com.payflowapi.dto.EmployeeDto;
+import com.payflowapi.dto.EmployeeUpdateDto;
 import com.payflowapi.dto.LeaveRequestDto;
+import com.payflowapi.dto.LeaveStatsDto;
 import com.payflowapi.entity.Employee;
 import com.payflowapi.entity.Project;
 import com.payflowapi.entity.EmployeeLeave;
+import com.payflowapi.entity.EmployeePositionHistory;
 import com.payflowapi.repository.EmployeeRepository;
+import com.payflowapi.repository.EmployeePositionHistoryRepository;
 import com.payflowapi.entity.User;
 import com.payflowapi.repository.UserRepository;
 import com.payflowapi.service.EmailService;
+import com.payflowapi.service.LeaveService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -106,6 +111,17 @@ public class EmployeeController {
         return "Updated managerId for " + updated + " leave requests.";
     }
 
+    // FIX: Migrate existing leave data to include isPaid and leaveDays fields using smart logic
+    @PostMapping("/leaves/migrate-data")
+    public ResponseEntity<String> migrateLeaveData() {
+        try {
+            leaveService.migrateExistingLeaveRecords();
+            return ResponseEntity.ok("Leave data migration completed successfully. Historical leaves have been properly categorized as paid/unpaid based on annual limits.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Leave migration failed: " + e.getMessage());
+        }
+    }
+
     // DEBUG: List all leave requests and their managerId
     @GetMapping("/leaves/all")
     public List<EmployeeLeave> getAllLeaves() {
@@ -120,6 +136,17 @@ public class EmployeeController {
             return List.of();
         }
         return employeeLeaveRepository.findByEmployeeId(employee.getId());
+    }
+
+    // Endpoint to get leave statistics for an employee
+    @GetMapping("/leave/stats")
+    public ResponseEntity<LeaveStatsDto> getLeaveStats(@RequestParam String email) {
+        Employee employee = employeeRepository.findByEmail(email).orElse(null);
+        if (employee == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        LeaveStatsDto stats = leaveService.getLeaveStats(employee.getId());
+        return ResponseEntity.ok(stats);
     }
 
     // Endpoint to apply for leave
@@ -141,29 +168,7 @@ public class EmployeeController {
         }
 
         // Calculate days requested
-        long daysRequested = java.time.temporal.ChronoUnit.DAYS.between(fromDate, toDate) + 1;
-
-        // Check leave balance - count accepted leaves for this employee
-        List<EmployeeLeave> acceptedLeaves = employeeLeaveRepository.findByEmployeeIdAndStatus(employee.getId(), "ACCEPTED");
-        long usedLeaves = 0;
-        for (EmployeeLeave leave : acceptedLeaves) {
-            if (leave.getFromDate() != null && leave.getToDate() != null) {
-                usedLeaves += java.time.temporal.ChronoUnit.DAYS.between(leave.getFromDate(), leave.getToDate()) + 1;
-            }
-        }
-        
-        final int TOTAL_ANNUAL_LEAVES = 12;
-        long remainingLeaves = TOTAL_ANNUAL_LEAVES - usedLeaves;
-
-        // Check if employee has any remaining leaves
-        if (remainingLeaves <= 0) {
-            return ResponseEntity.badRequest().body("You have no remaining leaves. You have already used all " + TOTAL_ANNUAL_LEAVES + " annual leaves.");
-        }
-
-        // Check if requested days exceed remaining leaves
-        if (daysRequested > remainingLeaves) {
-            return ResponseEntity.badRequest().body("You are requesting " + daysRequested + " days but only have " + remainingLeaves + " leaves remaining.");
-        }
+        int daysRequested = leaveService.calculateLeaveDays(fromDate, toDate);
 
         // Check for overlapping leave requests
         List<EmployeeLeave> overlappingLeaves = employeeLeaveRepository.findOverlappingLeaves(
@@ -187,6 +192,9 @@ public class EmployeeController {
             return ResponseEntity.badRequest().body(message);
         }
 
+        // Determine if this should be paid or unpaid leave
+        boolean isPaidLeave = leaveService.shouldBePaidLeave(employee.getId(), daysRequested);
+        
         // Create new leave request
         EmployeeLeave leave = new EmployeeLeave();
         leave.setEmployeeId(employee.getId());
@@ -197,9 +205,19 @@ public class EmployeeController {
         leave.setToDate(toDate);
         leave.setReason(dto.getReason());
         leave.setStatus("PENDING");
+        leave.setIsPaid(isPaidLeave);
+        leave.setLeaveDays(daysRequested);
 
         EmployeeLeave savedLeave = employeeLeaveRepository.save(leave);
-        return ResponseEntity.ok(savedLeave);
+        
+        // Return response with leave type information
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("leave", savedLeave);
+        response.put("leaveType", isPaidLeave ? "Paid Leave" : "Unpaid Leave");
+        response.put("message", String.format("Leave request submitted successfully as %s (%d days)", 
+                isPaidLeave ? "Paid Leave" : "Unpaid Leave", daysRequested));
+        
+        return ResponseEntity.ok(response);
     }
 
     @Autowired
@@ -212,10 +230,16 @@ public class EmployeeController {
     private EmailService emailService;
 
     @Autowired
+    private LeaveService leaveService;
+
+    @Autowired
     private com.payflowapi.repository.EmployeeLeaveRepository employeeLeaveRepository;
 
     @Autowired
     private com.payflowapi.repository.ProjectRepository projectRepository;
+
+    @Autowired
+    private EmployeePositionHistoryRepository employeePositionHistoryRepository;
 
     @PostMapping("/onboard")
     public Employee onboardEmployee(@RequestBody EmployeeDto dto) {
@@ -239,6 +263,8 @@ public class EmployeeController {
         // Job & Work Info
         employee.setDepartment(dto.getDepartment());
         employee.setRole(dto.getRole());
+        // Set position - default to JUNIOR if not provided
+        employee.setPosition(dto.getPosition() != null && !dto.getPosition().isBlank() ? dto.getPosition() : "JUNIOR");
 //        employee.setJoiningDate(dto.getJoiningDate());
         if (dto.getJoiningDate() != null && !dto.getJoiningDate().isBlank()) {
             try {
@@ -345,5 +371,96 @@ public class EmployeeController {
     @GetMapping("/count")
     public long getEmployeeCount() {
         return employeeRepository.count();
+    }
+
+    // Endpoint to update employee position, role, and department
+    @PutMapping("/update-position")
+    public ResponseEntity<?> updateEmployeePosition(@RequestBody EmployeeUpdateDto updateDto) {
+        try {
+            Employee employee = employeeRepository.findById(updateDto.getEmployeeId())
+                    .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+            // Store current values for history
+            String previousDepartment = employee.getDepartment();
+            String previousRole = employee.getRole();
+            String previousPosition = employee.getPosition();
+
+            // Check if there are any changes
+            boolean hasChanges = false;
+            if (!previousDepartment.equals(updateDto.getDepartment()) ||
+                !previousRole.equals(updateDto.getRole()) ||
+                !previousPosition.equals(updateDto.getPosition())) {
+                hasChanges = true;
+            }
+
+            if (hasChanges) {
+                // Update employee details
+                employee.setDepartment(updateDto.getDepartment());
+                employee.setRole(updateDto.getRole());
+                employee.setPosition(updateDto.getPosition());
+                employeeRepository.save(employee);
+
+                // Create history record
+                EmployeePositionHistory history = new EmployeePositionHistory(
+                        employee.getId(),
+                        employee.getFullName(),
+                        previousDepartment,
+                        updateDto.getDepartment(),
+                        previousRole,
+                        updateDto.getRole(),
+                        previousPosition,
+                        updateDto.getPosition(),
+                        updateDto.getChangedBy(),
+                        updateDto.getReason()
+                );
+                employeePositionHistoryRepository.save(history);
+
+                return ResponseEntity.ok(Map.of(
+                        "message", "Employee position updated successfully",
+                        "employee", employee
+                ));
+            } else {
+                return ResponseEntity.ok(Map.of(
+                        "message", "No changes detected",
+                        "employee", employee
+                ));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Failed to update employee position: " + e.getMessage()
+            ));
+        }
+    }
+
+    // Endpoint to get position history for an employee
+    @GetMapping("/{employeeId}/position-history")
+    public ResponseEntity<List<EmployeePositionHistory>> getEmployeePositionHistory(@PathVariable Long employeeId) {
+        try {
+            List<EmployeePositionHistory> history = employeePositionHistoryRepository.findByEmployeeIdOrderByChangeDateDesc(employeeId);
+            return ResponseEntity.ok(history);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // Endpoint to migrate existing employees to have default position if null
+    @PostMapping("/migrate-positions")
+    public ResponseEntity<String> migrateEmployeePositions() {
+        try {
+            List<Employee> employees = employeeRepository.findAll();
+            int updated = 0;
+
+            for (Employee employee : employees) {
+                if (employee.getPosition() == null || employee.getPosition().isEmpty()) {
+                    employee.setPosition("JUNIOR");
+                    employeeRepository.save(employee);
+                    updated++;
+                }
+            }
+
+            return ResponseEntity.ok("Updated " + updated + " employees with default position 'JUNIOR'");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Migration failed: " + e.getMessage());
+        }
     }
 }

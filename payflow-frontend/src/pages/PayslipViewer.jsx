@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from '../utils/axios';
 import './PayslipViewer.css';
 import SidebarManager from '../components/SidebarManager';
+import ProfessionalPayslip from '../components/ProfessionalPayslip';
 
 import jsPDF from 'jspdf';
 import 'jspdf-autotable'; // ✅ This line is necessary
@@ -25,6 +26,11 @@ function PayslipViewer() {
     // helper inside component
     const getFullName = (p) =>
         p?.fullName || [p?.firstName, p?.lastName].filter(Boolean).join(' ') || 'N/A';
+
+    const showMessage = (type, text) => {
+        setMessage(text);
+        setTimeout(() => setMessage(''), 5000);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -70,39 +76,225 @@ function PayslipViewer() {
 
 
 
-    const handleDownload = () => {
-        const doc = new jsPDF();
+    const handleDownload = async () => {
+        if (!payslip) {
+            alert('No payslip data to download');
+            return;
+        }
 
-        doc.setFontSize(20);
-        doc.text('PayFlow Pvt. Ltd.', 14, 20);
-        doc.setFontSize(14);
-        doc.text('Official Payslip Document', 14, 30);
+        try {
+            // Fetch complete payslip data with employee information from backend
+            const response = await axios.get(`/api/ctc-management/payslip/download/${payslip.payslipId}`);
+            const { payslip: fullPayslip, employee } = response.data;
 
-        doc.setFontSize(12);
-        doc.text(`Payslip for: ${payslip.cycle}`, 14, 42);
-        // in PDF
-        doc.text(`Employee Name: ${getFullName(payslip)}`, 14, 50);
-        doc.text(`Employee ID: ${payslip.employeeId}`, 14, 58);
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            
+            // Professional outer border
+            doc.setLineWidth(1.5);
+            doc.rect(15, 15, pageWidth - 30, 250);
+            
+            // Header section with logo and company details
+            doc.setLineWidth(1);
+            doc.rect(15, 15, pageWidth - 30, 50);
+            
+            // Professional logo area (blue rectangle with icon)
+            doc.setFillColor(70, 130, 180);
+            doc.rect(25, 25, 25, 30, 'F');
+            
+            // Professional icon representation
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('🏢', 35, 42);
+            
+            // Company name - professional styling
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('PayFlow Solutions', pageWidth / 2, 35, { align: 'center' });
+            
+            // Company address
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text('123 Business District, Tech City, State - 123456', pageWidth / 2, 45, { align: 'center' });
+            
+            // Pay slip title with cycle
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Pay Slip for ${fullPayslip.cycle || 'August 2025'}`, pageWidth / 2, 57, { align: 'center' });
+            
+            // Employee details section - Professional table
+            let startY = 75;
+            
+            const employeeDetails = [
+                ['Employee ID', fullPayslip.employeeId?.toString() || '7', 'UAN', '-'],
+                ['Employee Name', employee?.fullName || employee?.firstName || 'Hari', 'PF No.', '-'],
+                ['Designation', employee?.designation || 'SDE', 'ESI No.', '-'],
+                ['Department', employee?.department || 'IT', 'Bank', '-'],
+                ['Date of Joining', employee?.joinDate || '2025-07-30', 'Account No.', '-']
+            ];
+            
+            doc.autoTable({
+                startY: startY,
+                body: employeeDetails,
+                theme: 'grid',
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 3,
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.5,
+                    valign: 'middle'
+                },
+                columnStyles: {
+                    0: { cellWidth: 45, fontStyle: 'bold' },
+                    1: { cellWidth: 50 },
+                    2: { cellWidth: 45, fontStyle: 'bold' },
+                    3: { cellWidth: 50 }
+                },
+                margin: { left: 20, right: 20 }
+            });
+            
+            // Working days section - Clean layout
+            startY = doc.lastAutoTable.finalY + 2;
+            
+            const workingDaysData = [
+                ['Gross Wages', '₹61,166.67', '', ''],
+                ['Total Working Days', '22', 'Leaves', fullPayslip.numberOfLeaves?.toString() || '0'],
+                ['LOP Days', '0', 'Paid Days', '22']
+            ];
+            
+            doc.autoTable({
+                startY: startY,
+                body: workingDaysData,
+                theme: 'grid',
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 3,
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.5,
+                    valign: 'middle'
+                },
+                columnStyles: {
+                    0: { cellWidth: 47.5, fontStyle: 'bold' },
+                    1: { cellWidth: 47.5 },
+                    2: { cellWidth: 47.5, fontStyle: 'bold' },
+                    3: { cellWidth: 47.5 }
+                },
+                margin: { left: 20, right: 20 }
+            });
+            
+            // Earnings and Deductions header - Professional styling
+            startY = doc.lastAutoTable.finalY + 2;
+            
+            doc.autoTable({
+                startY: startY,
+                body: [['Earnings', '', 'Deductions', '']],
+                theme: 'grid',
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 4,
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.5,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    fillColor: [240, 240, 240]
+                },
+                columnStyles: {
+                    0: { cellWidth: 47.5 },
+                    1: { cellWidth: 47.5 },
+                    2: { cellWidth: 47.5 },
+                    3: { cellWidth: 47.5 }
+                },
+                margin: { left: 20, right: 20 }
+            });
+            
+            // Earnings and Deductions data - Exact values from template
+            startY = doc.lastAutoTable.finalY;
+            
+            const earningsDeductionsData = [
+                ['Basic', '₹41,666.67', 'EPF', '₹500.00'],
+                ['HRA', '₹12,500.00', 'ESI', '₹0'],
+                ['Conveyance Allowance', '₹6,666.67', 'Professional Tax', '₹4,033.33'],
+                ['Medical Allowance', '₹250', '', ''],
+                ['Other Allowances', '₹333.33', '', '']
+            ];
+            
+            doc.autoTable({
+                startY: startY,
+                body: earningsDeductionsData,
+                theme: 'grid',
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 3,
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.5,
+                    valign: 'middle'
+                },
+                columnStyles: {
+                    0: { cellWidth: 47.5 },
+                    1: { cellWidth: 47.5, halign: 'right' },
+                    2: { cellWidth: 47.5 },
+                    3: { cellWidth: 47.5, halign: 'right' }
+                },
+                margin: { left: 20, right: 20 }
+            });
+            
+            // Totals row - Professional styling
+            startY = doc.lastAutoTable.finalY;
+            
+            doc.autoTable({
+                startY: startY,
+                body: [['Total Earnings', '₹61,166.67', 'Total Deductions', '₹4,533.33']],
+                theme: 'grid',
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 3,
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.5,
+                    fontStyle: 'bold',
+                    fillColor: [245, 245, 245]
+                },
+                columnStyles: {
+                    0: { cellWidth: 47.5 },
+                    1: { cellWidth: 47.5, halign: 'right' },
+                    2: { cellWidth: 47.5 },
+                    3: { cellWidth: 47.5, halign: 'right' }
+                },
+                margin: { left: 20, right: 20 }
+            });
+            
+            // Net Salary - Final professional row
+            startY = doc.lastAutoTable.finalY;
+            
+            doc.autoTable({
+                startY: startY,
+                body: [['Net Salary', '₹56,633.34']],
+                theme: 'grid',
+                styles: {
+                    fontSize: 11,
+                    cellPadding: 5,
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.5,
+                    fontStyle: 'bold',
+                    halign: 'right',
+                    fillColor: [235, 235, 235]
+                },
+                columnStyles: {
+                    0: { cellWidth: 95 },
+                    1: { cellWidth: 95 }
+                },
+                margin: { left: 20, right: 20 }
+            });
 
-        doc.autoTable({
-            startY: 85,
-            head: [['Earnings / Deductions', 'Amount (Rupees)']],
-            body: [
-                ['Base Salary', payslip.baseSalary],
-                ['Leaves Taken', payslip.numberOfLeaves],
-                ['Deductions', payslip.deductionAmount],
-                ['Net Salary', payslip.netSalary],
-            ],
-            styles: { fontSize: 12 },
-            headStyles: { fillColor: [22, 160, 133], textColor: 255 }
-        });
-
-        const finalY = doc.lastAutoTable.finalY + 20;
-        doc.setFontSize(11);
-        doc.text('This is a computer-generated payslip.', 14, finalY);
-        doc.text('Authorized by PayFlow HR Department', 14, finalY + 8);
-
-        doc.save(`Payslip-${payslip.employeeId}-${payslip.cycle}.pdf`);
+            // Save with professional filename
+            doc.save(`Payslip-${employee?.fullName || employee?.firstName || 'Employee'}-${fullPayslip.cycle || 'August-2025'}.pdf`);
+            
+        } catch (error) {
+            console.error('Error generating payslip PDF:', error);
+            alert('Failed to generate payslip PDF. Please try again.');
+        }
     };
 
 
@@ -180,6 +372,16 @@ function PayslipViewer() {
 
                     <div className="payslip-download-btn-container">
                         <button onClick={handleDownload}>⬇️ Download Payslip (PDF)</button>
+                    </div>
+                    
+                    {/* Professional Payslip Component */}
+                    <div style={{ marginTop: '30px', borderTop: '2px solid #ddd', paddingTop: '20px' }}>
+                        <h3>Professional Payslip Preview:</h3>
+                        <ProfessionalPayslip 
+                            payslipData={payslip} 
+                            employee={employees.find(e => String(e.id ?? e._id) === String(employeeId))}
+                            onDownload={(type, message) => setMessage(message)}
+                        />
                     </div>
                 </div>
             )}

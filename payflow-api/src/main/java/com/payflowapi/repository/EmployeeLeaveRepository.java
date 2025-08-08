@@ -24,6 +24,24 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
                                                   @Param("startDate") LocalDate startDate,
                                                   @Param("endDate") LocalDate endDate);
 
+    // Find approved paid leaves for the current year (including null values as paid for legacy data)
+    @Query("SELECT el FROM EmployeeLeave el WHERE el.employeeId = :employeeId AND el.status = 'ACCEPTED' " +
+            "AND (el.isPaid = true OR el.isPaid IS NULL) AND YEAR(el.fromDate) = :year")
+    List<EmployeeLeave> findApprovedPaidLeavesInYear(@Param("employeeId") Long employeeId,
+                                                     @Param("year") int year);
+
+    // Find approved unpaid leaves for a specific month
+    @Query("SELECT el FROM EmployeeLeave el WHERE el.employeeId = :employeeId AND el.status = 'ACCEPTED' " +
+            "AND el.isPaid = false AND YEAR(el.fromDate) = :year AND MONTH(el.fromDate) = :month")
+    List<EmployeeLeave> findApprovedUnpaidLeavesInMonth(@Param("employeeId") Long employeeId,
+                                                        @Param("year") int year,
+                                                        @Param("month") int month);
+
+    // Find all approved unpaid leaves for the current year
+    @Query("SELECT el FROM EmployeeLeave el WHERE el.employeeId = :employeeId AND el.status = 'ACCEPTED' " +
+            "AND el.isPaid = false AND YEAR(el.fromDate) = :year")
+    List<EmployeeLeave> findApprovedUnpaidLeavesInYear(@Param("employeeId") Long employeeId,
+                                                       @Param("year") int year);
 
     // Find overlapping leave requests for the same employee
     @Query("SELECT el FROM EmployeeLeave el WHERE el.employeeId = :employeeId " +
@@ -32,4 +50,30 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
     List<EmployeeLeave> findOverlappingLeaves(@Param("employeeId") Long employeeId,
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate);
+
+    // Find previous paid leaves in the same year before a specific date (for migration)
+    @Query("SELECT el FROM EmployeeLeave el WHERE el.employeeId = :employeeId " +
+            "AND el.status = 'ACCEPTED' AND el.isPaid = true " +
+            "AND YEAR(el.fromDate) = :year AND el.fromDate < :beforeDate " +
+            "ORDER BY el.fromDate")
+    List<EmployeeLeave> findPreviousPaidLeavesInYear(@Param("employeeId") Long employeeId,
+                                                     @Param("year") int year,
+                                                     @Param("beforeDate") LocalDate beforeDate);
+
+    // Find all leaves without paid status set (for migration)
+    @Query("SELECT el FROM EmployeeLeave el WHERE el.isPaid IS NULL")
+    List<EmployeeLeave> findLeavesWithoutPaidStatus();
+
+    // Find unpaid leaves in a specific date range
+    @Query("SELECT el FROM EmployeeLeave el WHERE el.employeeId = :employeeId " +
+            "AND el.status = :status AND el.isPaid = :isPaid " +
+            "AND ((el.fromDate >= :startDate AND el.fromDate <= :endDate) " +
+            "OR (el.toDate >= :startDate AND el.toDate <= :endDate) " +
+            "OR (el.fromDate <= :startDate AND el.toDate >= :endDate))")
+    List<EmployeeLeave> findByEmployeeIdAndStatusAndIsPaidAndDateRange(
+            @Param("employeeId") Long employeeId,
+            @Param("status") String status,
+            @Param("isPaid") Boolean isPaid,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 }

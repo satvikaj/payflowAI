@@ -24,6 +24,7 @@ export default function Onboarding() {
         specialization: '',
         department: '',
         role: '',
+        position: '',
         hasExperience: 'No',
         experiences: [],
         certifications: '',
@@ -132,6 +133,7 @@ export default function Onboarding() {
                     specialization: '',
                     department: '',
                     role: '',
+                    position: '',
                     hasExperience: 'No',
                     experiences: [],
                     certifications: '',
@@ -451,14 +453,46 @@ export default function Onboarding() {
                                         <select name="role" value={formData.role} onChange={handleChange} required>
                                             <option value="">Select Role</option>
                                             <option value="SDE">SDE</option>
+                                            <option value="Software Engineer">Software Engineer</option>
+                                            <option value="Senior Software Engineer">Senior Software Engineer</option>
+                                            <option value="Developer">Developer</option>
+                                            <option value="Frontend Developer">Frontend Developer</option>
+                                            <option value="Backend Developer">Backend Developer</option>
+                                            <option value="Full Stack Developer">Full Stack Developer</option>
                                             <option value="DevOps">DevOps</option>
+                                            <option value="DevOps Engineer">DevOps Engineer</option>
                                             <option value="QA">QA</option>
-                                            {/* <option value="Manager">Manager</option> */}
+                                            <option value="QA Engineer">QA Engineer</option>
+                                            <option value="Testing">Testing</option>
+                                            <option value="Test Engineer">Test Engineer</option>
                                             <option value="Lead">Lead</option>
+                                            <option value="Team Lead">Team Lead</option>
+                                            <option value="Tech Lead">Tech Lead</option>
+                                            <option value="Project Manager">Project Manager</option>
+                                            <option value="Product Manager">Product Manager</option>
+                                            <option value="Business Analyst">Business Analyst</option>
+                                            <option value="Data Analyst">Data Analyst</option>
+                                            <option value="Data Scientist">Data Scientist</option>
+                                            <option value="UI/UX Designer">UI/UX Designer</option>
+                                            <option value="System Administrator">System Administrator</option>
+                                            <option value="Database Administrator">Database Administrator</option>
                                             <option value="Intern">Intern</option>
                                             <option value="HR">HR</option>
+                                            <option value="HR Executive">HR Executive</option>
                                             <option value="Finance">Finance</option>
+                                            <option value="Finance Executive">Finance Executive</option>
+                                            <option value="Sales Executive">Sales Executive</option>
+                                            <option value="Marketing Executive">Marketing Executive</option>
+                                            <option value="Operations Executive">Operations Executive</option>
                                             <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-row">
+                                        <label>Position Level <span style={{color:'red'}}>*</span></label>
+                                        <select name="position" value={formData.position} onChange={handleChange} required>
+                                            <option value="">Select Position Level</option>
+                                            <option value="JUNIOR">Junior Employee (Entry Level)</option>
+                                            <option value="SENIOR">Senior Employee</option>
                                         </select>
                                     </div>
                                     <div className="form-row">
