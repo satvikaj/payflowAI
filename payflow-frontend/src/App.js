@@ -27,11 +27,12 @@ import TeamMembers from "./pages/TeamMembers";
 import PayrollDashboard from "./pages/PayrollDashboard";
 import SchedulePayrollForm from "./pages/SchedulePayrollForm";
 import PayslipViewer from "./pages/PayslipViewer";
-import CTCManagement from "./pages/CTCManagement";
-import CTCManagementNew from "./pages/CTCManagementNew";
+import AdminCTCStructures from "./pages/AdminCTCStructures";
+import AdminCTCManagement from "./pages/AdminCTCManagement";
 import EmployeeCTCDashboard from "./pages/EmployeeCTCDashboard";
-import HRCTCManagement from "./pages/HRCTCManagement";
 import ManagerTeamPayroll from "./pages/ManagerTeamPayroll";
+import HRCTCManagement from "./pages/HRCTCManagement";
+import HRCTCStructures from "./pages/HRCTCStructures";
 // import Login from "./components/Login";
 
 
@@ -62,11 +63,12 @@ function App() {
                 <Route path="/employee-overview" element={<EmployeeOverview />} />
                 <Route path="/employee-profile" element={<EmployeeProfile />} />
                 <Route path="/employee-ctc-dashboard" element={<EmployeeCTCDashboard />} />
-                <Route path="/hr-ctc-management" element={<HRCTCManagement />} />
                 <Route path="/manager-team-payroll" element={<ManagerTeamPayroll />} />
+                <Route path="/hr-ctc-auto-calculator" element={<HRCTCManagement />} />
+                <Route path="/hr-ctc-structures" element={<HRCTCStructures />} />
                 <Route path="/team-members" element={<TeamMembers />} />
-                <Route path="/ctc-management" element={<CTCManagement />} />
-                <Route path="/ctc-management-new" element={<CTCManagementNew />} />
+                <Route path="/ctc-management" element={<AdminCTCStructures />} />
+                <Route path="/ctc-management-new" element={<AdminCTCManagement />} />
                 <Route path="/payroll-dashboard" element={<PayrollDashboard />} />
 
             </Routes>

@@ -83,7 +83,7 @@ const SidebarAdmin = () => {
                                 end
                             >
                                 <FaMoneyBillWave className="nav-icon" />
-                                {!isCollapsed && <span className="nav-text">CTC Management (Manual)</span>}
+                                {!isCollapsed && <span className="nav-text">CTC Structures</span>}
                                 {!isCollapsed && <div className="nav-indicator"></div>}
                             </NavLink>
                         </li>
@@ -95,7 +95,7 @@ const SidebarAdmin = () => {
                                 end
                             >
                                 <FaCalculator className="nav-icon" />
-                                {!isCollapsed && <span className="nav-text">CTC Auto-Calculator</span>}
+                                {!isCollapsed && <span className="nav-text">CTC Management</span>}
                                 {!isCollapsed && <div className="nav-indicator"></div>}
                             </NavLink>
                         </li>
@@ -107,7 +107,7 @@ const SidebarAdmin = () => {
                                 end
                             >
                                 <FaFileInvoiceDollar className="nav-icon" />
-                                {!isCollapsed && <span className="nav-text">Payroll Dashboard</span>}
+                                {!isCollapsed && <span className="nav-text">Payrolls</span>}
                                 {!isCollapsed && <div className="nav-indicator"></div>}
                             </NavLink>
                         </li>

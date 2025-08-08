@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../utils/axios';
 import SidebarAdmin from '../components/SidebarAdmin';
-import './CTCManagement.css';
+import './AdminCTCStructures.css';
 
-const CTCManagement = () => {
+const AdminCTCStructures = () => {
     const navigate = useNavigate();
     const [employees, setEmployees] = useState([]);
     const [selectedEmployee, setSelectedEmployee] = useState('');
@@ -371,4 +371,4 @@ const CTCManagement = () => {
     );
 };
 
-export default CTCManagement;
+export default AdminCTCStructures;
