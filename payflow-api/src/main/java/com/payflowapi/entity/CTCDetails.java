@@ -125,45 +125,46 @@ public class CTCDetails {
         // Standard CTC breakdown percentages
         // Basic Salary: 40% of Annual CTC
         this.basicSalary = annualCtc.multiply(new BigDecimal("0.40")).setScale(2, RoundingMode.HALF_UP);
-        
+
         // HRA: 50% of Basic Salary
         this.hra = basicSalary.multiply(new BigDecimal("0.50")).setScale(2, RoundingMode.HALF_UP);
-        
+
         // Conveyance Allowance: Fixed amount (1600 per month * 12)
         this.conveyanceAllowance = new BigDecimal("19200");
-        
+
         // Medical Allowance: Fixed amount (1250 per month * 12)
         this.medicalAllowance = new BigDecimal("15000");
-        
+
         // Performance Bonus: 10% of Annual CTC
         this.performanceBonus = annualCtc.multiply(new BigDecimal("0.10")).setScale(2, RoundingMode.HALF_UP);
-        
+
         // Employer PF Contribution: 12% of Basic Salary
         this.employerPfContribution = basicSalary.multiply(new BigDecimal("0.12")).setScale(2, RoundingMode.HALF_UP);
-        
+
         // Gratuity: 4.81% of Basic Salary
         this.gratuity = basicSalary.multiply(new BigDecimal("0.0481")).setScale(2, RoundingMode.HALF_UP);
-        
+
         // Other Benefits: Fixed ₹25,000/year - insurance, LTA etc.
         this.otherBenefits = new BigDecimal("25000");
-        
+
         // Special Allowance: Remaining amount to reach Annual CTC
         BigDecimal totalCalculated = basicSalary.add(hra).add(conveyanceAllowance)
                 .add(medicalAllowance).add(performanceBonus)
                 .add(employerPfContribution).add(gratuity).add(otherBenefits);
-        
+
         this.specialAllowance = annualCtc.subtract(totalCalculated).setScale(2, RoundingMode.HALF_UP);
-        
+
         // Calculate Monthly Deductions
         // Employee PF: 12% of Basic Salary (monthly)
-        this.employeePf = basicSalary.multiply(new BigDecimal("0.12")).divide(new BigDecimal("12"), 2, RoundingMode.HALF_UP);
-        
+        this.employeePf = basicSalary.multiply(new BigDecimal("0.12")).divide(new BigDecimal("12"), 2,
+                RoundingMode.HALF_UP);
+
         // Provident Fund: Same as Employee PF for database compatibility
         this.providentFund = this.employeePf;
-        
+
         // Professional Tax: Fixed (200 per month for most states)
         this.professionalTax = new BigDecimal("200");
-        
+
         // TDS: Estimated based on salary (simplified calculation)
         BigDecimal monthlyGross = annualCtc.divide(new BigDecimal("12"), 2, RoundingMode.HALF_UP);
         if (monthlyGross.compareTo(new BigDecimal("50000")) > 0) {
@@ -173,32 +174,33 @@ public class CTCDetails {
         } else {
             this.tds = BigDecimal.ZERO;
         }
-        
+
         // Insurance Premium: 1% of monthly gross (if applicable)
         this.insurancePremium = monthlyGross.multiply(new BigDecimal("0.01")).setScale(2, RoundingMode.HALF_UP);
-        
+
         // Other Deductions: Default to 0
         if (this.otherDeductions == null) {
             this.otherDeductions = BigDecimal.ZERO;
         }
-        
+
         // Income Tax: Default to 0 (will be calculated based on actual tax brackets)
         if (this.incomeTax == null) {
             this.incomeTax = BigDecimal.ZERO;
         }
-        
+
         // Calculate Monthly Salary Components
-        this.grossMonthlySalary = (basicSalary.add(hra).add(conveyanceAllowance).add(medicalAllowance).add(specialAllowance).add(performanceBonus).add(otherBenefits))
+        this.grossMonthlySalary = (basicSalary.add(hra).add(conveyanceAllowance).add(medicalAllowance)
+                .add(specialAllowance).add(performanceBonus).add(otherBenefits))
                 .divide(new BigDecimal("12"), 2, RoundingMode.HALF_UP);
-        
+
         // Set grossSalary same as grossMonthlySalary for database compatibility
         this.grossSalary = this.grossMonthlySalary;
-        
+
         this.totalMonthlyDeductions = employeePf.add(professionalTax).add(tds)
                 .add(insurancePremium).add(otherDeductions).add(incomeTax);
-        
+
         this.netMonthlySalary = grossMonthlySalary.subtract(totalMonthlyDeductions);
-        
+
         // Set netSalary same as netMonthlySalary for database compatibility
         this.netSalary = this.netMonthlySalary;
     }
@@ -471,7 +473,8 @@ public class CTCDetails {
     }
 
     /**
-     * Auto-calculate all CTC components based on Annual CTC using standard industry percentages
+     * Auto-calculate all CTC components based on Annual CTC using standard industry
+     * percentages
      */
     public void autoCalculateCTCComponents() {
         if (this.annualCtc == null || this.annualCtc.compareTo(BigDecimal.ZERO) <= 0) {
@@ -479,7 +482,7 @@ public class CTCDetails {
         }
 
         // 💼 Standard CTC Structure Calculations
-        
+
         // 1. Basic Salary (40% of CTC - standard percentage)
         this.basicSalary = this.annualCtc.multiply(new BigDecimal("0.40"))
                 .setScale(2, RoundingMode.HALF_UP);
@@ -518,7 +521,7 @@ public class CTCDetails {
                 .add(this.employerPfContribution)
                 .add(this.gratuity)
                 .add(this.otherBenefits);
-        
+
         this.specialAllowance = this.annualCtc.subtract(totalFixedComponents)
                 .setScale(2, RoundingMode.HALF_UP);
 
@@ -528,7 +531,7 @@ public class CTCDetails {
         }
 
         // 💸 Monthly Deductions Calculations
-        
+
         // 1. Employee PF (12% of Basic)
         this.employeePf = this.basicSalary.multiply(new BigDecimal("0.12"))
                 .setScale(2, RoundingMode.HALF_UP);
@@ -567,7 +570,7 @@ public class CTCDetails {
         }
 
         // Calculate Monthly Figures
-        
+
         // Gross Monthly Salary
         BigDecimal grossAnnualEarnings = this.basicSalary
                 .add(this.hra)
@@ -576,7 +579,7 @@ public class CTCDetails {
                 .add(this.specialAllowance)
                 .add(this.performanceBonus)
                 .add(this.otherBenefits);
-        
+
         this.grossMonthlySalary = grossAnnualEarnings.divide(new BigDecimal("12"), 2, RoundingMode.HALF_UP);
 
         // Total Monthly Deductions
@@ -586,13 +589,13 @@ public class CTCDetails {
                 .add(this.insurancePremium)
                 .add(this.otherDeductions)
                 .add(this.incomeTax);
-        
+
         this.totalMonthlyDeductions = totalAnnualDeductions.divide(new BigDecimal("12"), 2, RoundingMode.HALF_UP);
 
         // Net Monthly Salary
         this.netMonthlySalary = this.grossMonthlySalary.subtract(this.totalMonthlyDeductions)
                 .setScale(2, RoundingMode.HALF_UP);
-        
+
         // Set netSalary same as netMonthlySalary for database compatibility
         this.netSalary = this.netMonthlySalary;
     }

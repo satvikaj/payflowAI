@@ -3,10 +3,10 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from '../utils/axios';
 import SidebarAdmin from '../components/SidebarAdmin';
 import PopupMessage from '../components/PopupMessage';
-import './CTCManagement.css';
-import './CTCManagementNew.css';
+import './AdminCTCStructures.css';
+import './AdminCTCManagement.css';
 
-const CTCManagementNew = () => {
+const AdminCTCManagement = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [employees, setEmployees] = useState([]);
@@ -563,4 +563,4 @@ const CTCManagementNew = () => {
     );
 };
 
-export default CTCManagementNew;
+export default AdminCTCManagement;

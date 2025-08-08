@@ -8,7 +8,9 @@ import {
     FaTasks,
     FaMoneyBill,
     FaChartBar,
-    FaCog
+    FaCog,
+    FaCalculator,
+    FaTable
 } from 'react-icons/fa';
 
 export default function Sidebar() {
@@ -34,12 +36,17 @@ export default function Sidebar() {
                 <button className={"sidebar-btn" + (isActive('/projects') ? ' active' : '')} onClick={() => navigate('/projects')}>
                     <FaTasks /> Projects
                 </button>
+                
+                <button className={"sidebar-btn" + (isActive('/hr-ctc-structures') ? ' active' : '')} onClick={() => navigate('/hr-ctc-structures')}>
+                    <FaTable /> CTC Structures
+                </button>
+                <button className={"sidebar-btn" + (isActive('/hr-ctc-auto-calculator') ? ' active' : '')} onClick={() => navigate('/hr-ctc-auto-calculator')}>
+                    <FaCalculator /> CTC Management
+                </button>
                 <button className={"sidebar-btn" + (isActive('/manager/payroll-dashboard') ? ' active' : '')} onClick={() => navigate('/manager/payroll-dashboard')}>
                     <FaMoneyBill /> Payrolls
                 </button>
-                <button className={"sidebar-btn" + (isActive('/hr-ctc-management') ? ' active' : '')} onClick={() => navigate('/hr-ctc-management')}>
-                    <FaMoneyBill /> CTC Management
-                </button>
+                
                 <button className={"sidebar-btn" + (isActive('/reports') ? ' active' : '')} onClick={() => navigate('/reports')}>
                     <FaChartBar /> Reports
                 </button>

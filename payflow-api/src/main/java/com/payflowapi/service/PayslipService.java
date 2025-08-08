@@ -41,8 +41,8 @@ public class PayslipService {
 
         try {
             // Use PayslipCalculationService for consistent calculations
-            String[] monthNames = {"January", "February", "March", "April", "May", "June",
-                    "July", "August", "September", "October", "November", "December"};
+            String[] monthNames = { "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December" };
             int monthIndex = -1;
             for (int i = 0; i < monthNames.length; i++) {
                 if (monthNames[i].equalsIgnoreCase(month)) {
@@ -50,36 +50,36 @@ public class PayslipService {
                     break;
                 }
             }
-            
+
             if (monthIndex == -1) {
                 throw new RuntimeException("Invalid month name: " + month);
             }
 
             // Calculate payslip using the same service used for preview
             var calculatedPayslip = payslipCalculationService.calculateMonthlyPayslip(employeeId, year, monthIndex);
-            
+
             // Create Payslip entity from calculated data
             Payslip payslip = new Payslip(employeeId, month, year);
-            
+
             // Map calculated values to payslip entity with null safety
             payslip.setBasicSalary(safeGetBigDecimal(calculatedPayslip, "basicSalary"));
             payslip.setHra(safeGetBigDecimal(calculatedPayslip, "hra"));
-            
+
             // Set allowances (conveyance + medical + other allowances)
             BigDecimal conveyance = safeGetBigDecimal(calculatedPayslip, "conveyanceAllowance");
             BigDecimal medical = safeGetBigDecimal(calculatedPayslip, "medicalAllowance");
             BigDecimal otherAllowances = safeGetBigDecimal(calculatedPayslip, "otherAllowances");
             payslip.setAllowances(conveyance.add(medical).add(otherAllowances));
-            
+
             payslip.setBonuses(safeGetBigDecimal(calculatedPayslip, "performanceBonus"));
             payslip.setPfDeduction(safeGetBigDecimal(calculatedPayslip, "providentFund"));
             payslip.setTaxDeduction(safeGetBigDecimal(calculatedPayslip, "incomeTax"));
-            
+
             // Set attendance data
             payslip.setWorkingDays(safeGetInteger(calculatedPayslip, "totalWorkingDays"));
             payslip.setPresentDays(safeGetInteger(calculatedPayslip, "effectiveWorkingDays"));
             payslip.setLeaveDays(safeGetInteger(calculatedPayslip, "unpaidLeaveDays"));
-            
+
             payslip.setOtherDeductions(safeGetBigDecimal(calculatedPayslip, "professionalTax"));
             payslip.setGeneratedBy(generatedBy);
             payslip.setStatus("GENERATED");
@@ -89,20 +89,20 @@ public class PayslipService {
                     .add(payslip.getHra())
                     .add(payslip.getAllowances())
                     .add(payslip.getBonuses());
-            
+
             // Calculate total deductions from individual deduction components
             BigDecimal totalDeductions = payslip.getPfDeduction()
                     .add(payslip.getTaxDeduction())
                     .add(payslip.getOtherDeductions())
                     .add(safeGetBigDecimal(calculatedPayslip, "unpaidLeaveDeduction"));
-            
+
             // Set the final calculated values
             payslip.setGrossSalary(grossSalary);
             payslip.setTotalDeductions(totalDeductions);
             payslip.setNetPay(safeGetBigDecimal(calculatedPayslip, "finalNetSalary"));
 
             return payslipRepository.save(payslip);
-            
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate payslip: " + e.getMessage(), e);
         }
