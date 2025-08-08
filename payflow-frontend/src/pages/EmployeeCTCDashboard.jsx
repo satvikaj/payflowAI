@@ -5,6 +5,7 @@ import EmployeeSidebar from '../components/EmployeeSidebar';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import './EmployeeCTCDashboard.css';
+import './pdfDownload.css';
 
 const EmployeeCTCDashboard = () => {
     const navigate = useNavigate();
@@ -170,15 +171,16 @@ const EmployeeCTCDashboard = () => {
                     fontSize: 10,
                     cellPadding: 3,
                     lineColor: [0, 0, 0],
-                    lineWidth: 0.5
+                    lineWidth: 0.5,
+                    halign: 'center' // Center all cells by default
                 },
                 columnStyles: {
-                    0: { cellWidth: 42, fontStyle: 'bold' },
-                    1: { cellWidth: 53 },
-                    2: { cellWidth: 42, fontStyle: 'bold' },
-                    3: { cellWidth: 53 }
+                    0: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
+                    1: { cellWidth: 50, halign: 'center' },
+                    2: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
+                    3: { cellWidth: 50, halign: 'center' }
                 }
-            });
+                        });
             
             // Working Days Section
             currentY = doc.lastAutoTable.finalY + 5;
@@ -202,14 +204,15 @@ const EmployeeCTCDashboard = () => {
                     fontSize: 10,
                     cellPadding: 3,
                     lineColor: [0, 0, 0],
-                    lineWidth: 0.5
-                },
-                columnStyles: {
-                    0: { cellWidth: 47.5, fontStyle: 'bold' },
-                    1: { cellWidth: 47.5 },
-                    2: { cellWidth: 47.5, fontStyle: 'bold' },
-                    3: { cellWidth: 47.5 }
-                }
+                    lineWidth: 0.5,
+                    halign: 'center' // Center all cells by default
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
+                        1: { cellWidth: 50, halign: 'center' },
+                        2: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
+                        3: { cellWidth: 50, halign: 'center' }
+                    }
             });
             
             // Earnings and Deductions Section
@@ -245,13 +248,13 @@ const EmployeeCTCDashboard = () => {
                     lineColor: [0, 0, 0],
                     lineWidth: 0.5,
                     fontStyle: 'bold',
-                    halign: 'center'
+                    halign: 'center' // Center all cells by default
                 },
                 columnStyles: {
-                    0: { cellWidth: 47.5 },
-                    1: { cellWidth: 47.5 },
-                    2: { cellWidth: 47.5 },
-                    3: { cellWidth: 47.5 }
+                    0: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
+                    1: { cellWidth: 50, halign: 'center' },
+                    2: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
+                    3: { cellWidth: 50, halign: 'center' }
                 }
             });
             
@@ -274,13 +277,14 @@ const EmployeeCTCDashboard = () => {
                     fontSize: 10,
                     cellPadding: 3,
                     lineColor: [0, 0, 0],
-                    lineWidth: 0.5
+                    lineWidth: 0.5,
+                    halign: 'center' // Center all cells by default
                 },
                 columnStyles: {
-                    0: { cellWidth: 47.5 },
-                    1: { cellWidth: 47.5, halign: 'right' },
-                    2: { cellWidth: 47.5 },
-                    3: { cellWidth: 47.5, halign: 'right' }
+                    0: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
+                    1: { cellWidth: 50, halign: 'center' },
+                    2: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
+                    3: { cellWidth: 50, halign: 'center' }
                 }
             });
             
@@ -300,13 +304,14 @@ const EmployeeCTCDashboard = () => {
                     cellPadding: 3,
                     lineColor: [0, 0, 0],
                     lineWidth: 0.5,
-                    fontStyle: 'bold'
+                    fontStyle: 'bold',
+                    halign: 'center' // Center all cells by default
                 },
                 columnStyles: {
-                    0: { cellWidth: 47.5 },
-                    1: { cellWidth: 47.5, halign: 'right' },
-                    2: { cellWidth: 47.5 },
-                    3: { cellWidth: 47.5, halign: 'right' }
+                    0: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
+                    1: { cellWidth: 50, halign: 'center' },
+                    2: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
+                    3: { cellWidth: 50, halign: 'center' }
                 }
             });
             
@@ -326,11 +331,12 @@ const EmployeeCTCDashboard = () => {
                     cellPadding: 4,
                     lineColor: [0, 0, 0],
                     lineWidth: 0.5,
-                    fontStyle: 'bold'
+                    fontStyle: 'bold',
+                    halign: 'center' 
                 },
                 columnStyles: {
-                    0: { cellWidth: 95, halign: 'right' },
-                    1: { cellWidth: 95, halign: 'right' }
+                    0: { cellWidth: 90, halign: 'center' },
+                    1: { cellWidth: 90, halign: 'center' }
                 }
             });
 
