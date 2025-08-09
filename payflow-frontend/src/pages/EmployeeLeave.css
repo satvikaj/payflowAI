@@ -1,323 +1,307 @@
-/* --- Enhanced Total/Used/Remaining Leaves Card --- */
-.leaves-summary-modern {
-  background: linear-gradient(135deg, #f5f6fa 70%, #e0e7ff 100%);
-  border: 2.5px solid #6366f1;
-  border-radius: 18px;
-  box-shadow: 0 4px 16px #e0e7ef;
-  padding: 28px 32px 22px 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 220px;
-  max-width: 270px;
-  margin-right: 12px;
-  margin-bottom: 18px;
-  transition: box-shadow 0.18s, transform 0.18s;
-}
-.leaves-summary-modern:hover {
-  box-shadow: 0 8px 32px #d1d5fd;
-  transform: translateY(-4px) scale(1.04);
-}
-.leaves-summary-modern .leaves-summary-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #6366f1;
-  margin-bottom: 10px;
-  letter-spacing: 0.2px;
-}
-.leaves-summary-modern .leaves-summary-numbers {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-.leaves-summary-modern .leaves-summary-total {
-  font-size: 2.1rem;
-  font-weight: 800;
-  color: #6366f1;
-}
-.leaves-summary-modern .leaves-summary-used {
-  font-size: 1.7rem;
-  font-weight: 700;
-  color: tomato;
-}
-.leaves-summary-modern .leaves-summary-remaining {
-  font-size: 1.7rem;
-  font-weight: 700;
-  color: #22c55e;
-}
-.leaves-summary-modern .leaves-summary-labels {
-  font-size: 0.98rem;
-  color: #888;
-  margin-top: 2px;
-}
-/* --- Enhanced Leave History Card & Table Styles --- */
+/* EmployeeLeave.css */
 
-.leave-history-card {
-  margin-top: 24px;
-  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.08);
-  border-radius: 18px;
-  width: fit-content;
-  max-width: 98vw;
-  margin-left: auto;
-  margin-right: auto;
-  background: #fff;
-  padding: 24px 16px;
-  overflow: visible;
-  border: 1px solid #e5e7eb;
-}
-
-.leave-history-header {
-  background: transparent;
-  padding: 0 16px 16px 16px;
-  border-top-left-radius: 18px;
-  border-top-right-radius: 18px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.leave-history-header span {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #6366f1;
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-}
-.leave-history-header .record-count {
-  font-size: 1rem;
-  color: #6366f1;
-  font-weight: 500;
-  margin-left: 8px;
-  opacity: 0.7;
-}
-
-.leave-history-table-container {
-  overflow: visible;
-  padding: 0 16px;
-  display: flex;
-  justify-content: center;
-}
-
-.leave-history-table {
-  width: 100%;
-  max-width: 100%;
-  min-width: 700px;
-  border-collapse: separate;
-  border-spacing: 0 10px;
-  background: transparent;
-  font-size: 1rem;
-  table-layout: auto;
-}
-
-.leave-history-table thead {
-  background: transparent;
-}
-
-.leave-history-table th {
-  padding: 14px 16px;
-  font-weight: 700;
-  color: #4f46e5;
-  background: #f3f4f6;
-  font-size: 0.95rem;
-  text-align: left;
-  border-bottom: 2px solid #e5e7eb;
-  white-space: nowrap;
-  max-width: 200px;
-}
-.leave-history-table th:first-child {
-  border-top-left-radius: 12px;
-}
-.leave-history-table th:last-child {
-  border-top-right-radius: 12px;
-}
-
-.leave-history-table tbody tr {
-  background: #ffffff;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.03);
-}
-.leave-history-table tbody tr:hover {
-  transform: scale(1.005);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12);
-}
-
-.leave-history-table td {
-  padding: 14px 16px;
-  font-size: 0.95rem;
-  color: #374151;
-  background: #fff;
-  border-bottom: 1px solid #f0f0f0;
-  max-width: 200px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-.leave-history-status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 16px;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  min-width: 100px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  letter-spacing: 0.5px;
-}
-
-.leave-history-status.approved {
-  background: #d1fae5;
-  color: #059669;
-}
-.leave-history-status.pending {
-  background: #fef3c7;
-  color: #b45309;
-}
-.leave-history-status.rejected {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
+/* Layout */
 .employee-leave-layout {
   display: flex;
   min-height: 100vh;
-  background: #f6f8fa;
+  background: linear-gradient(120deg, #f8fafc 60%, #e0e7ff 100%);
 }
 
 .employee-leave-content {
   flex: 1;
-  padding: 32px 0;
-  max-width: 900px;
+  padding: 36px 40px 40px 40px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
-.leave-top-row {
-  display: flex;
-  gap: 32px;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
-}
-.leave-summary-card,
-.leave-form-card {
-  flex: 1 1 320px;
-  min-width: 300px;
-  max-width: 420px;
-}
-
+/* Page Title */
 .leave-page-title {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #6366f1;
-  margin-bottom: 24px;
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #3730a3;
+  margin-bottom: 32px;
+  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
-.leave-summary-card {
-  margin-bottom: 28px;
+/* Summary Cards */
+.employee-leave-content > div:first-child {
+  margin-bottom: 36px;
+}
+
+.employee-leave-content > div > div {
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.employee-leave-content > div > div:hover {
+  box-shadow: 0 8px 32px #6366f133, 0 2px 8px #0001;
+  transform: translateY(-4px) scale(1.03);
+}
+
+/* Leave History Card */
+.leave-history-card {
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.07);
-  padding: 24px 32px;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px #e0e7ef;
+  padding: 32px 28px 24px 28px;
+  margin-bottom: 32px;
+  border: 1.5px solid #e0e7ef;
 }
-.leave-summary-grid {
-  display: flex;
-  gap: 32px;
-  margin-top: 12px;
-}
-.leave-summary-value {
-  font-size: 1.5rem;
+
+.leave-history-header {
+  font-size: 1.2rem;
   font-weight: 700;
-  margin-top: 4px;
-}
-.leave-summary-value.total {
-  color: #6366f1;
-}
-.leave-summary-value.used {
-  color: tomato;
-}
-.leave-summary-value.remaining {
-  color: #22c55e;
-}
-
-.leave-form-card {
-  margin-bottom: 28px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.07);
-  padding: 24px 32px;
-}
-.leave-apply-form .form-row {
+  color: #3730a3;
+  margin-bottom: 18px;
   display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-.leave-apply-form label {
-  flex: 1;
-  font-weight: 500;
-  color: #444;
-}
-.leave-apply-form input[type="date"],
-.leave-apply-form textarea {
-  width: 100%;
-  margin-top: 4px;
-  padding: 6px 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 1rem;
-  background: #f9fafb;
-}
-.leave-apply-form textarea {
-  resize: vertical;
-}
-.leave-error {
-  color: tomato;
-  margin-top: 6px;
-}
-.leave-success {
-  color: #22c55e;
-  margin-top: 6px;
+  align-items: center;
+  justify-content: space-between;
 }
 
-/* Tooltip styling for denial reason */
+.leave-history-header .record-count {
+  font-size: 1rem;
+  color: #6366f1;
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+/* Table Styles */
+.leave-history-table-container {
+  overflow-x: auto;
+}
+
+.leave-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #f8fafc;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px #e0e7ef;
+}
+
+.leave-history-table th,
+.leave-history-table td {
+  padding: 12px 14px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.leave-history-table th {
+  background: linear-gradient(90deg, #6366f1 60%, #818cf8 100%);
+  color: #fff;
+  font-weight: 700;
+  border-bottom: 2px solid #6366f1;
+  letter-spacing: 0.5px;
+}
+
+.leave-history-table tr {
+  transition: background 0.15s;
+}
+
+.leave-history-table tbody tr:hover {
+  background: #e0e7ff44;
+}
+
+.leave-history-table td {
+  border-bottom: 1px solid #e5e7eb;
+  color: #22223b;
+}
+
+.leave-history-table td span.leave-history-status {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  background: #f3f4f6;
+  color: #6366f1;
+  transition: background 0.2s, color 0.2s;
+}
+
+.leave-history-table td span.leave-history-status.approved {
+  background: #dcfce7;
+  color: #22c55e;
+}
+
+.leave-history-table td span.leave-history-status.pending {
+  background: #fef9c3;
+  color: #fbbf24;
+}
+
+.leave-history-table td span.leave-history-status.rejected {
+  background: #fee2e2;
+  color: #f87171;
+}
+
+/* Tooltip for Denial Reason */
 .denial-reason-tooltip {
   position: relative;
   cursor: help;
-  display: inline-block;
 }
 
-.denial-reason-tooltip:hover::after {
+.denial-reason-tooltip[data-tooltip]:hover:after {
   content: attr(data-tooltip);
   position: absolute;
-  top: 100%;
-  left: 0;
-  transform: translateY(8px);
-  background: #333;
-  color: white;
-  padding: 10px 14px;
+  left: 50%;
+  bottom: 125%;
+  transform: translateX(-50%);
+  background: #6366f1;
+  color: #fff;
+  padding: 8px 14px;
   border-radius: 8px;
-  font-size: 0.875rem;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  max-width: 300px;
-  min-width: 200px;
-  z-index: 9999;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  line-height: 1.4;
-  text-align: left;
-  border: 1px solid #555;
+  white-space: pre-line;
+  font-size: 14px;
+  z-index: 10;
+  box-shadow: 0 2px 8px #6366f1aa;
+  min-width: 180px;
+  max-width: 320px;
+  pointer-events: none;
 }
 
-.denial-reason-tooltip:hover::before {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 20px;
-  transform: translateY(2px);
-  border: 6px solid transparent;
-  border-bottom-color: #333;
-  z-index: 9999;
+/* Empty State */
+.leave-history-empty {
+  color: #888;
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 32px 0;
+}
+
+/* Pagination */
+.leave-history-table-container > div:last-child {
+  margin-top: 18px;
+}
+
+.leave-history-table-container button {
+  background: #fff;
+  border: 1.5px solid #6366f1;
+  color: #6366f1;
+  border-radius: 8px;
+  padding: 7px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 6px;
+  transition: background 0.15s, color 0.15s, border 0.15s;
+  cursor: pointer;
+}
+
+.leave-history-table-container button:disabled {
+  background: #f3f4f6;
+  color: #bbb;
+  border: 1.5px solid #e5e7eb;
+  cursor: not-allowed;
+}
+
+/* Modal (Apply Leave) */
+.blur-bg {
+  filter: blur(2px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.leave-apply-form input,
+.leave-apply-form textarea {
+  border: 1.5px solid #bbb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 15px;
+  background: #f5f6fa;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.leave-apply-form input:focus,
+.leave-apply-form textarea:focus {
+  border: 2px solid #6366f1;
+}
+
+.leave-apply-form label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+.leave-apply-form button[type="submit"] {
+  background: linear-gradient(90deg, #6366f1 60%, #818cf8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 13px 0;
+  margin-top: 2px;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+  width: 100%;
+  box-shadow: 0 2px 8px #6366f122;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.leave-apply-form button[type="submit"]:hover {
+  background: linear-gradient(90deg, #818cf8 60%, #6366f1 100%);
+  box-shadow: 0 4px 16px #6366f144;
+}
+
+/* Error & Success */
+.leave-error {
+  color: #f87171;
+  background: #fee2e2;
+  border-radius: 6px;
+  padding: 7px 12px;
+  margin-top: 4px;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.leave-success {
+  color: #22c55e;
+  background: #dcfce7;
+  border-radius: 6px;
+  padding: 7px 12px;
+  margin-top: 4px;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .employee-leave-content {
+    padding: 24px 8px 32px 8px;
+  }
+  .leave-history-card {
+    padding: 18px 4px 14px 4px;
+  }
+}
+
+@media (max-width: 600px) {
+  .employee-leave-content {
+    padding: 8px 2px 16px 2px;
+  }
+  .leave-history-table th,
+  .leave-history-table td {
+    font-size: 13px;
+    padding: 7px 4px;
+  }
+  .leave-page-title {
+    font-size: 1.2rem;
+  }
+}
+.summary-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 36px;
+}
+@media (max-width: 1100px) {
+  .summary-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .summary-cards-grid {
+    grid-template-columns: 1fr;
+  }
 }

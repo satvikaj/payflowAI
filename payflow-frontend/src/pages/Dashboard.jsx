@@ -128,10 +128,10 @@ export default function Dashboard() {
     }, []);
 
     return (
-        <div className="dashboard-layout" style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%)', fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif', color: '#222' }}>
+        <div className="dashboard-layout" >
             <Sidebar />
-            <main className="dashboard-main" style={{ padding: '32px 36px 36px 36px', maxWidth: 1400, margin: '0 auto' }}>
-                <style>{`
+            <main className="dashboard-main" >
+                {/* <style>{`
                 .dashboard-section {
                     animation: fadeIn 0.7s cubic-bezier(.4,0,.2,1);
                 }
@@ -285,62 +285,55 @@ export default function Dashboard() {
                     border-top: 2.5px solid #e0e7ff;
                     margin-top: 0;
                 }
-                `}</style>
+                `}</style> */}
                 {/* Section 1: Summary Cards */}
                 <section className="dashboard-section">
                     <Header/>
-                    <div className="card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 28, margin: '36px 0 32px 0' }}>
+                    <div className="card-grid" >
                         {/* Total Employees */}
-                        <div className="card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 4px 24px rgba(30,64,175,0.07), 0 1.5px 6px rgba(0,0,0,0.04)', padding: '28px 24px 22px 24px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', transition: 'box-shadow 0.2s, transform 0.18s' }}>
-                            <h2 className="section-title" style={{ fontSize: '1.12rem', fontWeight: 700, color: '#6366f1', marginBottom: 8 }}>TOTAL EMPLOYEES</h2>
-                            <div className="count" style={{ fontSize: '2.5rem', fontWeight: 800, color: '#22223b', marginBottom: 8 }}>{employeeCount}</div>
-                            <div className="stats" style={{ fontSize: '1rem', color: '#64748b', display: 'flex', gap: 18 }}>
+                        <div className="card" >
+                            <h2 className="section-title">TOTAL EMPLOYEES</h2>
+                            <div className="count" >{employeeCount}</div>
+                            <div className="stats" >
                                 <span>Male: {genderStats.male}</span>
                                 <span>Female: {genderStats.female}</span>
                             </div>
                             <div
                                 className="circle-chart"
                                 style={{
-                                    width: 60,
-                                    height: 60,
-                                    borderRadius: '50%',
-                                    margin: '12px auto 0',
-                                    background: (() => {
-                                        const total = genderStats.male + genderStats.female;
-                                        const malePercent = total > 0 ? (genderStats.male / total) * 100 : 0;
-                                        const femalePercent = total > 0 ? (genderStats.female / total) * 100 : 0;
-                                        return `conic-gradient(#1976d2 0% ${malePercent}%, #FFD600 ${malePercent}% 100%)`;
-                                    })(),
-                                    border: '2px solid #eee',
+                                    width: '150px',
+                                    height: '180px',
+                                    padding: '50px',
+                                    
                                 }}
                             ></div>
                             {/* Legend for circle chart */}
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 8 }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                    <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#1976d2', display: 'inline-block', border: '1px solid #1976d2' }}></span>
-                                    <span style={{ fontSize: 13 }}>Male</span>
-                                </span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                    <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#FFD600', display: 'inline-block', border: '1px solid #FFD600' }}></span>
-                                    <span style={{ fontSize: 13 }}>Female</span>
-                                </span>
+                            <div className='legend'>
+                                 <span className="legend-item">
+                                <span className="legend-color male"></span>
+                                <span className="legend-label">Male</span>
+                            </span>
+                            <span className="legend-item">
+                                <span className="legend-color female"></span>
+                                <span className="legend-label">Female</span>
+                            </span>
                             </div>
                         </div>
 
                         {/* Column containing Announcements and Employees on Leave */}
-                        <div className="card-column" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                        <div className="card-column" >
                             {/* Announcements Card */}
-                            <div className="card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 4px 24px rgba(30,64,175,0.07), 0 1.5px 6px rgba(0,0,0,0.04)', padding: '28px 24px 22px 24px', transition: 'box-shadow 0.2s, transform 0.18s' }}>
+                            <div className="card">
                                 <h2 className="section-title">ANNOUNCEMENTS</h2>
                                 <ul className="announcement-list">
                                     {announcements.length === 0 ? <li>No announcements</li> : announcements.map((a, i) => (
-                                        <li key={i}>{a.message}</li>
+                                        <li className="announcement-box" key={i}>{a.message}</li>
                                     ))}
                                 </ul>
                             </div>
 
                             {/* Employees on Leave Card */}
-                            <div className="card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 4px 24px rgba(30,64,175,0.07), 0 1.5px 6px rgba(0,0,0,0.04)', padding: '28px 24px 22px 24px', transition: 'box-shadow 0.2s, transform 0.18s' }}>
+                            <div className="card">
                                 <h2 className="section-title">EMPLOYEES ON LEAVE TODAY</h2>
                                 {(() => {
                                     // Get today's date in YYYY-MM-DD format
@@ -402,19 +395,19 @@ export default function Dashboard() {
                                     
                                     return (
                                         <>
-                                            <div style={{ marginBottom: '12px', fontSize: '2.5rem', fontWeight: '800', color: '#22223b', textAlign: 'center' }}>
+                                            <div className="count-box">
                                                 {employeesOnLeaveCount}
                                             </div>
                                             <ul className="leave-list">
                                                 {employeesOnLeaveCount === 0 ? (
-                                                    <li style={{ color: '#10b981', fontWeight: '500' }}>✅ Full attendance today</li>
+                                                    <li>✅ Full attendance today</li>
                                                 ) : (
                                                     employeesOnLeaveToday.map((emp, i) => (
-                                                        <li key={`${emp.name}-${i}`} style={{ marginBottom: '8px', padding: '8px', background: '#fef3c7', borderRadius: '6px', border: '1px solid #fbbf24' }}>
-                                                            <strong style={{ color: '#92400e' }}>{emp.name}</strong> - 
-                                                            <span style={{ color: '#b45309', marginLeft: '4px' }}>{emp.type}</span>
+                                                        <li key={`${emp.name}-${i}`} >
+                                                            <strong >{emp.name}</strong> - 
+                                                            <span >{emp.type}</span>
                                                             <br />
-                                                            <span style={{ fontSize: '0.9rem', color: '#78716c' }}>
+                                                            <span >
                                                                 ({emp.fromDate} to {emp.toDate})
                                                             </span>
                                                         </li>
@@ -428,14 +421,25 @@ export default function Dashboard() {
                         </div>
 
                         {/* Calendar */}
-                        <div className="card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 4px 24px rgba(30,64,175,0.07), 0 1.5px 6px rgba(0,0,0,0.04)', padding: '28px 24px 22px 24px', transition: 'box-shadow 0.2s, transform 0.18s' }}>
-                            <h2 className="section-title">CALENDAR</h2>
-                            <ul className="calendar-list">
-                                {calendarEvents.length === 0 ? <li>No events</li> : calendarEvents.map((e, i) => (
-                                    <li key={i} className={`event ${e.color}`}>{e.time} – {e.title}</li>
-                                ))}
-                            </ul>
-                        </div>
+                       <div className="card">
+  <h2 className="section-title">CALENDAR</h2>
+  <ul className="calendar-events">
+    {calendarEvents.length === 0 ? (
+      <li>No events</li>
+    ) : (
+      calendarEvents.map((e, i) => (
+        <li 
+          key={i} 
+          className="box-item"
+        >
+          {e.time} – {e.title}
+        </li>
+      ))
+    )}
+  </ul>
+</div>
+
+
                     </div>
                 </section>
 
@@ -456,11 +460,11 @@ export default function Dashboard() {
                             <tbody>
                             {onboardingsLoading ? (
                                 <tr>
-                                    <td colSpan="6" style={{ textAlign: 'center' }}>Loading...</td>
+                                    <td colSpan="6">Loading...</td>
                                 </tr>
                             ) : onboardingsError ? (
                                 <tr>
-                                    <td colSpan="6" style={{ textAlign: 'center', color: 'red' }}>
+                                    <td colSpan="6">
                                         {onboardingsError}
                                     </td>
                                 </tr>
@@ -562,7 +566,7 @@ export default function Dashboard() {
 
                 {/* Section 5: Payroll Summary */}
                 <section className="dashboard-section">
-                    <div className="card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 4px 24px rgba(30,64,175,0.07), 0 1.5px 6px rgba(0,0,0,0.04)', padding: '28px 24px 22px 24px', transition: 'box-shadow 0.2s, transform 0.18s' }}>
+                    <div className="card" >
                         <h2 className="section-title">PAYROLL SUMMARY</h2>
                         <div className="payroll-stats">
                             <div className="payroll-item">
@@ -580,35 +584,27 @@ export default function Dashboard() {
                         </div>
 
                         {/* Search bar and rows-per-page select for Employees table */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 18, marginBottom: 16, marginTop: 8, background: 'rgba(243,244,246,0.7)', borderRadius: 10, padding: '10px 16px' }}>
-                            <label htmlFor="payrollSearch" style={{ fontWeight: 600, color: '#6366f1', marginRight: 8 }}>Search:</label>
+                        <div className="rows-per-page-select" >
+                            <label htmlFor="payrollSearch" style={{ marginRight: '8px' }}>Search:</label>
                             <input
                                 id="payrollSearch"
                                 type="text"
                                 placeholder="Employee or department..."
                                 value={payrollSearch}
                                 onChange={e => setPayrollSearch(e.target.value)}
-                                style={{
-                                    padding: '8px 14px',
-                                    borderRadius: 8,
-                                    border: '1.5px solid #e0e7ff',
-                                    fontSize: 15,
-                                    width: 240,
-                                    background: '#f8fafc',
-                                    outline: 'none',
-                                    boxShadow: '0 1.5px 6px rgba(30,64,175,0.04)'
-                                }}
+                                className="payroll-search-input"
                             />
-                            <div className="rows-per-page-select" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <label htmlFor="payrollRowsPerPage" style={{ fontWeight: 500, color: '#64748b' }}>Rows per page:</label>
-                                <select id="payrollRowsPerPage" value={payrollRowsPerPage} onChange={handlePayrollRowsPerPageChange} style={{ borderRadius: 6, padding: '4px 10px', border: '1.5px solid #e0e7ff', background: '#fff', fontSize: 15 }}>
+
+                            {/* <div className="rows-per-page-select" > */}
+                                <label htmlFor="payrollRowsPerPage" >Rows per page:</label>
+                                <select id="payrollRowsPerPage" value={payrollRowsPerPage} onChange={handlePayrollRowsPerPageChange} >
                                     <option value={5}>5</option>
                                     <option value={10}>10</option>
                                     <option value={20}>20</option>
                                     <option value={50}>50</option>
                                     <option value={100}>100</option>
                                 </select>
-                            </div>
+                            {/* </div> */}
                         </div>
 
                         <table className="onboarding-table mt-4">
@@ -657,217 +653,3 @@ export default function Dashboard() {
         </div>
     );
 }
-
-
-
-// import React from 'react';
-// import './Dashboard.css';
-// import Sidebar from "../components/Sidebar";
-//
-// export default function Dashboard() {
-//     return (
-//         <main className="dashboard-container">
-//             {/* Section 1: Summary Cards */}
-//             <Sidebar/>
-//             <section className="dashboard-section">
-//                 <div className="card-grid">
-//                     {/* Total Employees */}
-//                     <div className="card">
-//                         <h2 className="section-title">TOTAL EMPLOYEES</h2>
-//                         <div className="count">352</div>
-//                         <div className="stats">
-//                             <span>Male: 240</span>
-//                             <span>Female: 112</span>
-//                         </div>
-//                         <div className="circle-chart"></div>
-//                     </div>
-//
-//                     {/* Column containing Announcements and Employees on Leave */}
-//                     <div className="card-column">
-//                         {/* Announcements Card */}
-//                         <div className="card">
-//                             <h2 className="section-title">ANNOUNCEMENTS</h2>
-//                             <ul className="announcement-list">
-//                                 <li>📢 Annual meet scheduled on 5th Aug</li>
-//                                 <li>🛡️ Security audit on 20th July</li>
-//                             </ul>
-//                         </div>
-//
-//                         {/* Employees on Leave Card */}
-//                         <div className="card">
-//                             <h2 className="section-title">EMPLOYEES ON LEAVE</h2>
-//                             <ul className="leave-list">
-//                                 <li><strong>John Carter</strong> - Sick Leave (12 Jul - 15 Jul)</li>
-//                                 <li><strong>Meena Rai</strong> - Casual Leave (13 Jul)</li>
-//                             </ul>
-//                         </div>
-//                     </div>
-//
-//                     {/* Calendar */}
-//                     <div className="card">
-//                         <h2 className="section-title">CALENDAR</h2>
-//                         <ul className="calendar-list">
-//                             <li className="event green">12PM – Business lunch at Pret</li>
-//                             <li className="event yellow">1PM – Skype call with Kate</li>
-//                             <li className="event red">4PM – HR team meeting</li>
-//                         </ul>
-//                     </div>
-//                 </div>
-//             </section>
-//
-//             {/* Section 2: Project Summary Table */}
-//             <section className="dashboard-section">
-//                 <div className="card">
-//                     <h2 className="section-title">CURRENT ONBOARDINGS SUMMARY</h2>
-//                     <table className="onboarding-table">
-//                         <thead>
-//                         <tr>
-//                             <th>Code</th>
-//                             <th>Position</th>
-//                             <th>Candidates</th>
-//                             <th>Deadline</th>
-//                             <th>Status</th>
-//                         </tr>
-//                         </thead>
-//                         <tbody>
-//                         <tr>
-//                             <td>CAB235</td>
-//                             <td>Senior Business Developer</td>
-//                             <td><div className="avatars"><img src="https://i.pravatar.cc/30?img=1" alt="" /><span>2+</span></div></td>
-//                             <td>29/05/2025</td>
-//                             <td><span className="status pending">Pending</span></td>
-//                         </tr>
-//                         <tr>
-//                             <td>FBD114</td>
-//                             <td>Senior Python Developer</td>
-//                             <td><div className="avatars"><img src="https://i.pravatar.cc/30?img=2" alt="" /><span>3+</span></div></td>
-//                             <td>30/05/2025</td>
-//                             <td><span className="status pending">Pending</span></td>
-//                         </tr>
-//                         <tr>
-//                             <td>HKD099</td>
-//                             <td>Junior Project Manager</td>
-//                             <td><div className="avatars"><img src="https://i.pravatar.cc/30?img=3" alt="" /></div></td>
-//                             <td>12/06/2025</td>
-//                             <td><span className="status pending">Pending</span></td>
-//                         </tr>
-//                         </tbody>
-//                     </table>
-//                 </div>
-//             </section>
-//             {/* Section 4: Project Summary */}
-//             <section className="dashboard-section">
-//                 <div className="card">
-//                     <h2 className="section-title">PROJECT SUMMARY</h2>
-//                     <table className="onboarding-table">
-//                         <thead>
-//                         <tr>
-//                             <th>Project Name</th>
-//                             <th>Manager</th>
-//                             <th>Team Members</th>
-//                             <th>Status</th>
-//                             <th>Deadline</th>
-//                         </tr>
-//                         </thead>
-//                         <tbody>
-//                         <tr>
-//                             <td>HRMS Revamp</td>
-//                             <td>Ravi Kumar</td>
-//                             <td>
-//                                 <div className="avatars">
-//                                     <img src="https://i.pravatar.cc/30?img=8" alt="" />
-//                                     <img src="https://i.pravatar.cc/30?img=9" alt="" />
-//                                     <span>+3</span>
-//                                 </div>
-//                             </td>
-//                             <td><span className="status pending">In Progress</span></td>
-//                             <td>31/08/2025</td>
-//                         </tr>
-//                         <tr>
-//                             <td>Payroll Automation</td>
-//                             <td>Anjali Mehta</td>
-//                             <td>
-//                                 <div className="avatars">
-//                                     <img src="https://i.pravatar.cc/30?img=12" alt="" />
-//                                     <img src="https://i.pravatar.cc/30?img=13" alt="" />
-//                                 </div>
-//                             </td>
-//                             <td><span className="status completed">Completed</span></td>
-//                             <td>15/07/2025</td>
-//                         </tr>
-//                         <tr>
-//                             <td>Onboarding Portal</td>
-//                             <td>Karthik Reddy</td>
-//                             <td>
-//                                 <div className="avatars">
-//                                     <img src="https://i.pravatar.cc/30?img=5" alt="" />
-//                                     <span>+1</span>
-//                                 </div>
-//                             </td>
-//                             <td><span className="status delayed">Delayed</span></td>
-//                             <td>22/07/2025</td>
-//                         </tr>
-//                         </tbody>
-//                     </table>
-//                 </div>
-//             </section>
-//             {/* Section 5: Payroll Summary */}
-//             <section className="dashboard-section">
-//                 <div className="card">
-//                     <h2 className="section-title">PAYROLL SUMMARY</h2>
-//                     <div className="payroll-stats">
-//                         <div className="payroll-item">
-//                             <h4>Total Salary Paid</h4>
-//                             <p className="amount">₹12,45,000</p>
-//                         </div>
-//                         <div className="payroll-item">
-//                             <h4>Pending Payments</h4>
-//                             <p className="amount text-yellow">₹1,15,000</p>
-//                         </div>
-//                         <div className="payroll-item">
-//                             <h4>Salary Cycle</h4>
-//                             <p>1st - 5th Every Month</p>
-//                         </div>
-//                     </div>
-//
-//                     <table className="onboarding-table mt-4">
-//                         <thead>
-//                         <tr>
-//                             <th>Employee</th>
-//                             <th>Department</th>
-//                             <th>Net Salary</th>
-//                             <th>Status</th>
-//                             <th>Payment Date</th>
-//                         </tr>
-//                         </thead>
-//                         <tbody>
-//                         <tr>
-//                             <td>Alessandra Fox</td>
-//                             <td>HR</td>
-//                             <td>₹42,000</td>
-//                             <td><span className="status completed">Paid</span></td>
-//                             <td>02/07/2025</td>
-//                         </tr>
-//                         <tr>
-//                             <td>Karthik Reddy</td>
-//                             <td>Tech</td>
-//                             <td>₹55,000</td>
-//                             <td><span className="status pending">Pending</span></td>
-//                             <td>-</td>
-//                         </tr>
-//                         <tr>
-//                             <td>Susan Olsen</td>
-//                             <td>Finance</td>
-//                             <td>₹38,500</td>
-//                             <td><span className="status completed">Paid</span></td>
-//                             <td>03/07/2025</td>
-//                         </tr>
-//                         </tbody>
-//                     </table>
-//                 </div>
-//             </section>
-//
-//
-//         </main>
-//     );
-// }
