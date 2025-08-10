@@ -72,6 +72,28 @@ public class Payslip {
     @Column(name = "generated_by")
     private String generatedBy;
 
+    // Payment hold related fields
+    @Column(name = "is_on_hold")
+    private Boolean isOnHold = false;
+
+    @Column(name = "hold_reason")
+    private String holdReason;
+
+    @Column(name = "hold_by_user_id")
+    private Long holdByUserId;
+
+    @Column(name = "hold_date")
+    private LocalDateTime holdDate;
+
+    @Column(name = "hold_by_user_role")
+    private String holdByUserRole;
+
+    @Column(name = "hold_month")
+    private Integer holdMonth;
+
+    @Column(name = "hold_year")
+    private Integer holdYear;
+
     // Constructors
     public Payslip() {
         this.generatedOn = LocalDateTime.now();
@@ -282,5 +304,62 @@ public class Payslip {
 
     public void setGeneratedBy(String generatedBy) {
         this.generatedBy = generatedBy;
+    }
+
+    // Payment hold getters and setters
+    public Boolean getIsOnHold() {
+        return isOnHold;
+    }
+
+    public void setIsOnHold(Boolean isOnHold) {
+        this.isOnHold = isOnHold;
+    }
+
+    public String getHoldReason() {
+        return holdReason;
+    }
+
+    public void setHoldReason(String holdReason) {
+        this.holdReason = holdReason;
+    }
+
+    public Long getHoldByUserId() {
+        return holdByUserId;
+    }
+
+    public void setHoldByUserId(Long holdByUserId) {
+        this.holdByUserId = holdByUserId;
+    }
+
+    public LocalDateTime getHoldDate() {
+        return holdDate;
+    }
+
+    public void setHoldDate(LocalDateTime holdDate) {
+        this.holdDate = holdDate;
+    }
+
+    public String getHoldByUserRole() {
+        return holdByUserRole;
+    }
+
+    public void setHoldByUserRole(String holdByUserRole) {
+        this.holdByUserRole = holdByUserRole;
+    }
+
+    public Integer getHoldMonth() {
+        return holdMonth;
+    }
+
+    public void setHoldMonth(Integer holdMonth) {
+        this.holdMonth = holdMonth;
+    }
+
+    public Integer getHoldYear() {
+        return holdYear;
+    }
+
+    public void setHoldYear(Integer holdYear) {
+        this.holdYear = holdYear;
     }
 }

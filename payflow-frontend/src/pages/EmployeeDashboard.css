@@ -115,6 +115,70 @@ body {
   border-bottom: 1px solid #e5e7eb;
 }
 
+.notification-item {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border-bottom: none !important;
+}
+
+.notification-item.warning {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+}
+
+.notification-content strong {
+  color: #92400e;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.notification-content p {
+  margin: 4px 0;
+  color: #78350f;
+  font-size: 14px;
+}
+
+.notification-content small {
+  color: #a16207;
+  font-size: 12px;
+}
+
+/* Payment Hold Alert Styles */
+.payment-hold-alert {
+  background: linear-gradient(135deg, #fef3c7, #fed7aa);
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 10px;
+}
+
+.hold-status {
+  text-align: center;
+}
+
+.hold-badge {
+  background: #dc2626;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.hold-status p {
+  margin: 5px 0;
+  color: #92400e;
+  font-size: 14px;
+}
+
+.hold-status small {
+  color: #a16207;
+  font-style: italic;
+}
+
 .leave-card p,
 .payroll-card p {
   font-size: 15px;

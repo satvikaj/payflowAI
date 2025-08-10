@@ -14,7 +14,7 @@ const AdminDashboard = () => {
     const [leaves, setLeaves] = useState([]);
     const [employeeCount, setEmployeeCount] = useState(0);
     const [loading, setLoading] = useState(true);
-
+    
     // Fetch users on component mount
     const [popup, setPopup] = useState({ show: false, title: '', message: '', type: 'success' });
 

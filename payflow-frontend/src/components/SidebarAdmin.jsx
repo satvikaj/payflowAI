@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FaTachometerAlt, FaUserTie, FaUsers, FaCogs, FaUserPlus, FaSignOutAlt, FaChevronLeft, FaChevronRight, FaMoneyBillWave, FaFileInvoiceDollar, FaCalculator } from 'react-icons/fa';
+import { FaTachometerAlt, FaUserTie, FaUsers, FaCogs, FaUserPlus, FaSignOutAlt, FaChevronLeft, FaChevronRight, FaMoneyBillWave, FaFileInvoiceDollar, FaCalculator, FaLock } from 'react-icons/fa';
 import './SidebarAdmin.css';
 
 const SidebarAdmin = () => {
@@ -108,6 +108,18 @@ const SidebarAdmin = () => {
                             >
                                 <FaFileInvoiceDollar className="nav-icon" />
                                 {!isCollapsed && <span className="nav-text">Payrolls</span>}
+                                {!isCollapsed && <div className="nav-indicator"></div>}
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink 
+                                to="/admin/payment-holds" 
+                                className={({ isActive }) => `nav-link ${isActive ? 'active-link' : ''}`}
+                                title={isCollapsed ? 'Payment Hold Management' : ''}
+                                end
+                            >
+                                <FaLock className="nav-icon" />
+                                {!isCollapsed && <span className="nav-text">Payment Holds</span>}
                                 {!isCollapsed && <div className="nav-indicator"></div>}
                             </NavLink>
                         </li>

@@ -597,6 +597,10 @@ const PayrollDashboard = () => {
             case 'GENERATED': return '#4CAF50';
             case 'SENT': return '#2196F3';
             case 'REVISED': return '#FF9800';
+            case 'PAID': return '#4CAF50';
+            case 'PENDING': return '#FF9800';
+            case 'ON_HOLD': return '#dc2626';
+            case 'SCHEDULED': return '#6366f1';
             default: return '#666';
         }
     };
