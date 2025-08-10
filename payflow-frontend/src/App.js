@@ -33,6 +33,15 @@ import EmployeeCTCDashboard from "./pages/EmployeeCTCDashboard";
 import ManagerTeamPayroll from "./pages/ManagerTeamPayroll";
 import HRCTCManagement from "./pages/HRCTCManagement";
 import HRCTCStructures from "./pages/HRCTCStructures";
+import PaymentHoldManagement from "./pages/PaymentHoldManagement";
+import ManagerPaymentHolds from "./pages/ManagerPaymentHolds";
+import AdminPaymentHolds from "./pages/AdminPaymentHolds";
+import HRPaymentHolds from "./pages/HRPaymentHolds";
+import EmployeeLogin from "./pages/EmployeeLogin";
+import EmployeeResignation from "./pages/EmployeeResignation";
+import ManagerResignationRequests from "./pages/ManagerResignationRequests";
+import HRResignationRequests from "./pages/HRResignationRequests";
+import HRLeaveRequests from "./pages/HRLeaveRequests";
 // import Login from "./components/Login";
 
 
@@ -58,8 +67,12 @@ function App() {
                 <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
                 <Route path="/manager-dashboard" element={<ManagerDashboard />} />
                 <Route path="/manager/:managerId/leaves" element={<ManagerLeaveRequests />} />
+                <Route path="/hr/leave-requests" element={<HRLeaveRequests />} />
+                <Route path="/manager/resignation-requests" element={<ManagerResignationRequests />} />
+                <Route path="/hr/resignation-requests" element={<HRResignationRequests />} />
                 <Route path="/manager-notifications" element={<NotificationsPage />} />
                 <Route path="/employee-leave" element={<EmployeeLeave />} />
+                <Route path="/employee-resignation" element={<EmployeeResignation />} />
                 <Route path="/employee-overview" element={<EmployeeOverview />} />
                 <Route path="/employee-profile" element={<EmployeeProfile />} />
                 <Route path="/employee-ctc-dashboard" element={<EmployeeCTCDashboard />} />
@@ -70,6 +83,11 @@ function App() {
                 <Route path="/ctc-management" element={<AdminCTCStructures />} />
                 <Route path="/ctc-management-new" element={<AdminCTCManagement />} />
                 <Route path="/payroll-dashboard" element={<PayrollDashboard />} />
+                <Route path="/payment-hold-management" element={<PaymentHoldManagement />} />
+                <Route path="/manager/payment-holds" element={<ManagerPaymentHolds />} />
+                <Route path="/admin/payment-holds" element={<AdminPaymentHolds />} />
+                <Route path="/hr/payment-holds" element={<HRPaymentHolds />} />
+                <Route path="/employee-login" element={<EmployeeLogin />} />
 
             </Routes>
         </BrowserRouter>

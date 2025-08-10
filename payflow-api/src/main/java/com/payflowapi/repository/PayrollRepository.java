@@ -12,7 +12,15 @@ public interface PayrollRepository extends JpaRepository<Payroll, Long> {
     @Query(value = "SELECT * FROM payroll p WHERE p.cycle = :cycle GROUP BY p.employee_id", nativeQuery = true)
     List<Payroll> findOnePerEmployee(@Param("cycle") String cycle);
 
-        List<Payroll> findByEmployeeId(Long employeeId);
+    List<Payroll> findByEmployeeId(Long employeeId);
+
     Payroll findByEmployeeIdAndCycle(Long employeeId, String cycle);
+
+    // Payment hold related queries
+    List<Payroll> findByEmployeeIdOrderByPaymentDateDesc(Long employeeId);
+
+    List<Payroll> findByIsOnHoldTrue();
+
+    Optional<Payroll> findByEmployeeIdAndIsOnHoldTrue(Long employeeId);
 
 }

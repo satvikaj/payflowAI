@@ -140,6 +140,10 @@ const EmployeeDashboard = () => {
         currentYear: new Date().getFullYear()
     });
 
+    // Payment hold state
+    const [paymentHoldStatus, setPaymentHoldStatus] = useState(null);
+    const [notifications, setNotifications] = useState([]);
+
     const totalLeaves = 12;
 
     const usedLeaves = useMemo(() => {
@@ -163,8 +167,12 @@ const EmployeeDashboard = () => {
                 .then(res => {
                     if (Array.isArray(res.data) && res.data.length > 0) {
                         setEmployee(res.data[0]);
+                        // Check payment hold status after getting employee details
+                        checkPaymentHoldStatus(res.data[0].id);
                     } else if (res.data) {
                         setEmployee(res.data);
+                        // Check payment hold status after getting employee details
+                        checkPaymentHoldStatus(res.data.id);
                     }
                 })
                 .catch(err => console.error('Failed to fetch employee details', err));
@@ -188,6 +196,39 @@ const EmployeeDashboard = () => {
                 });
         }
     }, [email]);
+
+    // Check payment hold status
+    const checkPaymentHoldStatus = async (employeeId) => {
+        try {
+            const response = await axios.get(`/api/payment-hold/status/${employeeId}`);
+            setPaymentHoldStatus(response.data);
+            
+            // Add payment hold notification if exists
+            if (response.data.isOnHold) {
+                const holdNotification = {
+                    id: 'payment-hold',
+                    type: 'warning',
+                    title: 'Payment Hold Notice',
+                    message: `Your payment is currently on hold. Reason: ${response.data.holdReason || 'Administrative review'}`,
+                    date: response.data.holdDate,
+                    priority: 'high'
+                };
+                setNotifications(prev => [holdNotification, ...prev]);
+            }
+        } catch (error) {
+            console.error('Error checking payment hold status:', error);
+        }
+    };
+
+    // Format date for display
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    };
 
     return (
         <div className="employee-dashboard-layout">
@@ -213,7 +254,21 @@ const EmployeeDashboard = () => {
                     <div className="dashboard-card notifications-card">
                         <h3><FaBell /> Notifications</h3>
                         <ul className="notifications-list">
-                            <li>No new notifications.</li>
+                            {notifications.length > 0 ? (
+                                notifications.map(notification => (
+                                    <li key={notification.id} className={`notification-item ${notification.type}`}>
+                                        <div className="notification-content">
+                                            <strong>{notification.title}</strong>
+                                            <p>{notification.message}</p>
+                                            {notification.date && (
+                                                <small>Hold placed on: {formatDate(notification.date)}</small>
+                                            )}
+                                        </div>
+                                    </li>
+                                ))
+                            ) : (
+                                <li>No new notifications.</li>
+                            )}
                         </ul>
                     </div>
 
@@ -241,9 +296,22 @@ const EmployeeDashboard = () => {
 
                     <div className="dashboard-card payroll-card">
                         <h3><FaMoneyBill /> Payroll</h3>
-                        <p><b>Latest Payslip:</b> <span style={{ color: '#6366f1' }}>Not Available</span></p>
-                        <p><b>Salary:</b> <span style={{ color: '#6366f1' }}>Confidential</span></p>
-                        <button className="quick-link-btn" style={{ marginTop: 8 }}>Download Payslip</button>
+                        {paymentHoldStatus && paymentHoldStatus.isOnHold ? (
+                            <div className="payment-hold-alert">
+                                <div className="hold-status">
+                                    <span className="hold-badge">⏸️ Payment On Hold</span>
+                                    <p><b>Reason:</b> {paymentHoldStatus.holdReason || 'Administrative review'}</p>
+                                    <p><b>Hold Date:</b> {formatDate(paymentHoldStatus.holdDate)}</p>
+                                    <small>Please contact HR for more information.</small>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <p><b>Latest Payslip:</b> <span style={{ color: '#6366f1' }}>Not Available</span></p>
+                                <p><b>Salary:</b> <span style={{ color: '#6366f1' }}>Confidential</span></p>
+                                <button className="quick-link-btn" style={{ marginTop: 8 }}>Download Payslip</button>
+                            </>
+                        )}
                     </div>
                 </div>
 

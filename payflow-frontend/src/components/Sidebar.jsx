@@ -10,7 +10,10 @@ import {
     FaChartBar,
     FaCog,
     FaCalculator,
-    FaTable
+    FaTable,
+    FaLock,
+    FaUserTimes,
+    FaEnvelopeOpenText
 } from 'react-icons/fa';
 
 export default function Sidebar() {
@@ -45,6 +48,15 @@ export default function Sidebar() {
                 </button>
                 <button className={"sidebar-btn" + (isActive('/manager/payroll-dashboard') ? ' active' : '')} onClick={() => navigate('/manager/payroll-dashboard')}>
                     <FaMoneyBill /> Payrolls
+                </button>
+                <button className={"sidebar-btn" + (isActive('/hr/payment-holds') ? ' active' : '')} onClick={() => navigate('/hr/payment-holds')}>
+                    <FaLock /> Payment Holds
+                </button>
+                <button className={"sidebar-btn" + (isActive('/hr/leave-requests') ? ' active' : '')} onClick={() => navigate('/hr/leave-requests')}>
+                    <FaEnvelopeOpenText /> Leave Requests
+                </button>
+                <button className={"sidebar-btn" + (isActive('/hr/resignation-requests') ? ' active' : '')} onClick={() => navigate('/hr/resignation-requests')}>
+                    <FaUserTimes /> Resignation Requests
                 </button>
                 
                 <button className={"sidebar-btn" + (isActive('/reports') ? ' active' : '')} onClick={() => navigate('/reports')}>

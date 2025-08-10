@@ -46,4 +46,11 @@ public interface PayslipRepository extends JpaRepository<Payslip, Long> {
     // Get all employees who have payslips
     @Query("SELECT DISTINCT p.employeeId FROM Payslip p ORDER BY p.employeeId")
     List<Long> findDistinctEmployeeIds();
+
+    // Payment hold related queries
+    List<Payslip> findByIsOnHoldTrue();
+
+    List<Payslip> findByEmployeeIdAndIsOnHoldTrueOrderByYearDescMonthDesc(Long employeeId);
+
+    Optional<Payslip> findByEmployeeIdAndMonthAndYearAndIsOnHoldTrue(Long employeeId, String month, Integer year);
 }

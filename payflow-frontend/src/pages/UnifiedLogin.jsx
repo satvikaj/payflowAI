@@ -51,6 +51,7 @@ const UnifiedLogin = () => {
             localStorage.setItem("role", role);
             localStorage.setItem("email", finalEmail);
             localStorage.setItem("name", name || "User");
+            localStorage.setItem("userId", id); // Store user ID
             // Store managerId for manager dashboard/leave requests
             if (role === "MANAGER") {
                 if (managerId && managerId !== "null") {

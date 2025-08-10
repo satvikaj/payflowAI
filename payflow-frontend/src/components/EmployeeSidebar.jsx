@@ -1,6 +1,6 @@
 import React from 'react';
 import './Sidebar.css';
-import { FaTachometerAlt, FaUser, FaMoneyBill, FaCalendarAlt, FaEnvelope, FaFileInvoiceDollar } from 'react-icons/fa';
+import { FaTachometerAlt, FaUser, FaMoneyBill, FaCalendarAlt, FaEnvelope, FaFileInvoiceDollar, FaUserTimes } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 
@@ -27,6 +27,9 @@ export default function EmployeeSidebar() {
                 </NavLink> */}
                 <NavLink to="/employee-leave" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
                     <FaCalendarAlt /> Leave
+                </NavLink>
+                <NavLink to="/employee-resignation" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
+                    <FaUserTimes /> Resignation
                 </NavLink>
                 <NavLink to="/employee-notifications" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
                     <FaEnvelope /> Notifications

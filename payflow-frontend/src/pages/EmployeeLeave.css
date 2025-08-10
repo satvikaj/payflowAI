@@ -321,3 +321,69 @@
   border-bottom-color: #333;
   z-index: 9999;
 }
+
+/* Modal styles for resignation functionality */
+.leave-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.leave-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Responsive table styles */
+.leave-history-table-container {
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+}
+
+.leave-history-table {
+  width: 100%;
+  min-width: 800px; /* Minimum width to prevent too much compression */
+  table-layout: auto;
+}
+
+@media (max-width: 1200px) {
+  .leave-history-table {
+    min-width: 700px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .leave-history-table {
+    min-width: 600px;
+    font-size: 0.8rem;
+  }
+}
