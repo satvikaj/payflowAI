@@ -5,7 +5,6 @@ import EmployeeSidebar from '../components/EmployeeSidebar';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import './EmployeeCTCDashboard.css';
-import './pdfDownload.css';
 
 const EmployeeCTCDashboard = () => {
     const navigate = useNavigate();
