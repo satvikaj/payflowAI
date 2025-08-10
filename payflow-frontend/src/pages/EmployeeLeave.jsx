@@ -209,7 +209,7 @@ const EmployeeLeave = () => {
                 <h2 className="leave-page-title"><FaClipboardList style={{ marginRight: 8 }} />Leave Management</h2>
 
                 {/* Summary Cards */}
-                <div style={{ display: 'flex', gap: 24, marginBottom: 32, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+                <div className="summary-cards-grid" >
                     {[
                         {
                             icon: <FaFileAlt size={32} color="#6366f1" style={{ marginBottom: 8 }} />,
