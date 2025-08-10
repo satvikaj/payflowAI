@@ -18,34 +18,22 @@
 .card {
     flex: 1;
     min-width: 280px;
-    background: linear-gradient(135deg, #bf99e2 0%, #22d3ee 100%);
+    background: white;
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    color: #fff;
-    transition: box-shadow 0.22s, transform 0.18s, background 0.18s;
-    position: relative;
-    z-index: 1;
-}
-
-.card:hover {
-    box-shadow: 0 8px 32px rgba(99,102,241,0.18), 0 2px 8px rgba(0,0,0,0.10);
-    transform: translateY(-2px) scale(1.025);
 }
 
 .section-title {
     font-size: 16px;
-    color: #fff;
+    color: #6b7280;
     margin-bottom: 8px;
-    font-weight: 700;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
 .count {
     font-size: 36px;
     font-weight: bold;
-    color: #fff;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    color: #1f2937;
 }
 
 .stats {
@@ -53,15 +41,14 @@
     justify-content: space-between;
     margin-top: 8px;
     font-size: 14px;
-    color: #e0e7ef;
+    color: #4b5563;
 }
 
 .circle-chart {
-    width: 200px;
-    height: 100px;
-    border: 20px solid #4b08bf;
-    border-bottom-color:  #cd1de1;
-    
+    width: 80px;
+    height: 80px;
+    border: 8px solid #60a5fa;
+    border-bottom-color: #facc15;
     border-radius: 50%;
     margin: 20px auto 0;
 }
@@ -81,28 +68,20 @@
 
 .event.green {
     background-color: #dcfce7;
-    color: #065f46;
 }
 
 .event.yellow {
     background-color: #fef9c3;
-    color: #92400e;
 }
 
 .event.red {
     background-color: #fee2e2;
-    color: #b91c1c;
 }
 
 .onboarding-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
-    background: rgba(255,255,255,0.98);
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(30,64,175,0.07);
-    overflow: hidden;
-    margin-top: 12px;
 }
 
 .onboarding-table th,
@@ -110,16 +89,6 @@
     padding: 12px 16px;
     border-bottom: 1px solid #e5e7eb;
     text-align: left;
-}
-
-.onboarding-table th {
-    background: #f3f4f6;
-    font-weight: 700;
-    color: #374151;
-}
-
-.onboarding-table tr:last-child td {
-    border-bottom: none;
 }
 
 .avatars {
@@ -132,147 +101,46 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    border: 1px solid #ccc;
 }
 
-/* === Status Badge Styles === */
-.status {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  display: inline-block;
-}
-.status.completed {
-  background-color: #28a745;
-  color: #fff;
-}
 .status.pending {
-  background-color: #ffc107;
-  color: #000;
-}
-.status.delayed {
-  background-color: #dc3545;
-  color: #fff;
-}
-
-/* === Pagination & Search === */
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-/* .rows-per-page-select {
-  padding: 4px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-} */
-div.rows-per-page-select label {
-  color: white !important;
-}
-
-.rows-per-page-select {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-}
-
-
-
-.payroll-search-input {
-  flex: 0 0 60%;
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1.5px solid #e0e7ff;
-  font-size: 15px;
-  background: #f8fafc;
-  
-  outline: none;
-  box-shadow: 0 1.5px 6px rgba(30, 64, 175, 0.04);
-}
-
-#payrollRowsPerPage {
-  flex: 0 0 20%;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1.5px solid #e0e7ff;
-  background: #f8fafc;
-  outline: none;
-  font-size: 15px;
-}
-
-
-#payrollSearch {
-  padding: 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-/* === Circle Chart Fix === */
-.circle-chart {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-weight: bold;
-  /* Removed background & border so inline conic-gradient works */
-}
-
-/* === Calendar Event Color Boxes === */
-.calendar-events {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.calendar-events li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 0;
-}
-.calendar-events li span.color-box {
-  width: 16px;
-  height: 16px;
-  border-radius: 3px;
-  display: inline-block;
-}
-.calendar-events li:nth-child(1) .color-box { background-color: #007bff; }
-.calendar-events li:nth-child(2) .color-box { background-color: #28a745; }
-.calendar-events li:nth-child(3) .color-box { background-color: #ffc107; }
-.calendar-events li:nth-child(4) .color-box { background-color: #dc3545; }
-.calendar-events li:nth-child(5) .color-box { background-color: #6f42c1; }
-
-
-
-/* .status.pending {
     color: #f59e0b;
     font-weight: bold;
 }
-.status.completed {
-    color: #16a34a;
-    font-weight: bold;
-}
-.status.delayed {
-    color: #dc2626;
-    font-weight: bold;
-} */
-
 .leave-list {
     margin-top: 16px;
     padding-left: 16px;
     list-style-type: disc;
     font-size: 14px;
-    color: #fff;
+    color: #374151;
 }
 
 .leave-list li {
     margin-bottom: 10px;
 }
+/* Optional: Add styles if these classes don’t exist yet */
+.status.completed {
+    color: #16a34a;
+    font-weight: bold;
+}
 
+.status.delayed {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.avatars {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.avatars img {
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    border: 1px solid #ccc;
+}
 .payroll-stats {
     display: flex;
     justify-content: space-between;
@@ -306,6 +174,16 @@ div.rows-per-page-select label {
     color: #eab308;
 }
 
+.status.completed {
+    color: #16a34a;
+    font-weight: bold;
+}
+
+.status.pending {
+    color: #f59e0b;
+    font-weight: bold;
+}
+
 .double-card {
     display: flex;
     flex-direction: column;
@@ -322,11 +200,10 @@ div.rows-per-page-select label {
     border-top: 1px solid #e5e7eb;
     margin: 10px 0;
 }
-
 .card-column {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 15px; /* space between Announcements and Leave cards */
     flex: 1;
     min-width: 280px;
 }
@@ -341,177 +218,4 @@ div.rows-per-page-select label {
     flex: 1;
     padding: 30px;
     overflow-y: auto;
-}
-
-/* Responsive styles */
-@media (max-width: 1100px) {
-    .dashboard-main {
-        padding: 18px 8px 14px 8px;
-    }
-    .card-grid {
-        flex-direction: column;
-        gap: 18px;
-    }
-    .card {
-        min-width: 0;
-    }
-}
-
-@media (max-width: 700px) {
-    .dashboard-main {
-        padding: 8px 2px 16px 2px;
-    }
-    .card {
-        padding: 16px 8px 10px 8px;
-    }
-    .section-title {
-        font-size:1rem;
-    }
-}
-
-/* Make table and list text dark inside cards */
-.card .onboarding-table,
-.card .onboarding-table th,
-.card .onboarding-table td,
-.card .announcement-list,
-.card .leave-list,
-.card .calendar-list,
-.card .avatars,
-.card .payroll-stats,
-.card .payroll-item,
-.card .payroll-item h4,
-.card .amount,
-.card .amount.text-yellow {
-    color: #222 !important;
-}
-
-/* Keep headings and counts white */
-.card .section-title,
-.card .count {
-    color: #fff !important;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.12);
-}
-
-.event.green {
-  background-color: #dcfce7;
-  color: #065f46;
-}
-.event.yellow {
-  background-color: #fef9c3;
-  color: #92400e;
-}
-.event.red {
-  background-color: #fee2e2;
-  color: #b91c1c;
-}
-
-/* Common box style for calendar events and announcements */
-.event,
-.announcement-box {
-  background-color: #decdcd; /* Same color for all */
-  color: rgb(14, 14, 14);
-  padding: 10px 12px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  display: block;
-  box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
-}
-
-/* Section titles */
-.section-title {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-/* Remove list bullet styling */
-.calendar-events,
-.announcement-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.calendar-events,
-.announcement-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.box-item {
-background-color: #decdcd; /* Same color for all */
-  color: rgb(14, 14, 14);
-  padding: 15px 12px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  display: block;
-  box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
-}
-
-.count-box {
-    display: inline-block;
-    /* background-color: #f0f8ff; */
-    /* border: 2px solid #007bff; */
-    border-radius: 8px;
-    padding: 8px 125px;
-    font-size: 6.5rem;
-    font-weight: bold;
-    color: hsl(62, 92%, 55%);
-    text-align: center;
-    margin-bottom: 10px;
-}
-.payroll-search-input {
-    padding: 8px 14px;
-    border-radius: 8px;
-    border: 1.5px solid #e0e7ff;
-    font-size: 15px;
-    width: 240px;
-    background-color: #f8fafc;
-    outline: none;
-    box-shadow: 0 1.5px 6px rgba(30, 64, 175, 0.04);
-    transition: all 0.2s ease;
-}
-
-.payroll-search-input:focus {
-    border-color: #2563eb;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
-    background-color: #ffffff;
-}
-
-.circle-chart {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: conic-gradient(#4e79a7 var(--male-percent), #f28e2b 0);
-  margin: 10px auto;
-}
-
-.legend {
-  margin-top: 10px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.legend-color {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  margin-right: 6px;
-}
-
-.legend-color.male {
-  background-color:  #4b08bf;
-}
-
-.legend-color.female {
-  background-color: #cd1de1;
-}
-
-.legend-label {
-  color: white;
 }
