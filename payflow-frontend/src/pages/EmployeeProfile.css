@@ -1,200 +1,113 @@
+/* Page background with animated gradient */
 .employee-profile-main {
     flex: 1;
-    padding: 30px;
-    background: linear-gradient(135deg, #f0f4ff, #e0e7ff);
+    padding: 20px;
+    /* background: linear-gradient(135deg, #a1c4fd, #c2e9fb); */
     min-height: 100vh;
-    overflow-y: auto;
+    animation: gradientMove 10s ease infinite;
+    background-size: 200% 200%;
 }
 
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Profile card container */
 .profile-card-container {
-    max-width: 1100px;
-    margin: 0 auto;
+    
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
 }
 
+/* Glassmorphism profile card */
 .profile-card {
-    background: linear-gradient(145deg, #ffffff, #f3f4f6);
+    background: linear-gradient(135deg, #9eb5f3, #6d69f3);
     border-radius: 20px;
-    padding: 40px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 2px solid #d1d5db;
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    padding: 30px;
+    width: 100%;
+    max-width: 720px;
+    animation: fadeIn 0.6s ease-in-out;
+    border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-.profile-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
-}
-
+/* Card heading */
 .profile-card h3 {
-    font-size: 30px;
-    color: #4f46e5;
-    margin-bottom: 30px;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: #fff;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    padding: 14px 20px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     gap: 10px;
-    border-bottom: 2px solid #c7d2fe;
-    padding-bottom: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
+/* Icon next to heading */
+.profile-card h3 .icon {
+    font-size: 1.9rem;
+}
+
+/* Profile list */
 .profile-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
-    padding: 0;
     list-style: none;
-    color: #111827;
+    padding: 0;
+    margin: 0;
 }
 
+/* Profile list items with gradient accent */
 .profile-list li {
-    background: linear-gradient(135deg, #eef2ff, #e0e7ff);
-    padding: 18px 22px;
-    border-radius: 15px;
     display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    border-left: 5px solid #6366f1;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    align-items: center;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(240,244,255,0.8));
+    border-radius: 14px;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.3s ease;
 }
 
 .profile-list li:hover {
-    background: linear-gradient(135deg, #dbeafe, #c7d2fe);
-    transform: scale(1.02);
-    cursor: pointer;
+    transform: translateY(-3px);
+    background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(230,240,255,0.95));
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
+/* Icon inside list */
 .profile-list li svg {
+    margin-right: 12px;
+    font-size: 1.3rem;
     color: #4f46e5;
-    font-size: 18px;
-    margin-top: 3px;
+    min-width: 24px;
 }
 
+/* Text inside list */
 .profile-list li span {
-    display: block;
-    line-height: 1.6;
-    font-size: 16px;
+    color: #1f2937;
 }
 
-@media (max-width: 768px) {
-    .profile-card {
-        padding: 24px;
-    }
-
-    .profile-card h3 {
-        font-size: 24px;
-    }
-
-    .profile-list {
-        grid-template-columns: 1fr;
-    }
+.profile-list li b {
+    color: #111827;
 }
 
+/* Loading text */
+.profile-card p {
+    font-size: 1.1rem;
+    text-align: center;
+    color: #334155;
+}
 
-
-/*.profile-list {*/
-/*    list-style: none;*/
-/*    padding: 0;*/
-/*    margin: 0;*/
-/*    font-size: 15px;*/
-/*}*/
-
-/*.profile-list li {*/
-/*    margin-bottom: 8px;*/
-/*    display: flex;*/
-/*    align-items: center;*/
-/*    gap: 8px;*/
-/*}*/
-
-/*.profile-card {*/
-/*    background-color: #fff;*/
-/*    padding: 20px;*/
-/*    border-radius: 12px;*/
-/*    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);*/
-/*    max-width: 900px;*/
-/*    margin: 0 auto;*/
-/*}*/
-/*.employee-profile-main {*/
-/*    flex: 1;*/
-/*    padding: 30px 40px;*/
-/*    background: #f9fbff;*/
-/*    overflow-y: auto;*/
-/*}*/
-
-/*.profile-card-container {*/
-/*    max-width: 1100px;*/
-/*    margin: 0 auto;*/
-/*}*/
-
-/*.profile-card {*/
-/*    background: #fff;*/
-/*    border-radius: 18px;*/
-/*    padding: 30px 40px;*/
-/*    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);*/
-/*    transition: all 0.3s ease;*/
-/*}*/
-
-/*.profile-card:hover {*/
-/*    transform: translateY(-4px);*/
-/*}*/
-
-/*.profile-card h3 {*/
-/*    font-size: 28px;*/
-/*    color: #1f2937;*/
-/*    margin-bottom: 30px;*/
-/*    display: flex;*/
-/*    align-items: center;*/
-/*    gap: 12px;*/
-/*    border-bottom: 2px solid #e0e7ff;*/
-/*    padding-bottom: 12px;*/
-/*}*/
-
-/*.profile-list {*/
-/*    display: grid;*/
-/*    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));*/
-/*    gap: 20px;*/
-/*    padding: 0;*/
-/*    list-style: none;*/
-/*    color: #374151;*/
-/*}*/
-
-/*.profile-list li {*/
-/*    background: #f1f5f9;*/
-/*    padding: 16px 20px;*/
-/*    border-radius: 14px;*/
-/*    display: flex;*/
-/*    align-items: flex-start;*/
-/*    gap: 12px;*/
-/*    border-left: 4px solid #6366f1;*/
-/*    transition: 0.3s ease;*/
-/*}*/
-
-/*.profile-list li:hover {*/
-/*    background-color: #e0e7ff;*/
-/*}*/
-
-/*.profile-list li .icon {*/
-/*    margin-top: 3px;*/
-/*}*/
-
-/*.profile-list li span {*/
-/*    display: block;*/
-/*    line-height: 1.5;*/
-/*}*/
-
-/*@media (max-width: 768px) {*/
-/*    .profile-card {*/
-/*        padding: 20px;*/
-/*    }*/
-
-/*    .profile-card h3 {*/
-/*        font-size: 22px;*/
-/*    }*/
-
-/*    .profile-list {*/
-/*        grid-template-columns: 1fr;*/
-/*    }*/
-
-/*    .profile-list li {*/
-/*        font-size: 15px;*/
-/*    }*/
-/*}*/
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
