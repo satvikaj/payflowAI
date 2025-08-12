@@ -158,9 +158,19 @@
   margin-top: 0.7rem;
   letter-spacing: 0.2px;
 }
+.modal-content {
+  position: relative;
+  background: rgb(39, 37, 37);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
 .modal-close {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
   background: #ff4d4f;
-  color: #fff;
+  color: rgb(33, 30, 30);
   border: none;
   border-radius: 8px;
   font-size: 1rem;
@@ -169,13 +179,13 @@
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(44,44,84,0.08);
   transition: background 0.2s;
-  position: absolute;
-  top: 1.2rem;
-  right: 1.2rem;
+  z-index: 1000;
 }
+
 .modal-close:hover {
-  background: #d9363e;
+  background: #e04445;
 }
+
 
 .modal-card .detail-icon {
   color: #4b47ff;

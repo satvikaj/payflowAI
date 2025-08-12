@@ -10,11 +10,13 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+
 @Service
 public class LeaveService {
 
     @Autowired
     private EmployeeLeaveRepository employeeLeaveRepository;
+    
 
     /**
      * Calculate the number of days between two dates (inclusive)
@@ -22,6 +24,11 @@ public class LeaveService {
     public int calculateLeaveDays(LocalDate fromDate, LocalDate toDate) {
         return (int) ChronoUnit.DAYS.between(fromDate, toDate) + 1;
     }
+
+    public List<EmployeeLeave> getLeavesByEmployee(Long employeeId) {
+        return employeeLeaveRepository.findByEmployeeId(employeeId);
+    }
+
 
     /**
      * Get comprehensive leave statistics for an employee

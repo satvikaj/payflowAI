@@ -95,6 +95,16 @@ public class EmployeeController {
         return employeeRepository.findAll();
     }
 
+//    @Autowired
+//     private LeaveService leaveService;
+
+    @GetMapping("/leaves/{employeeId}")
+    public ResponseEntity<List<EmployeeLeave>> getLeavesByEmployee(@PathVariable Long employeeId) {
+        List<EmployeeLeave> leaves = leaveService.getLeavesByEmployee(employeeId);
+        return ResponseEntity.ok(leaves);
+    }
+
+
     // FIX: Update all leave requests with correct managerId from employee table
     @PostMapping("/leaves/fix-manager-ids")
     public String fixLeaveManagerIds() {

@@ -36,9 +36,9 @@ export default function Sidebar() {
                 <button className={"sidebar-btn" + (isActive('/onboarding') ? ' active' : '')} onClick={() => navigate('/onboarding')}>
                     <FaUserPlus /> Onboardings
                 </button>
-                <button className={"sidebar-btn" + (isActive('/projects') ? ' active' : '')} onClick={() => navigate('/projects')}>
+                {/* <button className={"sidebar-btn" + (isActive('/projects') ? ' active' : '')} onClick={() => navigate('/projects')}>
                     <FaTasks /> Projects
-                </button>
+                </button> */}
                 
                 <button className={"sidebar-btn" + (isActive('/hr-ctc-structures') ? ' active' : '')} onClick={() => navigate('/hr-ctc-structures')}>
                     <FaTable /> CTC Structures
@@ -59,12 +59,12 @@ export default function Sidebar() {
                     <FaUserTimes /> Resignation Requests
                 </button>
                 
-                <button className={"sidebar-btn" + (isActive('/reports') ? ' active' : '')} onClick={() => navigate('/reports')}>
+                {/* <button className={"sidebar-btn" + (isActive('/reports') ? ' active' : '')} onClick={() => navigate('/reports')}>
                     <FaChartBar /> Reports
                 </button>
                 <button className={"sidebar-btn" + (isActive('/settings') ? ' active' : '')} onClick={() => navigate('/settings')}>
                     <FaCog /> Settings
-                </button>
+                </button> */}
             </div>
         </aside>
     );

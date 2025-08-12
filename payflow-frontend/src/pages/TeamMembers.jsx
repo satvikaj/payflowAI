@@ -33,6 +33,7 @@ const TeamMembers = () => {
     const [leaveHistoryMember, setLeaveHistoryMember] = useState(null);
     const [leavePage, setLeavePage] = useState(1);
     const leavesPerPage = 5;
+     const [show, setShow] = useState(true);
     // eslint-disable-next-line no-unused-vars
     const [leaveStatusFilter, setLeaveStatusFilter] = useState('ALL');
     const managerId = localStorage.getItem('managerId');
@@ -248,11 +249,16 @@ const TeamMembers = () => {
                     {showAnalytics && (
                         <div className="modal-overlay" onClick={()=>setShowAnalytics(false)}>
                             <div className="modal-content" style={{maxWidth:'540px'}} onClick={e=>e.stopPropagation()}>
+                               <button onClick={()=>setShowAnalytics(false)} style={{ maxWidth: '540px',  position: 'absolute', top: '10px', right: '10px',fontSize: '24px',color: 'red',background: 'transparent',border: 'none',cursor: 'pointer', }}>
+                                    <FaTimes />
+                                </button>
+
+                                {/* <button className="modal-close" onClick={()=>setShowAnalytics(false)}><FaTimes style={{ fontSize: '20px', color: 'white' }} /></button> */}
                                 <div className="modal-header">
                                     <div style={{display:'flex',alignItems:'center',gap:'0.7rem',fontSize:'1.3rem',fontWeight:600}}>
                                         <FaChartBar style={{color:'#3a3ad6'}}/> Employee Analytics
                                     </div>
-                                    <button className="modal-close" onClick={()=>setShowAnalytics(false)}><FaTimes/></button>
+                                    
                                 </div>
                                 <div className="modal-body" style={{padding:'2rem 1.5rem', maxHeight: '70vh', overflowY: 'auto'}}>
                                     <TeamAnalyticsChart team={team} leaves={leaves} />

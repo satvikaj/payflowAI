@@ -42,7 +42,9 @@ import EmployeeResignation from "./pages/EmployeeResignation";
 import ManagerResignationRequests from "./pages/ManagerResignationRequests";
 import HRResignationRequests from "./pages/HRResignationRequests";
 import HRLeaveRequests from "./pages/HRLeaveRequests";
-// import Login from "./components/Login";
+import LeaveHistory from "./pages/LeaveHistory";
+import UpcomingHolidays from "./components/UpcomingHolidays";
+
 
 
 function App() {
@@ -75,6 +77,8 @@ function App() {
                 <Route path="/employee-resignation" element={<EmployeeResignation />} />
                 <Route path="/employee-overview" element={<EmployeeOverview />} />
                 <Route path="/employee-profile" element={<EmployeeProfile />} />
+                <Route path="/employee-leave-history" element={<LeaveHistory />} />
+                <Route path="/upcoming-holidays" element={<UpcomingHolidays />} />
                 <Route path="/employee-ctc-dashboard" element={<EmployeeCTCDashboard />} />
                 <Route path="/manager-team-payroll" element={<ManagerTeamPayroll />} />
                 <Route path="/hr-ctc-auto-calculator" element={<HRCTCManagement />} />

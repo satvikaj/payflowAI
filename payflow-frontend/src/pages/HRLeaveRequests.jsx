@@ -250,7 +250,7 @@ function HRLeaveRequests() {
                                     },
                                     {
                                         icon: <FaCheckCircle size={32} color="#22c55e" style={{ marginBottom: 8 }} />,
-                                        label: 'Approved',
+                                        label: 'Accepted',
                                         value: approvedRequests,
                                         sub: '',
                                         border: '2px solid #22c55e',
@@ -258,7 +258,7 @@ function HRLeaveRequests() {
                                     },
                                     {
                                         icon: <FaTimesCircle size={32} color="#f87171" style={{ marginBottom: 8 }} />,
-                                        label: 'Rejected',
+                                        label: 'Denied',
                                         value: rejectedRequests,
                                         sub: '',
                                         border: '2px solid #f87171',
@@ -342,8 +342,8 @@ function HRLeaveRequests() {
                                     >
                                         <option value="">All Requests</option>
                                         <option value="PENDING">Pending</option>
-                                        <option value="ACCEPTED">Approved</option>
-                                        <option value="REJECTED">Rejected</option>
+                                        <option value="ACCEPTED">Accepted</option>
+                                        <option value="REJECTED">Denied</option>
                                     </select>
                                 </div>
                             </div>

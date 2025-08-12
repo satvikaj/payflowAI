@@ -164,7 +164,7 @@ function ManagerLeaveRequests() {
                                 },
                                 {
                                     icon: <FaCheckCircle size={32} color="#22c55e" style={{ marginBottom: 8 }} />,
-                                    label: 'Approved',
+                                    label: 'Accepted',
                                     value: approvedRequests,
                                     sub: '',
                                     border: '2px solid #22c55e',
@@ -231,7 +231,7 @@ function ManagerLeaveRequests() {
                                     >
                                         <option value="">All Requests</option>
                                         <option value="PENDING">Pending</option>
-                                        <option value="ACCEPTED">Approved</option>
+                                        <option value="ACCEPTED">Accepted</option>
                                         <option value="REJECTED">Rejected</option>
                                     </select>
                                 </div>
