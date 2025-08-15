@@ -106,7 +106,7 @@ const handleFetchPayslip = async (payslipId) => {
 
       const data = await res.json();
       const { payslip: fullPayslip, employee } = data;
-
+      console.log("Employee", employee)
       // Initialize PDF
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.width;
@@ -123,13 +123,12 @@ const handleFetchPayslip = async (payslipId) => {
       doc.setTextColor(0,0,0);
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
-    //   doc.text("🏢", 35, 42);
-    doc.setFont("times", "bold");
-    doc.setFontSize(18);
-    doc.setFillColor(230, 230, 230); // light gray background
-    doc.rect(25, 25, 25, 25, "F");
-    doc.setTextColor(0, 0, 0);
-    doc.text("PFS", 37, 42, { align: "center" });
+      doc.setFont("times", "bold");
+      doc.setFontSize(18);
+      doc.setFillColor(230, 230, 230); // light gray background
+      doc.rect(25, 25, 25, 25, "F");
+      doc.setTextColor(0, 0, 0);
+      doc.text("PFS", 37, 42, { align: "center" });
 
 
 
@@ -153,13 +152,12 @@ const handleFetchPayslip = async (payslipId) => {
         { align: "center" }
       );
 
-      // Employee details table
       const employeeDetails = [
         ["Employee ID", fullPayslip.employeeId?.toString() || "-", "UAN", "-"],
         ["Employee Name", employee?.fullName || "-", "PF No.", "-"],
-        ["Designation", employee?.designation || "-", "ESI No.", "-"],
+        ["Designation", employee?.role || "-", "ESI No.", "-"],
         ["Department", employee?.department || "-", "Bank", "-"],
-        ["Date of Joining", employee?.joinDate || "-", "Account No.", "-"],
+        ["Date of Joining", employee?.joiningDate || "-", "Account No.", "-"],
       ];
 
       doc.autoTable({
@@ -171,7 +169,7 @@ const handleFetchPayslip = async (payslipId) => {
           fontStyle: "bold",
           halign: "center",
           lineWidth: 0.5,          // Border thickness
-  lineColor: [0, 0, 0]   
+    lineColor: [0, 0, 0]   
         //   fillColor: [240, 240, 240],
         },
         columnStyles: {
@@ -186,9 +184,9 @@ const handleFetchPayslip = async (payslipId) => {
       // Working days section
       let startY = doc.lastAutoTable.finalY + 2;
       const workingDaysData = [
-        ["Gross Wages", "₹61,166.67", "", ""],
-        ["Total Working Days", "22", "Leaves", fullPayslip.numberOfLeaves || "0"],
-        ["LOP Days", "0", "Paid Days", "22"],
+        ["Gross Wages", `₹${fullPayslip.grossSalary || 0}`, "", ""],
+        ["Total Working Days", fullPayslip.workingDays?.toString() || "-", "Leaves", fullPayslip.leaveDays?.toString() || "0"],
+        ["LOP Days", "-", "Paid Days", fullPayslip.presentDays?.toString() || "-"],
       ];
       doc.autoTable({
         startY,
@@ -199,7 +197,7 @@ const handleFetchPayslip = async (payslipId) => {
           fontStyle: "bold",
           halign: "center",
           lineWidth: 0.5,          // Border thickness
-  lineColor: [0, 0, 0]
+    lineColor: [0, 0, 0]
         //   fillColor: [240, 240, 240],
         },
         columnStyles: {
@@ -223,7 +221,7 @@ const handleFetchPayslip = async (payslipId) => {
           halign: "center",
           fillColor: [240, 240, 240],
           lineWidth: 0.5,          // Border thickness
-  lineColor: [0, 0, 0]
+      lineColor: [0, 0, 0]
         },
         columnStyles: {
           0: { cellWidth: 40 },
@@ -237,18 +235,17 @@ const handleFetchPayslip = async (payslipId) => {
       // Earnings / Deductions details
       startY = doc.lastAutoTable.finalY;
       const earningsDeductionsData = [
-        ["Basic", "₹41,666.67", "EPF", "₹500.00"],
-        ["HRA", "₹12,500.00", "ESI", "₹0"],
-        ["Conveyance Allowance", "₹6,666.67", "Professional Tax", "₹4,033.33"],
-        ["Medical Allowance", "₹250", "", ""],
-        ["Other Allowances", "₹333.33", "", ""],
+        ["Basic", `₹${fullPayslip.basicSalary || 0}`, "EPF", `₹${fullPayslip.pfDeduction || 0}`],
+        ["HRA", `₹${fullPayslip.hra || 0}`, "Tax", `₹${fullPayslip.taxDeduction || 0}`],
+        ["Allowances", `₹${fullPayslip.allowances || 0}`, "Other Deductions", `₹${fullPayslip.otherDeductions || 0}`],
+        ["Bonuses", `₹${fullPayslip.bonuses || 0}`, "", ""],
       ];
       doc.autoTable({
         startY,
         body: earningsDeductionsData,
         theme: "grid",
         styles: { fontSize: 9, cellPadding: 3, lineWidth: 0.5,          // Border thickness
-  lineColor: [0, 0, 0]    },
+     lineColor: [0, 0, 0]    },
         columnStyles: {
           0: { cellWidth: 40 },
           1: { cellWidth: 45, halign: "center" },
@@ -265,7 +262,7 @@ const handleFetchPayslip = async (payslipId) => {
         body: [["Total Earnings", "₹61,166.67", "Total Deductions", "₹4,533.33"]],
         theme: "grid",
         styles: { fontSize: 9, fontStyle: "bold", fillColor: [245, 245, 245], lineWidth: 0.5,          // Border thickness
-  lineColor: [0, 0, 0]   },
+      lineColor: [0, 0, 0]   },
         columnStyles: {
           0: { cellWidth: 40 },
           1: { cellWidth: 45, halign: "center" },
@@ -285,9 +282,10 @@ const handleFetchPayslip = async (payslipId) => {
           fontSize: 11,
           fontStyle: "bold",
           halign: "center",
+          
           fillColor: [235, 235, 235],
           lineWidth: 0.5,          // Border thickness
-  lineColor: [0, 0, 0]   
+          lineColor: [0, 0, 0]   
         },
         columnStyles: { 0: { cellWidth: 85 }, 1: { cellWidth: 85 } },
         margin: { left: 20, right: 20 },
