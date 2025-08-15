@@ -1,5 +1,10 @@
 package com.payflowapi.service;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.io.IOException;
+
 import com.payflowapi.entity.Employee;
 import com.payflowapi.entity.Payslip;
 import com.payflowapi.repository.EmployeeRepository;
@@ -25,6 +30,17 @@ public class PayslipService {
 
     @Autowired
     private PayslipCalculationService payslipCalculationService;
+
+    public byte[] getEmployeePayslip(Long employeeId, String month, int year) {
+        try {
+            // Example: static file location
+            Path path = Paths.get("payslips/" + employeeId + "_" + month + "_" + year + ".pdf");
+            return Files.readAllBytes(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     // Generate payslip for an employee
     public Payslip generatePayslip(Long employeeId, String month, Integer year, String generatedBy) {
@@ -128,7 +144,8 @@ public class PayslipService {
         return payslipRepository.findByMonthAndYearOrderByEmployeeIdAsc(month, year);
     }
 
-    // Update payslip status (e.g., when downloaded)
+    // Update payslip status (e.g., when 
+    // ed)
     public Payslip updatePayslipStatus(Long payslipId, String status) {
         Optional<Payslip> payslip = payslipRepository.findById(payslipId);
         if (payslip.isPresent()) {
@@ -215,4 +232,9 @@ public class PayslipService {
             return 0;
         }
     }
+
+    public Optional<Payslip> getPayslipForEmployee(Long employeeId, String month, int year) {
+    return payslipRepository.findByEmployeeIdAndMonthAndYear(employeeId, month, year);
+}
+
 }

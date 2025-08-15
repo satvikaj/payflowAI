@@ -1,4 +1,91 @@
 .notifications-page-container {
+    display: flex;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #e0f7fa, #e1bee7); /* Gradient background */
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Content beside the sidebar */
+.notifications-content {
+    flex: 1;
+    padding: 20px;
+    /* margin-left: 240px;  */
+    color: #333;
+}
+
+/* Title styling */
+.page-title {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #4a148c, #1565c0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* List of notifications */
+.notifications-list {
+    list-style: none;
+    padding: 0;
+}
+
+.notification-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.notification-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+}
+
+/* Priority colors */
+.priority-high {
+    border-left: 6px solid #ef4444;
+}
+.priority-medium {
+    border-left: 6px solid #f59e0b;
+}
+.priority-low {
+    border-left: 6px solid #10b981;
+}
+
+/* Meta info */
+.notification-meta {
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* Back button */
+.back-btn {
+    margin-top: 20px;
+    padding: 10px 18px;
+    background: linear-gradient(90deg, #1565c0, #4a148c);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.back-btn:hover {
+    background: linear-gradient(90deg, #4a148c, #1565c0);
+}
+
+/* No notifications text */
+.no-notifications {
+    font-style: italic;
+    color: #555;
+}
+
+
+/* .notifications-page-container {
   max-width: 700px;
   margin: 40px auto;
   background: #fff;
@@ -36,4 +123,4 @@
 .notification-date {
   color: #718096;
   font-size: 0.98rem;
-}
+} */

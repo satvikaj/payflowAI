@@ -419,7 +419,11 @@ function ManagerDashboard() {
                                 className="manager-dashboard-bell"
                                 onMouseEnter={() => setShowNotif(true)}
                                 onMouseLeave={() => setShowNotif(false)}
-                                onClick={() => navigate('/manager-notifications')}
+                                onClick={() =>
+        navigate('/manager-notifications', {
+            state: { notifications: generateDynamicNotifications() }
+        })
+    }
                                 style={{ cursor: 'pointer', position: 'relative' }}
                             >
                                 <FaBell size={22} />
@@ -445,9 +449,23 @@ function ManagerDashboard() {
                                             ))}
                                         </ul>
                                         <div className="notif-footer">
-                                            <button onClick={() => navigate('/manager-notifications')}>
+                                            {/*<button onClick={() => navigate('/manager-notifications')}>
                                                 View All Notifications ({dynamicNotifications.length})
-                                            </button>
+                                            </button> */}
+                                            <button
+    onClick={() =>
+        navigate('/manager-notifications', {
+            state: { notifications: generateDynamicNotifications() }
+        })
+    }
+>
+    View All Notifications ({dynamicNotifications.length})
+</button>
+
+
+
+
+
                                         </div>
                                     </div>
                                 )}

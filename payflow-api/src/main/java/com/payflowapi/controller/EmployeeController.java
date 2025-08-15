@@ -1,4 +1,32 @@
 package com.payflowapi.controller;
+import com.payflowapi.util.PdfGenerator;
+
+import com.payflowapi.entity.Payslip;
+import com.payflowapi.service.PayslipService;
+
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.ResponseEntity;
+
+import java.io.ByteArrayOutputStream;
+import java.util.Optional;
+import java.time.LocalDate;
+import java.time.format.TextStyle;
+import java.util.Locale;
+
+
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.payflowapi.service.PayslipService;
+
+import java.time.LocalDate;
+import java.time.format.TextStyle;
+import java.util.Locale;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import com.payflowapi.dto.EmployeeDto;
@@ -31,6 +59,108 @@ import java.util.Map;
 @RequestMapping("/api/employee")
 @CrossOrigin(origins = "http://localhost:3000") // Allow frontend access
 public class EmployeeController {
+
+
+    @Autowired
+    private PayslipService payslipService;
+
+    @GetMapping("/ping")
+public String ping() {
+    return "pong";
+}
+
+
+@GetMapping("/payslip/download/{employeeId}")
+public ResponseEntity<Resource> downloadEmployeePayslip(@PathVariable Long employeeId) {
+    // Get current month and year
+    LocalDate now = LocalDate.now();
+    String month = now.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+    int year = now.getYear();
+
+    // Example: fetch from service (replace with your logic)
+    byte[] fileData = payslipService.getEmployeePayslip(employeeId, month, year);
+
+    if (fileData == null || fileData.length == 0) {
+        return ResponseEntity.notFound().build();
+    }
+
+    // Convert to Resource
+    Resource resource = new ByteArrayResource(fileData);
+
+    return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=payslip_" + month + "_" + year + ".pdf")
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(resource);
+}
+
+
+// @GetMapping("/payslip/download/{employeeId}")
+// public ResponseEntity<String> downloadEmployeePayslip(@PathVariable Long employeeId) {
+//     return ResponseEntity.ok("Payslip for employee ID: " + employeeId);
+// }
+
+
+//  @GetMapping("/payslip/download/{employeeId}")
+//     public ResponseEntity<Resource> downloadEmployeePayslip(@PathVariable Long employeeId) {
+
+//         // Get current month and year
+//         LocalDate now = LocalDate.now();
+//         String month = now.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+//         int year = now.getYear();
+
+//         // Fetch payslip file as byte[]
+//         byte[] fileData = payslipService.getEmployeePayslip(employeeId, month, year);
+
+//         if (fileData == null || fileData.length == 0) {
+//             return ResponseEntity.notFound().build();
+//         }
+
+//         // Return as downloadable PDF
+//         Resource resource = new ByteArrayResource(fileData);
+
+//         return ResponseEntity.ok()
+//                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=payslip_" + month + "_" + year + ".pdf")
+//                 .contentType(MediaType.APPLICATION_PDF)
+//                 .body(resource);
+//     }
+
+
+
+   @GetMapping("/payslip/download")
+    public ResponseEntity<Resource> downloadCurrentMonthPayslip() {
+        Long employeeId = getCurrentEmployeeId();
+        String currentMonth = getCurrentMonth();
+        int currentYear = LocalDate.now().getYear();
+
+        Optional<Payslip> optionalPayslip = payslipService.getPayslipForEmployee(employeeId, currentMonth, currentYear);
+
+        if (optionalPayslip.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Payslip payslip = optionalPayslip.get();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PdfGenerator.generatePayslipPDF(payslip, baos);
+
+        ByteArrayResource resource = new ByteArrayResource(baos.toByteArray());
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"Payslip_" + currentMonth + "_" + currentYear + ".pdf\"")
+                .body(resource);
+    }
+
+    // Helper methods
+    private Long getCurrentEmployeeId() {
+        return 1L; // Replace with actual logged-in employee ID logic
+    }
+
+    private String getCurrentMonth() {
+        return LocalDate.now().getMonth().name();
+    }
+
+
     // Accept/Deny leave request and send email notification
     @PostMapping("/leave/{leaveId}/action")
     public ResponseEntity<String> handleLeaveAction(@PathVariable Long leaveId, @RequestBody Map<String, String> body) {
@@ -95,8 +225,7 @@ public class EmployeeController {
         return employeeRepository.findAll();
     }
 
-//    @Autowired
-//     private LeaveService leaveService;
+
 
     @GetMapping("/leaves/{employeeId}")
     public ResponseEntity<List<EmployeeLeave>> getLeavesByEmployee(@PathVariable Long employeeId) {
@@ -275,7 +404,6 @@ public class EmployeeController {
         employee.setRole(dto.getRole());
         // Set position - default to JUNIOR if not provided
         employee.setPosition(dto.getPosition() != null && !dto.getPosition().isBlank() ? dto.getPosition() : "JUNIOR");
-//        employee.setJoiningDate(dto.getJoiningDate());
         if (dto.getJoiningDate() != null && !dto.getJoiningDate().isBlank()) {
             try {
                 employee.setJoiningDate(LocalDate.parse(dto.getJoiningDate())); // expects "yyyy-MM-dd"
@@ -383,6 +511,8 @@ public class EmployeeController {
         return employeeRepository.count();
     }
 
+     
+
     // Endpoint to update employee position, role, and department
     @PutMapping("/update-position")
     public ResponseEntity<?> updateEmployeePosition(@RequestBody EmployeeUpdateDto updateDto) {
@@ -473,4 +603,8 @@ public class EmployeeController {
             return ResponseEntity.badRequest().body("Migration failed: " + e.getMessage());
         }
     }
+
+   
+
+
 }
