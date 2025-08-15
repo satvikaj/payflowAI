@@ -14,7 +14,8 @@ import {
     FaPlus,
     FaEye,
     FaChartBar,
-    FaCalendarAlt
+    FaCalendarAlt,
+    FaPaperPlane
 } from 'react-icons/fa';
 import './ManagerDashboard.css';
 import axios from '../utils/axios';
@@ -31,7 +32,10 @@ function ManagerDashboard() {
     const [loading, setLoading] = useState(true);
     const [showNotif, setShowNotif] = useState(false);
     const [reminder, setReminder] = useState("");
+    const [reminderDate, setReminderDate] = useState("");
+    const [reminderTime, setReminderTime] = useState("");
     const [reminders, setReminders] = useState([]);
+    const [notifyLoading, setNotifyLoading] = useState(null); // id of reminder being notified
     const [activeTab, setActiveTab] = useState('overview');
     
     // Pagination states
@@ -141,40 +145,68 @@ function ManagerDashboard() {
         async function fetchData() {
             setLoading(true);
             try {
-                const [managerRes, teamRes, leavesRes, projectsRes] = await Promise.all([
+                const [managerRes, teamRes, leavesRes, projectsRes, remindersRes] = await Promise.all([
                     axios.get(`/api/manager/${managerId}/details`),
-
                     axios.get(`/api/manager/${managerId}/team`),
                     axios.get(`/api/manager/${managerId}/leaves`),
-                    axios.get(`/api/manager/${managerId}/projects`)
+                    axios.get(`/api/manager/${managerId}/projects`),
+                    axios.get(`/api/reminders/manager/${managerId}`)
                 ]);
                 setManagerName(managerRes.data?.name || 'Manager');
                 setTeam(teamRes.data);
                 setLeaves(leavesRes.data);
                 setProjects(projectsRes.data);
+                setReminders(remindersRes.data || []);
             } catch (err) {
                 console.error("Error fetching manager data", err);
-                // Fallback to localStorage if API fails
                 setManagerName(localStorage.getItem('managerName') || 'Manager');
             }
             setLoading(false);
         }
-        
-        // Load reminders from localStorage
-        const savedReminders = localStorage.getItem(`manager_reminders_${managerId}`);
-        if (savedReminders) {
-            setReminders(JSON.parse(savedReminders));
-        }
-        
         fetchData();
     }, [managerId]);
 
-    // Save reminders to localStorage whenever reminders change
-    useEffect(() => {
-        if (managerId) {
-            localStorage.setItem(`manager_reminders_${managerId}`, JSON.stringify(reminders));
+    // Remove localStorage sync for reminders, now handled by backend
+    // Add reminder handler
+    const handleAddReminder = async (e) => {
+        e.preventDefault();
+        if (!reminder || !reminderDate || !reminderTime) return;
+        try {
+            await axios.post('/api/reminders/add', {
+                managerId,
+                text: reminder,
+                date: reminderDate,
+                time: reminderTime,
+                notified: false
+            });
+            setReminder("");
+            setReminderDate("");
+            setReminderTime("");
+            // Refetch reminders from backend
+            const remindersRes = await axios.get(`/api/reminders/manager/${managerId}`);
+            setReminders(remindersRes.data || []);
+        } catch (err) {
+            console.error('Error adding reminder', err);
         }
-    }, [reminders, managerId]);
+    };
+
+    // Notify employees handler
+    const handleNotifyEmployees = async (reminderObj) => {
+        setNotifyLoading(reminderObj.id);
+        try {
+            // Fetch team member IDs
+            const teamRes = await axios.get(`/api/manager/${managerId}/team`);
+            const employeeIds = teamRes.data.map(emp => emp.id);
+            await axios.post(`/api/reminders/notify/${managerId}`, {
+                employeeIds,
+                reminder: reminderObj
+            });
+            // Optionally update UI or show notification
+        } catch (err) {
+            console.error('Error notifying employees', err);
+        }
+        setNotifyLoading(null);
+    };
 
     const handleReminderAdd = (e) => {
         e.preventDefault();
@@ -182,12 +214,34 @@ function ManagerDashboard() {
             const newReminder = {
                 id: Date.now(),
                 text: reminder,
-                date: new Date().toLocaleString(),
-                createdAt: new Date().toISOString()
+                date: reminderDate && reminderTime ? `${reminderDate} ${reminderTime}` : new Date().toLocaleString(),
+                createdAt: new Date().toISOString(),
+                notified: false
             };
             setReminders([newReminder, ...reminders]);
             setReminder("");
+            setReminderDate("");
+            setReminderTime("");
         }
+    };
+
+    // Notify team: Save reminder to each employee's localStorage reminders
+    const handleNotifyTeam = async (reminderObj) => {
+        setNotifyLoading(reminderObj.id);
+        try {
+            // Get employee IDs from team
+            const employeeIds = team.map(emp => emp.id);
+            await axios.post(`/api/reminders/notify/${managerId}`, {
+                employeeIds,
+                reminder: reminderObj
+            });
+            // Refetch reminders from backend to update notified status
+            const remindersRes = await axios.get(`/api/reminders/manager/${managerId}`);
+            setReminders(remindersRes.data || []);
+        } catch (err) {
+            console.error('Error notifying employees', err);
+        }
+        setNotifyLoading(null);
     };
 
     const handleReminderRemove = (reminderId) => {
@@ -714,31 +768,36 @@ function ManagerDashboard() {
 
                         {activeTab === 'reminders' && (
                             <div className="reminders-section">
-                                <div className="section-header">
+                                <div className="section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <h3>Reminders & Tasks</h3>
-                                    <div className="reminders-count">
+                                    <div 
+                                        className="reminders-count"
+                                        style={{
+                                            background: '#6366f1',
+                                            color: '#fff',
+                                            borderRadius: '20px',
+                                            padding: '6px 18px',
+                                            fontWeight: 500,
+                                            fontSize: '1rem',
+                                            marginLeft: 'auto'
+                                        }}
+                                    >
                                         {reminders.length} active reminder{reminders.length !== 1 ? 's' : ''}
                                     </div>
                                 </div>
                                 
-                                <div className="reminder-form-card">
-                                    <h4><FaPlus /> Add New Reminder</h4>
-                                    <form onSubmit={handleReminderAdd} className="enhanced-reminder-form">
-                                        <div className="form-group">
-                                            <input
-                                                type="text"
-                                                value={reminder}
-                                                onChange={e => setReminder(e.target.value)}
-                                                placeholder="Enter your reminder..."
-                                                className="reminder-input"
-                                                required
-                                                maxLength={200}
-                                            />
-                                            <button type="submit" className="reminder-btn">
+                                <div className="reminder-form-card" style={{ marginTop: 16 }}>
+                                    <h4 style={{ marginBottom: 18 }}><FaPlus /> Add New Reminder</h4>
+                                    <form onSubmit={handleAddReminder}>
+                                        <div className="form-group" style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
+                                            <input type="text" value={reminder} onChange={e => setReminder(e.target.value)} placeholder="Enter your reminder..." className="reminder-input" required maxLength={200} style={{ minWidth: 220, padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: '1rem' }} />
+                                            <input type="date" value={reminderDate} onChange={e => setReminderDate(e.target.value)} className="reminder-date-input" style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: '1rem' }} />
+                                            <input type="time" value={reminderTime} onChange={e => setReminderTime(e.target.value)} className="reminder-time-input" style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: '1rem' }} />
+                                            <button type="submit" className="reminder-btn" style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 24px', fontWeight: 600, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                                                 <FaPlus /> Add Reminder
                                             </button>
                                         </div>
-                                        <div className="form-hint">
+                                        <div className="form-hint" style={{ marginTop: 4 }}>
                                             <small>Tip: Be specific and actionable with your reminders</small>
                                         </div>
                                     </form>
@@ -758,15 +817,46 @@ function ManagerDashboard() {
                                                             <span className="reminder-date">
                                                                 <FaClock /> Created {formatDate(r.createdAt)}
                                                             </span>
+                                                            {r.date && (
+                                                                <span className="reminder-date">
+                                                                    <FaCalendarAlt /> Scheduled: {r.date}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                    <button 
-                                                        className="remove-reminder"
-                                                        onClick={() => handleReminderRemove(r.id)}
-                                                        title="Remove reminder"
-                                                    >
-                                                        ×
-                                                    </button>
+                                                    <div className="reminder-actions" style={{ display: 'flex', gap: 8 }}>
+                                                        <button 
+                                                            className="notify-team-btn"
+                                                            onClick={() => handleNotifyTeam(r)}
+                                                            disabled={r.notified || notifyLoading === r.id}
+                                                            title={r.notified ? "Already notified" : "Notify team"}
+                                                            style={{
+                                                                background: r.notified ? "#10b981" : "#6366f1",
+                                                                color: "#fff",
+                                                                border: "none",
+                                                                borderRadius: "50%",
+                                                                width: 32,
+                                                                height: 32,
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                justifyContent: "center",
+                                                                cursor: r.notified ? "not-allowed" : "pointer"
+                                                            }}
+                                                        >
+                                                            {notifyLoading === r.id ? (
+                                                                <span className="loading-spinner" style={{ width: 18, height: 18 }}></span>
+                                                            ) : (
+                                                                <FaPaperPlane />
+                                                            )}
+                                                        </button>
+                                                        <button 
+                                                            className="remove-reminder"
+                                                            onClick={() => handleReminderRemove(r.id)}
+                                                            title="Remove reminder"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -817,5 +907,4 @@ function ManagerDashboard() {
         </div>
     );
 }
-
 export default ManagerDashboard;
