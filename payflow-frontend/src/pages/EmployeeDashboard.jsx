@@ -9,8 +9,8 @@ import { FaUserCircle, FaBuilding, FaBriefcase, FaCalendarAlt, FaEnvelope, FaPho
 const EmployeeDashboard = () => {
     const [employee, setEmployee] = useState(null);
     const email = localStorage.getItem('userEmail');
-    const employeeId = localStorage.getItem("employeeId");
-    console.log("Employee ID:", employeeId);
+
+    const [reminders, setReminders] = useState([]);
     // Leave state
     const [leaveHistory, setLeaveHistory] = useState([]);
     const [leaveStats, setLeaveStats] = useState({
@@ -357,14 +357,15 @@ const handleFetchPayslip = async (payslipId) => {
             // Fetch employee details
             axios.get(`http://localhost:8080/api/employee?email=${email}`)
                 .then(res => {
+                    let emp = null;
                     if (Array.isArray(res.data) && res.data.length > 0) {
-                        setEmployee(res.data[0]);
-                        // Check payment hold status after getting employee details
-                        checkPaymentHoldStatus(res.data[0].id);
+                        emp = res.data[0];
+                        setEmployee(emp);
+                        checkPaymentHoldStatus(emp.id);
                     } else if (res.data) {
-                        setEmployee(res.data);
-                        // Check payment hold status after getting employee details
-                        checkPaymentHoldStatus(res.data.id);
+                        emp = res.data;
+                        setEmployee(emp);
+                        checkPaymentHoldStatus(emp.id);
                     }
                 })
                 .catch(err => console.error('Failed to fetch employee details', err));
@@ -388,6 +389,20 @@ const handleFetchPayslip = async (payslipId) => {
                 });
         }
     }, [email]);
+
+    useEffect(() => {
+        if (employee && employee.id) {
+            axios.get(`http://localhost:8080/api/reminders/employee/${employee.id}`)
+                .then(remRes => {
+                    setReminders(remRes.data || []);
+                    console.log('Fetched reminders for employee:', employee.id, remRes.data);
+                })
+                .catch(err => {
+                    setReminders([]);
+                    console.error('Error fetching reminders for employee:', employee.id, err);
+                });
+        }
+    }, [employee]);
 
     // Check payment hold status
     const checkPaymentHoldStatus = async (employeeId) => {
@@ -462,6 +477,28 @@ const handleFetchPayslip = async (payslipId) => {
                                 <li>No new notifications.</li>
                             )}
                         </ul>
+                    </div>
+
+                    {/* Reminders Section */}
+                    <div className="dashboard-card reminders-card">
+                        <h3><FaClipboardList /> Reminders</h3>
+                        <ul className="reminders-list">
+                            {reminders.length > 0 ? (
+                                reminders.slice(0, 2).map(rem => (
+                                    <li key={rem.id} className="reminder-item">
+                                        <div className="reminder-content">
+                                            <strong>{rem.text}</strong>
+                                            <p>Date: {formatDate(rem.date)} | Time: {rem.time}</p>
+                                        </div>
+                                    </li>
+                                ))
+                            ) : (
+                                <li>No reminders from your manager.</li>
+                            )}
+                        </ul>
+                        {reminders.length > 2 && (
+                            <button className="quick-link-btn" onClick={() => window.location.href = '/employee-reminders'}>View All</button>
+                        )}
                     </div>
 
                     <div className="dashboard-card leave-card">

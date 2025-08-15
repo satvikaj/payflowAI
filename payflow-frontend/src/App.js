@@ -27,6 +27,7 @@ import TeamMembers from "./pages/TeamMembers";
 import PayrollDashboard from "./pages/PayrollDashboard";
 import SchedulePayrollForm from "./pages/SchedulePayrollForm";
 import PayslipViewer from "./pages/PayslipViewer";
+import EmployeeReminders from './pages/EmployeeReminders';
 import AdminCTCStructures from "./pages/AdminCTCStructures";
 import AdminCTCManagement from "./pages/AdminCTCManagement";
 import EmployeeCTCDashboard from "./pages/EmployeeCTCDashboard";
@@ -67,6 +68,7 @@ function App() {
                 <Route path="/manager/schedule" element={<SchedulePayrollForm />} />
                 <Route path="/employee" element={<EmployeeList />} />
                 <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
+                <Route path="/employee-reminders" element={<EmployeeReminders />} />
                 <Route path="/manager-dashboard" element={<ManagerDashboard />} />
                 <Route path="/manager/:managerId/leaves" element={<ManagerLeaveRequests />} />
                 <Route path="/hr/leave-requests" element={<HRLeaveRequests />} />
