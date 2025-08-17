@@ -94,6 +94,15 @@ public class LeaveService {
         if (leave.getFromDate() != null && leave.getToDate() != null) {
             int days = calculateLeaveDays(leave.getFromDate(), leave.getToDate());
             leave.setLeaveDays(days);
+                // Calculate paid/unpaid split
+                LeaveStatsDto stats = getLeaveStats(leave.getEmployeeId());
+                int paidAvailable = stats.getRemainingPaidLeaves();
+                int paidDays = Math.min(days, paidAvailable);
+                int unpaidDays = days - paidDays;
+                leave.setPaidDays(paidDays);
+                leave.setUnpaidDays(unpaidDays);
+                // Set isPaid for legacy compatibility (true if all days are paid)
+                leave.setIsPaid(unpaidDays == 0);
             employeeLeaveRepository.save(leave);
         }
     }

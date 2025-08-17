@@ -280,12 +280,20 @@ function ManagerLeaveRequests() {
                                                         statusText = 'REJECTED';
                                                     }
 
+                                                    // Helper to count leave days excluding Sundays
+                                                    const countLeaveDaysExcludingSundays = (fromDate, toDate) => {
+                                                        let count = 0;
+                                                        let current = new Date(fromDate);
+                                                        let end = new Date(toDate);
+                                                        while (current <= end) {
+                                                            if (current.getDay() !== 0) count++;
+                                                            current.setDate(current.getDate() + 1);
+                                                        }
+                                                        return count;
+                                                    };
                                                     let duration = '-';
                                                     if (leave.fromDate && leave.toDate) {
-                                                        const from = new Date(leave.fromDate);
-                                                        const to = new Date(leave.toDate);
-                                                        const diff = Math.abs(to - from);
-                                                        duration = (Math.floor(diff / (1000 * 60 * 60 * 24)) + 1) + ' day(s)';
+                                                        duration = countLeaveDaysExcludingSundays(leave.fromDate, leave.toDate) + ' day(s)';
                                                     }
 
                                                     // Format dates
@@ -303,16 +311,32 @@ function ManagerLeaveRequests() {
                                                             <td>{formattedTo}</td>
                                                             <td style={{ fontWeight: 600 }}>{duration}</td>
                                                             <td>
-                                                                <span style={{
-                                                                    padding: '4px 8px',
-                                                                    borderRadius: '4px',
-                                                                    fontSize: '12px',
-                                                                    fontWeight: '500',
-                                                                    background: leave.isPaid === false ? '#fef3c7' : '#dbeafe',
-                                                                    color: leave.isPaid === false ? '#d97706' : '#1d4ed8'
-                                                                }}>
-                                                                    {leave.isPaid === false ? 'Unpaid' : 'Paid'}
-                                                                </span>
+                                                                {(() => {
+                                                                    let leaveTypeDisplay = '';
+                                                                    if (typeof leave.paidDays === 'number' && typeof leave.unpaidDays === 'number') {
+                                                                        if (leave.paidDays > 0 && leave.unpaidDays > 0) {
+                                                                            leaveTypeDisplay = `Paid/Unpaid (${leave.paidDays}/${leave.unpaidDays})`;
+                                                                        } else if (leave.paidDays > 0) {
+                                                                            leaveTypeDisplay = 'Paid';
+                                                                        } else if (leave.unpaidDays > 0) {
+                                                                            leaveTypeDisplay = 'Unpaid';
+                                                                        }
+                                                                    } else {
+                                                                        leaveTypeDisplay = leave.isPaid === false ? 'Unpaid' : 'Paid';
+                                                                    }
+                                                                    return (
+                                                                        <span style={{
+                                                                            padding: '4px 8px',
+                                                                            borderRadius: '4px',
+                                                                            fontSize: '12px',
+                                                                            fontWeight: '500',
+                                                                            background: leaveTypeDisplay.includes('Unpaid') ? '#fef3c7' : '#dbeafe',
+                                                                            color: leaveTypeDisplay.includes('Unpaid') ? '#d97706' : '#1d4ed8'
+                                                                        }}>
+                                                                            {leaveTypeDisplay}
+                                                                        </span>
+                                                                    );
+                                                                })()}
                                                             </td>
                                                             <td>{leave.type || 'Annual'}</td>
                                                             <td style={{ maxWidth: '200px', wordBreak: 'break-word' }}>{leave.reason || '-'}</td>

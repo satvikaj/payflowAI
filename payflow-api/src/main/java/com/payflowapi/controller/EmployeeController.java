@@ -171,7 +171,8 @@ public ResponseEntity<Resource> downloadEmployeePayslip(@PathVariable Long emplo
             return ResponseEntity.badRequest().body("Leave request not found");
         if ("ACCEPT".equalsIgnoreCase(action)) {
             leave.setStatus("ACCEPTED");
-            employeeLeaveRepository.save(leave);
+            // Update leave days and paid/unpaid split
+            leaveService.updateLeaveDays(leave);
             // Send email to employee
             Employee emp = employeeRepository.findById(leave.getEmployeeId()).orElse(null);
             if (emp != null) {
@@ -274,6 +275,7 @@ public ResponseEntity<Resource> downloadEmployeePayslip(@PathVariable Long emplo
         if (employee == null) {
             return List.of();
         }
+        // Return all leave fields including paidDays/unpaidDays for frontend
         return employeeLeaveRepository.findByEmployeeId(employee.getId());
     }
 
