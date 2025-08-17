@@ -15,6 +15,35 @@ const EmployeeCTCDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('ctc');
     const [message, setMessage] = useState({ type: '', text: '' });
+    // Bank details state
+    const [bankDetails, setBankDetails] = useState({
+        uan: '',
+        pfNo: '',
+        esiNo: '',
+        bank: '',
+        accountNo: ''
+    });
+    const [showBankModal, setShowBankModal] = useState(false);
+    // Fetch bank details from backend on mount
+    useEffect(() => {
+        if (!employeeId) return;
+        axios.get(`/api/employee/${employeeId}/bank-details`)
+            .then(res => {
+                if (res.data) setBankDetails(res.data);
+            })
+            .catch(() => setBankDetails({ uan: '', pfNo: '', esiNo: '', bank: '', accountNo: '' }));
+    }, [employeeId]);
+    // Save bank details to backend
+    const handleBankDetailsSave = async () => {
+        if (!employeeId) return;
+        try {
+            await axios.put(`/api/employee/${employeeId}/bank-details`, bankDetails);
+            setShowBankModal(false);
+            showMessage('success', 'Bank details saved!');
+        } catch (err) {
+            showMessage('error', 'Failed to save bank details');
+        }
+    };
 
     console.log('Employee CTC Dashboard - Employee ID:', employeeId); // Debug log
 
@@ -119,48 +148,75 @@ const EmployeeCTCDashboard = () => {
             // Generate PDF using jsPDF
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.width;
+                const payslipCycle = fullPayslip.cycle || 'August 2025';
             
-            // Outer border for entire document
-            doc.setLineWidth(2);
-            doc.rect(10, 10, pageWidth - 20, 250);
-            
-            // Company Header Section with border
-            doc.setLineWidth(1);
-            doc.rect(10, 10, pageWidth - 20, 50);
-            
-            // Company logo placeholder (building icon area)
-            doc.setFillColor(70, 130, 180);
-            doc.rect(15, 20, 20, 25, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'bold');
-            doc.text('🏢', 23, 35);
-            
-            // Company name and details
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(20);
-            doc.setFont('helvetica', 'bold');
-            doc.text('PayFlow Solutions', pageWidth / 2, 30, { align: 'center' });
-            
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('123 Business District, Tech City, State - 123456', pageWidth / 2, 40, { align: 'center' });
-            
-            // Pay Slip title
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text(`Pay Slip for ${fullPayslip.cycle}`, pageWidth / 2, 52, { align: 'center' });
+                // Outer border for entire document
+                doc.setLineWidth(2);
+                doc.rect(10, 10, pageWidth - 20, 250);
+                
+                // Company Header Section with border (new professional style)
+                doc.setLineWidth(1);
+                doc.rect(15, 15, pageWidth - 30, 50);
+                
+                // Logo box (gray with blue bottom, 'PFS' text)
+                doc.setFillColor(230, 230, 230); // light gray
+                doc.rect(25, 25, 25, 25, 'F');
+                doc.setFillColor(70, 130, 180); // blue bottom
+                doc.rect(25, 50, 25, 5, 'F');
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(18);
+                doc.setFont('times', 'bold');
+                doc.text('PFS', 37, 42, { align: 'center' });
+                
+                // Company name and details (centered)
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(16);
+                doc.setFont('times', 'bold');
+                doc.text('PayFlow Solutions', pageWidth / 2, 35, { align: 'center' });
+                doc.setFontSize(9);
+                doc.setFont('times', 'normal');
+                doc.text('123 Business District, Tech City, State - 123456', pageWidth / 2, 45, { align: 'center' });
+                
+                // Pay Slip title with fallback for cycle/month (bold, centered)
+                doc.setFontSize(12);
+                doc.setFont('times', 'bold');
+                doc.text(`Pay Slip for ${payslipCycle}`, pageWidth / 2, 57, { align: 'center' });
             
             // Employee Details Table
             let currentY = 70;
             const employeeData = [
-                ['Employee ID', fullPayslip.employeeId?.toString() || '7', 'UAN', '-'],
-                ['Employee Name', employee?.fullName || employee?.firstName || 'Employee', 'PF No.', '-'],
-                ['Designation', employee?.designation || 'Employee', 'ESI No.', '-'],
-                ['Department', employee?.department || 'General', 'Bank', '-'],
-                ['Date of Joining', employee?.joinDate || '2025-07-30', 'Account No.', '-']
+                ['Employee ID', fullPayslip.employeeId?.toString() || '7', 'UAN', bankDetails.uan || '-'],
+                ['Employee Name', employee?.fullName || employee?.firstName || 'Employee', 'PF No.', bankDetails.pfNo || '-'],
+                ['Designation', employee?.designation || 'Employee', 'ESI No.', bankDetails.esiNo || '-'],
+                ['Department', employee?.department || 'General', 'Bank', bankDetails.bank || '-'],
+                ['Date of Joining', employee?.joinDate || '2025-07-30', 'Account No.', bankDetails.accountNo || '-']
             ];
             
+            // Company Header Section with border (admin/HR/manager style)
+            doc.setLineWidth(1);
+            doc.rect(15, 15, pageWidth - 30, 50);
+            // Logo box (gray with blue bottom, 'PFS' text)
+            doc.setFillColor(230, 230, 230); // light gray
+            doc.rect(25, 25, 25, 25, 'F');
+            doc.setFillColor(70, 130, 180); // blue bottom
+            doc.rect(25, 50, 25, 5, 'F');
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(18);
+            doc.setFont('times', 'bold');
+            doc.text('PFS', 37, 42, { align: 'center' });
+            // Company name and details (centered)
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(16);
+            doc.setFont('times', 'bold');
+            doc.text('PayFlow Solutions', pageWidth / 2, 35, { align: 'center' });
+            doc.setFontSize(9);
+            doc.setFont('times', 'normal');
+            doc.text('123 Business District, Tech City, State - 123456', pageWidth / 2, 45, { align: 'center' });
+            // Pay Slip title with fallback for cycle/month (bold, centered)
+            doc.setFontSize(12);
+            doc.setFont('times', 'bold');
+            doc.text(`Pay Slip for ${payslipCycle}`, pageWidth / 2, 57, { align: 'center' });
+
             doc.autoTable({
                 startY: currentY,
                 head: [],
@@ -179,39 +235,6 @@ const EmployeeCTCDashboard = () => {
                     2: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
                     3: { cellWidth: 50, halign: 'center' }
                 }
-                        });
-            
-            // Working Days Section
-            currentY = doc.lastAutoTable.finalY + 5;
-            
-            // Use dynamic data or fallback to sample values
-            const baseSalary = fullPayslip.baseSalary || 41666.67;
-            const grossWages = fullPayslip.grossSalary || 61166.67;
-            
-            const workingDaysData = [
-                ['Gross Wages', `₹${grossWages.toLocaleString()}`, '', ''],
-                ['Total Working Days', '22', 'Leaves', fullPayslip.numberOfLeaves?.toString() || '0'],
-                ['LOP Days', '0', 'Paid Days', '22']
-            ];
-            
-            doc.autoTable({
-                startY: currentY,
-                head: [],
-                body: workingDaysData,
-                theme: 'grid',
-                styles: { 
-                    fontSize: 10,
-                    cellPadding: 3,
-                    lineColor: [0, 0, 0],
-                    lineWidth: 0.5,
-                    halign: 'center' // Center all cells by default
-                    },
-                    columnStyles: {
-                        0: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
-                        1: { cellWidth: 50, halign: 'center' },
-                        2: { cellWidth: 40, fontStyle: 'bold', halign: 'center' },
-                        3: { cellWidth: 50, halign: 'center' }
-                    }
             });
             
             // Earnings and Deductions Section
@@ -259,6 +282,7 @@ const EmployeeCTCDashboard = () => {
             
             // Earnings and Deductions data
             currentY = doc.lastAutoTable.finalY;
+            const baseSalary = fullPayslip.baseSalary || 41666.67;
             const earningsDeductionsData = [
                 ['Basic', `₹${baseSalary.toLocaleString()}`, 'EPF', `₹${epf.toLocaleString()}`],
                 ['HRA', `₹${hra.toLocaleString()}`, 'ESI', `₹${esi.toLocaleString()}`],
@@ -339,7 +363,7 @@ const EmployeeCTCDashboard = () => {
                 }
             });
 
-            doc.save(`Payslip-${employee?.fullName || fullPayslip.employeeId}-${fullPayslip.cycle}.pdf`);
+            doc.save(`Payslip-${employee?.fullName || fullPayslip.employeeId}-${payslipCycle}.pdf`);
             
             showMessage('success', 'Payslip downloaded successfully');
             
@@ -392,10 +416,117 @@ const EmployeeCTCDashboard = () => {
         <div className="employee-dashboard-layout">
             <EmployeeSidebar />
             <div className="employee-ctc-dashboard">
-                <div className="dashboard-header">
-                    <h1>My Compensation & Payroll</h1>
-                    <p>View your CTC details and download payslips</p>
+                <div className="dashboard-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', position: 'relative' }}>
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+                        <h1 style={{ textAlign: 'center', marginBottom: '0.5rem', width: '100%' }}>My Compensation & Payroll</h1>
+                        <p style={{ textAlign: 'center', marginTop: 0, width: '100%' }}>View your CTC details and download payslips</p>
+                    </div>
+                    <button
+                        className="bank-details-btn"
+                        onClick={() => setShowBankModal(true)}
+                        style={{
+                            position: 'absolute',
+                            right: '0',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '24px',
+                            padding: '10px 24px',
+                            fontWeight: 'bold',
+                            fontSize: '1rem',
+                            boxShadow: '0 2px 8px rgba(123,47,242,0.08)',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s, box-shadow 0.2s',
+                            marginLeft: 'auto',
+                            zIndex: 2
+                        }}
+                        onMouseOver={e => e.currentTarget.style.background = 'linear-gradient(90deg, #f357a8 0%, #7b2ff2 100%)'}
+                        onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)'}
+                    >
+                        Add/Edit Bank Details
+                    </button>
                 </div>
+            {/* Bank Details Modal */}
+            {showBankModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    background: 'rgba(60, 0, 100, 0.18)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <div style={{
+                        background: '#fff',
+                        borderRadius: '18px',
+                        boxShadow: '0 8px 32px rgba(123,47,242,0.18)',
+                        padding: '2rem 2.5rem',
+                        minWidth: '340px',
+                        maxWidth: '90vw',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1.2rem',
+                        position: 'relative'
+                    }}>
+                        <h2 style={{
+                            margin: 0,
+                            fontSize: '1.35rem',
+                            fontWeight: 700,
+                            color: '#7b2ff2',
+                            textAlign: 'center'
+                        }}>Bank & Statutory Details</h2>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                            <label style={{ fontWeight: 500, color: '#333' }}>UAN:
+                                <input type="text" value={bankDetails.uan} onChange={e => setBankDetails({ ...bankDetails, uan: e.target.value })} style={{ marginLeft: '0.5rem', borderRadius: '8px', border: '1px solid #ccc', padding: '7px 12px', width: '70%' }} />
+                            </label>
+                            <label style={{ fontWeight: 500, color: '#333' }}>PF No.:
+                                <input type="text" value={bankDetails.pfNo} onChange={e => setBankDetails({ ...bankDetails, pfNo: e.target.value })} style={{ marginLeft: '0.5rem', borderRadius: '8px', border: '1px solid #ccc', padding: '7px 12px', width: '70%' }} />
+                            </label>
+                            <label style={{ fontWeight: 500, color: '#333' }}>ESI No.:
+                                <input type="text" value={bankDetails.esiNo} onChange={e => setBankDetails({ ...bankDetails, esiNo: e.target.value })} style={{ marginLeft: '0.5rem', borderRadius: '8px', border: '1px solid #ccc', padding: '7px 12px', width: '70%' }} />
+                            </label>
+                            <label style={{ fontWeight: 500, color: '#333' }}>Bank:
+                                <input type="text" value={bankDetails.bank} onChange={e => setBankDetails({ ...bankDetails, bank: e.target.value })} style={{ marginLeft: '0.5rem', borderRadius: '8px', border: '1px solid #ccc', padding: '7px 12px', width: '70%' }} />
+                            </label>
+                            <label style={{ fontWeight: 500, color: '#333' }}>Account No.:
+                                <input type="text" value={bankDetails.accountNo} onChange={e => setBankDetails({ ...bankDetails, accountNo: e.target.value })} style={{ marginLeft: '0.5rem', borderRadius: '8px', border: '1px solid #ccc', padding: '7px 12px', width: '70%' }} />
+                            </label>
+                        </div>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '0.5rem' }}>
+                            <button onClick={handleBankDetailsSave} style={{
+                                background: 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '18px',
+                                padding: '8px 22px',
+                                fontWeight: 'bold',
+                                fontSize: '1rem',
+                                boxShadow: '0 2px 8px rgba(123,47,242,0.08)',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s, box-shadow 0.2s'
+                            }}>Save</button>
+                            <button onClick={() => setShowBankModal(false)} style={{
+                                background: '#eee',
+                                color: '#7b2ff2',
+                                border: 'none',
+                                borderRadius: '18px',
+                                padding: '8px 22px',
+                                fontWeight: 'bold',
+                                fontSize: '1rem',
+                                boxShadow: '0 2px 8px rgba(123,47,242,0.08)',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s, box-shadow 0.2s'
+                            }}>Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {message.text && (
                 <div className={`message ${message.type}`}>

@@ -130,51 +130,55 @@ const ManagerTeamPayroll = () => {
             const response = await axios.get(`/api/ctc-management/payslip/download/${payslipId}`);
             const { payslip: fullPayslip, employee } = response.data;
 
+            // Fetch bank details for employee
+            let bankDetails = { uan: '-', pfNo: '-', esiNo: '-', bank: '-', accountNo: '-' };
+            if (fullPayslip.employeeId) {
+                try {
+                    const bankRes = await axios.get(`/api/employee/${fullPayslip.employeeId}/bank-details`);
+                    if (bankRes.data) bankDetails = bankRes.data;
+                } catch {}
+            }
+
             // Generate PDF using jsPDF
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.width;
             
-            // Outer border for entire document
-            doc.setLineWidth(2);
-            doc.rect(10, 10, pageWidth - 20, 250);
-            
-            // Company Header Section with border
+            // Company Header Section with border (admin/HR style)
             doc.setLineWidth(1);
-            doc.rect(10, 10, pageWidth - 20, 50);
-            
-            // Company logo placeholder (building icon area)
-            doc.setFillColor(70, 130, 180);
-            doc.rect(15, 20, 20, 25, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'bold');
-            doc.text('🏢', 23, 35);
-            
-            // Company name and details
+            doc.rect(15, 15, pageWidth - 30, 50);
+            // Logo box (gray with blue bottom, 'PFS' text)
+            doc.setFillColor(230, 230, 230); // light gray
+            doc.rect(25, 25, 25, 25, 'F');
+            doc.setFillColor(70, 130, 180); // blue bottom
+            doc.rect(25, 50, 25, 5, 'F');
             doc.setTextColor(0, 0, 0);
-            doc.setFontSize(20);
-            doc.setFont('helvetica', 'bold');
-            doc.text('PayFlow Solutions', pageWidth / 2, 30, { align: 'center' });
-            
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('123 Business District, Tech City, State - 123456', pageWidth / 2, 40, { align: 'center' });
-            
-            // Pay Slip title
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text(`Pay Slip for ${fullPayslip.cycle}`, pageWidth / 2, 52, { align: 'center' });
+            doc.setFontSize(18);
+            doc.setFont('times', 'bold');
+            doc.text('PFS', 37, 42, { align: 'center' });
+            // Company name and details (centered)
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(16);
+            doc.setFont('times', 'bold');
+            doc.text('PayFlow Solutions', pageWidth / 2, 35, { align: 'center' });
+            doc.setFontSize(9);
+            doc.setFont('times', 'normal');
+            doc.text('123 Business District, Tech City, State - 123456', pageWidth / 2, 45, { align: 'center' });
+            // Pay Slip title with fallback for cycle/month (bold, centered)
+            const payslipCycle = fullPayslip.cycle || 'August 2025';
+            doc.setFontSize(12);
+            doc.setFont('times', 'bold');
+            doc.text(`Pay Slip for ${payslipCycle}`, pageWidth / 2, 57, { align: 'center' });
             
             // Employee Details Table
             let currentY = 70;
             const employeeData = [
-                ['Employee ID', fullPayslip.employeeId?.toString() || '7', 'UAN', '-'],
-                ['Employee Name', employee?.fullName || employee?.firstName || getEmployeeName(fullPayslip.employeeId), 'PF No.', '-'],
-                ['Designation', employee?.designation || 'Employee', 'ESI No.', '-'],
-                ['Department', employee?.department || 'General', 'Bank', '-'],
-                ['Date of Joining', employee?.joinDate || '2025-07-30', 'Account No.', '-']
+                ['Employee ID', fullPayslip.employeeId?.toString() || '7', 'UAN', bankDetails.uan || '-'],
+                ['Employee Name', employee?.fullName || employee?.firstName || getEmployeeName(fullPayslip.employeeId), 'PF No.', bankDetails.pfNo || '-'],
+                ['Designation', employee?.designation || 'Employee', 'ESI No.', bankDetails.esiNo || '-'],
+                ['Department', employee?.department || 'General', 'Bank', bankDetails.bank || '-'],
+                ['Date of Joining', employee?.joinDate || '2025-07-30', 'Account No.', bankDetails.accountNo || '-']
             ];
-            
+
             doc.autoTable({
                 startY: currentY,
                 head: [],

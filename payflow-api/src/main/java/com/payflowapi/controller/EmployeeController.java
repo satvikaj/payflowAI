@@ -59,6 +59,37 @@ import java.util.Map;
 @RequestMapping("/api/employee")
 @CrossOrigin(origins = "http://localhost:3000") // Allow frontend access
 public class EmployeeController {
+    // Update bank details for an employee
+    @PutMapping("/{employeeId}/bank-details")
+    public ResponseEntity<?> updateBankDetails(@PathVariable Long employeeId, @RequestBody Map<String, String> details) {
+        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee == null) {
+            return ResponseEntity.badRequest().body("Employee not found");
+        }
+        employee.setUan(details.getOrDefault("uan", ""));
+        employee.setPfNo(details.getOrDefault("pfNo", ""));
+        employee.setEsiNo(details.getOrDefault("esiNo", ""));
+        employee.setBank(details.getOrDefault("bank", ""));
+        employee.setAccountNo(details.getOrDefault("accountNo", ""));
+        employeeRepository.save(employee);
+        return ResponseEntity.ok("Bank details updated successfully");
+    }
+
+    // Fetch bank details for an employee
+    @GetMapping("/{employeeId}/bank-details")
+    public ResponseEntity<?> getBankDetails(@PathVariable Long employeeId) {
+        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee == null) {
+            return ResponseEntity.badRequest().body("Employee not found");
+        }
+        Map<String, String> details = new java.util.HashMap<>();
+        details.put("uan", employee.getUan());
+        details.put("pfNo", employee.getPfNo());
+        details.put("esiNo", employee.getEsiNo());
+        details.put("bank", employee.getBank());
+        details.put("accountNo", employee.getAccountNo());
+        return ResponseEntity.ok(details);
+    }
 
 
     @Autowired
