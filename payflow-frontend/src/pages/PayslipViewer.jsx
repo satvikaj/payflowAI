@@ -128,14 +128,23 @@ function PayslipViewer() {
             // Employee details section - Professional table
             let startY = 75;
             
+            // Fetch bank details for employee
+            let bankDetails = { uan: '-', pfNo: '-', esiNo: '-', bank: '-', accountNo: '-' };
+            if (fullPayslip.employeeId) {
+                try {
+                    const bankRes = await axios.get(`/api/employee/${fullPayslip.employeeId}/bank-details`);
+                    if (bankRes.data) bankDetails = bankRes.data;
+                } catch {}
+            }
+
             const employeeDetails = [
-                ['Employee ID', fullPayslip.employeeId?.toString() || '7', 'UAN', '-'],
-                ['Employee Name', employee?.fullName || employee?.firstName || 'Hari', 'PF No.', '-'],
-                ['Designation', employee?.designation || 'SDE', 'ESI No.', '-'],
-                ['Department', employee?.department || 'IT', 'Bank', '-'],
-                ['Date of Joining', employee?.joinDate || '2025-07-30', 'Account No.', '-']
+                ['Employee ID', fullPayslip.employeeId?.toString() || '7', 'UAN', bankDetails.uan || '-'],
+                ['Employee Name', employee?.fullName || employee?.firstName || 'Hari', 'PF No.', bankDetails.pfNo || '-'],
+                ['Designation', employee?.designation || 'SDE', 'ESI No.', bankDetails.esiNo || '-'],
+                ['Department', employee?.department || 'IT', 'Bank', bankDetails.bank || '-'],
+                ['Date of Joining', employee?.joinDate || '2025-07-30', 'Account No.', bankDetails.accountNo || '-']
             ];
-            
+
             doc.autoTable({
                 startY: startY,
                 body: employeeDetails,

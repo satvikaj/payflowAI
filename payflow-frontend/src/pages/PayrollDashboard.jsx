@@ -313,35 +313,49 @@ const PayrollDashboard = () => {
                    { align: "center" }
                  );
            
-                 const employeeDetails = [
-                   ["Employee ID", fullPayslip.employeeId?.toString() || "-", "UAN", "-"],
-                   ["Employee Name", employee?.fullName || "-", "PF No.", "-"],
-                   ["Designation", employee?.role || "-", "ESI No.", "-"],
-                   ["Department", employee?.department || "-", "Bank", "-"],
-                   ["Date of Joining", employee?.joiningDate || "-", "Account No.", "-"],
-                 ];
-           
-                 doc.autoTable({
-                   startY: 75,
-                   body: employeeDetails,
-                   theme: "grid",
-                   styles: {
-                     fontSize: 10,
-                     fontStyle: "bold",
-                     
-                     halign: "center",
-                     lineWidth: 0.5,          // Border thickness
-             lineColor: [0, 0, 0]   
-                   //   fillColor: [240, 240, 240],
-                   },
-                   columnStyles: {
-                     0: { cellWidth: 40, fontStyle: "bold" },
-                     1: { cellWidth: 45 },
-                     2: { cellWidth: 40, fontStyle: "bold" },
-                     3: { cellWidth: 45 },
-                   },
-                   margin: { left: 20, right: 20 },
-                 });
+                                 // Fetch bank details for employee
+                                 let bankDetails = { uan: '-', pfNo: '-', esiNo: '-', bank: '-', accountNo: '-' };
+                                 try {
+                                     const bankRes = await fetch(`http://localhost:8080/api/employee/${fullPayslip.employeeId}/bank-details`);
+                                     if (bankRes.ok) {
+                                         const bankData = await bankRes.json();
+                                         bankDetails = {
+                                             uan: bankData.uan || '-',
+                                             pfNo: bankData.pfNo || '-',
+                                             esiNo: bankData.esiNo || '-',
+                                             bank: bankData.bank || '-',
+                                             accountNo: bankData.accountNo || '-'
+                                         };
+                                     }
+                                 } catch {}
+
+                                 const employeeDetails = [
+                                     ["Employee ID", fullPayslip.employeeId?.toString() || "-", "UAN", bankDetails.uan],
+                                     ["Employee Name", employee?.fullName || "-", "PF No.", bankDetails.pfNo],
+                                     ["Designation", employee?.role || "-", "ESI No.", bankDetails.esiNo],
+                                     ["Department", employee?.department || "-", "Bank", bankDetails.bank],
+                                     ["Date of Joining", employee?.joiningDate || "-", "Account No.", bankDetails.accountNo],
+                                 ];
+
+                                 doc.autoTable({
+                                     startY: 75,
+                                     body: employeeDetails,
+                                     theme: "grid",
+                                     styles: {
+                                         fontSize: 10,
+                                         fontStyle: "bold",
+                                         halign: "center",
+                                         lineWidth: 0.5,
+                                         lineColor: [0, 0, 0]
+                                     },
+                                     columnStyles: {
+                                         0: { cellWidth: 40, fontStyle: "bold" },
+                                         1: { cellWidth: 45 },
+                                         2: { cellWidth: 40, fontStyle: "bold" },
+                                         3: { cellWidth: 45 },
+                                     },
+                                     margin: { left: 20, right: 20 },
+                                 });
            
                  // Working days section
                  let startY = doc.lastAutoTable.finalY + 2;
