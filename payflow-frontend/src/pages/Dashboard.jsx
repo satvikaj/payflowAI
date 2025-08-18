@@ -1,14 +1,56 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Pie } from 'react-chartjs-2';
+import { Chart, ArcElement, Tooltip, Legend } from 'chart.js';
 import { FaBullhorn, FaListAlt, FaCalendarAlt, FaClock, FaTimes } from 'react-icons/fa';
 import './Dashboard.css';
 import Sidebar from "../components/Sidebar";
 import Header from "./Header";
 import axios from '../utils/axios';
 
+Chart.register(ArcElement, Tooltip, Legend);
+
 export default function Dashboard() {
+    const navigate = useNavigate();
     // State for all dynamic sections
     const [employeeCount, setEmployeeCount] = useState(0);
     const [genderStats, setGenderStats] = useState({ male: 0, female: 0 });
+    const [pieLoaded, setPieLoaded] = useState(false);
+    // Pie chart data for gender stats
+    const pieData = {
+        labels: ['Male', 'Female'],
+        datasets: [
+            {
+                data: [genderStats.male, genderStats.female],
+                backgroundColor: [
+                    '#6366f1', // Modern blue
+                    '#FFD600', // Modern pink
+                ],
+                borderColor: [
+                    '#6366f1',
+                    '#FFD600',
+                ],
+                borderWidth: 3,
+            },
+        ],
+    };
+    const pieOptions = {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false,
+            },
+            tooltip: {
+                enabled: true,
+            },
+        },
+        animation: {
+            animateRotate: true,
+            duration: 1200,
+            easing: 'easeOutBounce',
+            onComplete: () => setPieLoaded(true),
+        },
+    };
     const [announcements, setAnnouncements] = useState([]);
     const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
     const [onLeave, setOnLeave] = useState([]);
@@ -164,38 +206,40 @@ export default function Dashboard() {
     }, []);
 
     return (
-    <div className="dashboard-layout" style={{ minHeight: '100vh', background: 'linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%)', fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif', color: '#222', boxSizing: 'border-box' }}>
-            <Sidebar />
-            <main className="dashboard-main" style={{ padding: '40px 48px 48px 48px', maxWidth: 1400, margin: '0 auto', borderRadius: '24px', background: 'rgba(255,255,255,0.85)', boxShadow: '0 8px 32px rgba(44,62,80,0.10)' }}>
-                {/* Styled Welcome Message */}
-                <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 40 }}>
-                    <div style={{
-                        background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)',
-                        color: '#fff',
-                        borderRadius: 20,
-                        boxShadow: '0 8px 32px rgba(30,64,175,0.13)',
-                        padding: '28px 56px',
-                        fontSize: '2.5rem',
-                        fontWeight: 900,
-                        letterSpacing: '0.03em',
-                        textShadow: '0 2px 12px rgba(30,64,175,0.13)',
-                        border: '2.5px solid #e0e7ff',
-                        display: 'inline-block',
-                        marginTop: 12,
-                        transition: 'box-shadow 0.22s, transform 0.18s',
-                        textAlign: 'center',
-                        position: 'relative',
-                        overflow: 'hidden'
-                    }}>
-                        <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 18, justifyContent: 'center' }}>
-                            <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 10 }}>
-                                <circle cx="22" cy="22" r="22" fill="#e0e7ff"/>
-                                <path d="M22 13C19.2386 13 17 15.2386 17 18C17 20.7614 19.2386 23 22 23C24.7614 23 27 20.7614 27 18C27 15.2386 24.7614 13 22 13ZM22 21C20.3431 21 19 19.6569 19 18C19 16.3431 20.3431 15 22 15C23.6569 15 25 16.3431 25 18C25 19.6569 23.6569 21 22 21Z" fill="#6366f1"/>
-                            </svg>
-                            Welcome Back, HR!
-                        </span>
+    <div className="dashboard-layout" style={{ minHeight: '100vh', background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)', fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif', color: '#222', boxSizing: 'border-box' }}>
+        <Sidebar />
+        <main className="dashboard-main" style={{ padding: '40px 48px 48px 48px', maxWidth: 1400, margin: '0 auto', borderRadius: '32px', background: 'rgba(255,255,255,0.92)', boxShadow: '0 12px 48px rgba(44,62,80,0.13)' }}>
+            {/* Admin-style Welcome Message for HR */}
+            <div style={{ width: '100%', marginBottom: 32, marginTop: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18 }}>
+                    <div>
+                        <span style={{ fontSize: '2.8rem', marginRight: 8 }}>👋</span>
+                        <span style={{ fontSize: '2.3rem', fontWeight: 900, color: '#22223b', letterSpacing: '0.01em' }}>Welcome Back, HR</span>
+                        <div style={{ height: 2, background: 'linear-gradient(90deg, #6366f1 0%, #e0e7ff 100%)', margin: '18px 0 0 0', borderRadius: 2 }}></div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 14 }}>
+                        <button
+                            style={{ background: 'linear-gradient(90deg, #6366f1 60%, #4338ca 100%)', color: '#fff', fontWeight: 700, border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 16, cursor: 'pointer', boxShadow: '0 2px 8px rgba(44,62,80,0.10)', display: 'flex', alignItems: 'center', gap: 8 }}
+                            onClick={() => navigate('/onboarding')}
+                        >
+                            <span style={{ fontSize: 18, fontWeight: 900 }}>+</span> Onboard Employee
+                        </button>
+                        <button
+                            style={{ background: 'linear-gradient(90deg, #0ea5e9 60%, #2563eb 100%)', color: '#fff', fontWeight: 700, border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 16, cursor: 'pointer', boxShadow: '0 2px 8px rgba(44,62,80,0.10)', display: 'flex', alignItems: 'center', gap: 8 }}
+                            onClick={() => navigate('/hr/leave-requests')}
+                        >
+                            <span style={{ fontSize: 18, fontWeight: 900 }}>🗓️</span> Leaves
+                        </button>
+                        <button
+                            style={{ background: 'linear-gradient(90deg, #a78bfa 60%, #7c3aed 100%)', color: '#fff', fontWeight: 700, border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 16, cursor: 'pointer', boxShadow: '0 2px 8px rgba(44,62,80,0.10)', display: 'flex', alignItems: 'center', gap: 8 }}
+                            onClick={() => navigate('/payroll-dashboard?role=hr')}
+                        >
+                            <span style={{ fontSize: 18, fontWeight: 900 }}>💸</span> Payrolls
+                        </button>
                     </div>
                 </div>
+                <hr style={{ margin: '18px 0 0 0', border: 'none', borderTop: '2px solid #e0e7ff', boxShadow: '0 2px 8px rgba(44,62,80,0.08)' }} />
+            </div>
                 <style>{`
                 .dashboard-section {
                     animation: fadeIn 0.7s cubic-bezier(.4,0,.2,1);
@@ -363,75 +407,59 @@ export default function Dashboard() {
                 {/* Section 1: Summary Cards */}
                 <section className="dashboard-section">
                     <Header/>
-                    <div className="dashboard-cards-row" style={{ display: 'flex', gap: '28px', justifyContent: 'center', margin: '36px 0 32px 0' }}>
-                        {/* Total Employees Card */}
-                        <div className="card dashboard-card" style={{ flex: '1 1 0', minWidth: 260, maxWidth: 340, height: 220, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(30,64,175,0.10)', transition: 'box-shadow 0.22s, transform 0.18s' }}>
-                            <h2 className="section-title" style={{ fontSize: '1.12rem', fontWeight: 700, color: '#6366f1', marginBottom: 8 }}>TOTAL EMPLOYEES</h2>
-                            <div className="count" style={{ fontSize: '2.2rem', fontWeight: 800, color: '#22223b', marginBottom: 8 }}>{employeeCount}</div>
-                            <div className="stats" style={{ fontSize: '1rem', color: '#64748b', display: 'flex', gap: 18 }}>
-                                <span>Male: {genderStats.male}</span>
-                                <span>Female: {genderStats.female}</span>
-                            </div>
-                            <div
-                                className="circle-chart"
-                                style={{
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: '50%',
-                                    margin: '10px auto 0',
-                                    background: (() => {
-                                        const total = genderStats.male + genderStats.female;
-                                        const malePercent = total > 0 ? (genderStats.male / total) * 100 : 0;
-                                        const femalePercent = total > 0 ? (genderStats.female / total) * 100 : 0;
-                                        return `conic-gradient(#1976d2 0% ${malePercent}%, #FFD600 ${malePercent}% 100%)`;
-                                    })(),
-                                    border: '2px solid #eee',
-                                }}
-                            ></div>
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 6 }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#1976d2', display: 'inline-block', border: '1px solid #1976d2' }}></span>
-                                    <span style={{ fontSize: 12 }}>Male</span>
-                                </span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#FFD600', display: 'inline-block', border: '1px solid #FFD600' }}></span>
-                                    <span style={{ fontSize: 12 }}>Female</span>
-                                </span>
+                    <div className="dashboard-cards-row" style={{ display: 'flex', flexDirection: 'row', gap: '28px', justifyContent: 'center', alignItems: 'stretch', margin: '36px 0 32px 0', width: '100%' }}>
+                        {/* Simplified Total Employees Card */}
+                        <div className="card dashboard-card" style={{ flex: '1 1 0', minWidth: 260, maxWidth: 340, height: 240, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '18px', background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)', borderRadius: 20, boxShadow: '0 8px 32px rgba(44,62,80,0.13)', border: '2px solid #6366f1', transition: 'box-shadow 0.22s, transform 0.18s', position: 'relative', overflow: 'hidden' }}>
+                            <h2 className="section-title" style={{ fontSize: '1.18rem', fontWeight: 800, color: '#6366f1', marginBottom: 8, letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span style={{ fontSize: '1.5em', color: '#6366f1' }}>👥</span> TOTAL EMPLOYEES
+                            </h2>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 18, width: '100%', marginTop: 10 }}>
+                                {/* Chart.js Pie Chart with live animation */}
+                                <div style={{ width: 80, height: 80, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Pie data={pieData} options={pieOptions} />
+                                </div>
+                                {/* Male/Female counts beside chart */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontWeight: 700, fontSize: '1.08rem' }}>
+                                    <span style={{ color: '#6366f1', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#6366f1', display: 'inline-block', border: '1px solid #6366f1' }}></span>
+                                        Male: {genderStats.male}
+                                    </span>
+                                    <span style={{ color: '#FFD600', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#FFD600', display: 'inline-block', border: '1px solid #FFD600' }}></span>
+                                        Female: {genderStats.female}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
                         {/* Employees on Leave Today Card */}
-                        <div className="card dashboard-card" style={{ flex: '1 1 0', minWidth: 260, maxWidth: 340, height: 220, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(30,64,175,0.10)', transition: 'box-shadow 0.22s, transform 0.18s', position: 'relative' }}>
-                            <h2 className="section-title" style={{ fontSize: '1.12rem', fontWeight: 700, color: '#6366f1', marginBottom: 2 }}>ON LEAVE TODAY</h2>
-                            {(() => {
-                                const employeesOnLeaveToday = getEmployeesOnLeaveToday();
-                                const employeesOnLeaveCount = employeesOnLeaveToday.length;
-                                return (
-                                    <>
-                                        <div style={{ marginBottom: '10px', fontSize: '2.2rem', fontWeight: '800', color: '#22223b', textAlign: 'center' }}>{employeesOnLeaveCount}</div>
-                                        <ul className="leave-list" style={{ padding: 0, margin: 0, listStyle: 'none', width: '100%' }}>
-                                            {employeesOnLeaveCount === 0 ? (
-                                                <li style={{ color: '#10b981', fontWeight: '500', textAlign: 'center' }}>✅ Full attendance today</li>
-                                            ) : (
-                                                employeesOnLeaveToday.slice(0,2).map((emp, i) => (
-                                                    <li key={`${emp.name}-${i}`} style={{ marginBottom: '6px', padding: '6px', background: '#fef3c7', borderRadius: '6px', border: '1px solid #fbbf24', fontSize: '0.98rem', textAlign: 'center' }}>
-                                                        <strong style={{ color: '#92400e' }}>{emp.name}</strong> - <span style={{ color: '#b45309', marginLeft: '4px' }}>{emp.type}</span>
-                                                        <br />
-                                                        <span style={{ fontSize: '0.9rem', color: '#78716c' }}>({emp.fromDate} to {emp.toDate})</span>
-                                                    </li>
-                                                ))
-                                            )}
-                                        </ul>
-                                        <button
-                                            style={{ position: 'absolute', top: 14, right: 14, background: '#fef3c7', color: '#b45309', border: 'none', borderRadius: 6, padding: '6px 14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.98rem' }}
-                                            onClick={() => setShowAllOnLeave(true)}
-                                            title="View All On Leave"
-                                        >
-                                            <FaListAlt /> View All
-                                        </button>
-                                    </>
-                                );
-                            })()}
+                        <div className="card dashboard-card" style={{ flex: '1 1 0', minWidth: 260, maxWidth: 340, height: 220, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', background: 'linear-gradient(120deg, #e0f2fe 0%, #f8fafc 100%)', borderRadius: 16, boxShadow: '0 4px 24px rgba(30,64,175,0.10)', border: '2px solid #38bdf8', transition: 'box-shadow 0.22s, transform 0.18s', position: 'relative' }}>
+                            <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
+                                <button
+                                    style={{ background: '#e0f2fe', color: '#0ea5e9', border: 'none', borderRadius: 6, padding: '6px 14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.98rem', boxShadow: '0 2px 8px rgba(44,62,80,0.08)' }}
+                                    onClick={() => setShowAllOnLeave(true)}
+                                    title="View All On Leave"
+                                >
+                                    <FaListAlt /> View All
+                                </button>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 8 }}>
+                                <h2 className="section-title" style={{ fontSize: '1.12rem', fontWeight: 700, color: '#2563eb', margin: 0 }}>ON LEAVE TODAY</h2>
+                                <div style={{ fontSize: '2.2rem', fontWeight: '800', color: '#22223b', marginLeft: 12 }}>{getEmployeesOnLeaveToday().length}</div>
+                            </div>
+                            <ul className="leave-list" style={{ padding: 0, margin: 0, listStyle: 'none', width: '100%' }}>
+                                {getEmployeesOnLeaveToday().length === 0 ? (
+                                    <li style={{ color: '#10b981', fontWeight: '500', textAlign: 'center' }}>✅ Full attendance today</li>
+                                ) : (
+                                    getEmployeesOnLeaveToday().slice(0,2).map((emp, i) => (
+                                        <li key={`${emp.name}-${i}`} style={{ marginBottom: '6px', padding: '8px', background: 'rgba(56,189,248,0.10)', borderRadius: '8px', border: '1px solid #bae6fd', fontSize: '1rem', textAlign: 'center', boxShadow: '0 1px 4px rgba(44,62,80,0.04)' }}>
+                                            <strong style={{ color: '#0c4a6e' }}>{emp.name}</strong> - <span style={{ color: '#2563eb', marginLeft: '4px' }}>{emp.type}</span>
+                                            <br />
+                                            <span style={{ fontSize: '0.95rem', color: '#0c4a6e' }}>({emp.fromDate} to {emp.toDate})</span>
+                                        </li>
+                                    ))
+                                )}
+                            </ul>
                         </div>
 
                         {/* Announcements Card */}
@@ -471,7 +499,7 @@ export default function Dashboard() {
             </div>
         </div>
     )}
-                        <div className="card dashboard-card" style={{ flex: '1 1 0', minWidth: 260, maxWidth: 340, height: 220, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(30,64,175,0.10)', transition: 'box-shadow 0.22s, transform 0.18s', position: 'relative' }}>
+                        <div className="card dashboard-card" style={{ flex: '1 1 0', minWidth: 260, maxWidth: 340, height: 220, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', background: 'linear-gradient(120deg, #ede9fe 0%, #f8fafc 100%)', borderRadius: 16, boxShadow: '0 4px 24px rgba(30,64,175,0.10)', border: '2px solid #a78bfa', transition: 'box-shadow 0.22s, transform 0.18s', position: 'relative' }}>
                             <h2 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '1.12rem', fontWeight: 700, color: '#6366f1', marginBottom: 8 }}>
                                 <FaBullhorn style={{ color: '#6c63ff', fontSize: '1.3em' }} /> ANNOUNCEMENTS
                             </h2>
@@ -480,8 +508,8 @@ export default function Dashboard() {
                                     <li style={{ color: '#888', fontWeight: 500, padding: '8px 0', textAlign: 'center' }}>No announcements</li>
                                 ) : (
                                     announcements.slice(0,2).map((a, i) => (
-                                        <li key={i} style={{ marginBottom: '8px', background: '#f3f4f6', borderRadius: '8px', padding: '8px 10px', boxShadow: '0 1px 4px rgba(44,62,80,0.06)', fontSize: '0.98rem' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, color: '#4f46e5', fontSize: '1em' }}>
+                                        <li key={i} style={{ marginBottom: '8px', background: 'rgba(167,139,250,0.10)', borderRadius: '8px', padding: '10px 12px', boxShadow: '0 1px 4px rgba(44,62,80,0.06)', fontSize: '1rem', border: '1px solid #ddd6fe' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, color: '#7c3aed', fontSize: '1em' }}>
                                                 <FaBullhorn /> {a.message}
                                             </div>
                                             <div style={{ display: 'flex', gap: 12, fontSize: '0.95em', color: '#555', marginTop: 2 }}>
@@ -494,7 +522,7 @@ export default function Dashboard() {
                                 )}
                             </ul>
                             <button
-                                style={{ position: 'absolute', top: 14, right: 14, background: '#e0e7ff', color: '#6366f1', border: 'none', borderRadius: 6, padding: '6px 14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.98rem' }}
+                                style={{ position: 'absolute', top: 14, right: 14, background: '#ede9fe', color: '#7c3aed', border: 'none', borderRadius: 6, padding: '6px 14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.98rem', boxShadow: '0 2px 8px rgba(44,62,80,0.08)' }}
                                 onClick={() => setShowAllAnnouncements(true)}
                                 title="View All Announcements"
                             >

@@ -9,7 +9,8 @@ import './PayrollDashboardNew.css';
 
 const PayrollDashboard = () => {
     const location = useLocation();
-    const isHRRoute = location.pathname.includes('/manager/');
+    const params = new URLSearchParams(location.search);
+    const isHRRoute = location.pathname.includes('/manager/') || params.get('role') === 'hr';
     
     const [employees, setEmployees] = useState([]);
     const [selectedEmployee, setSelectedEmployee] = useState('');
