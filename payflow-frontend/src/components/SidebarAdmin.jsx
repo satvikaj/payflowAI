@@ -28,9 +28,7 @@ const SidebarAdmin = () => {
                         </div>
                     )}
                 </div>
-                <button className="toggle-btn" onClick={toggleSidebar}>
-                    {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
-                </button>
+            {/* Removed clickable arrow toggle button as requested */}
             </div>
 
             <div className="sidebar-content">
