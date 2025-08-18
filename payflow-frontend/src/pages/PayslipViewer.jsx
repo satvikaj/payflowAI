@@ -127,7 +127,7 @@ function PayslipViewer() {
             
             // Employee details section - Professional table
             let startY = 75;
-            
+
             // Fetch bank details for employee
             let bankDetails = { uan: '-', pfNo: '-', esiNo: '-', bank: '-', accountNo: '-' };
             if (fullPayslip.employeeId) {
@@ -138,11 +138,11 @@ function PayslipViewer() {
             }
 
             const employeeDetails = [
-                ['Employee ID', fullPayslip.employeeId?.toString() || '7', 'UAN', bankDetails.uan || '-'],
-                ['Employee Name', employee?.fullName || employee?.firstName || 'Hari', 'PF No.', bankDetails.pfNo || '-'],
-                ['Designation', employee?.designation || 'SDE', 'ESI No.', bankDetails.esiNo || '-'],
-                ['Department', employee?.department || 'IT', 'Bank', bankDetails.bank || '-'],
-                ['Date of Joining', employee?.joinDate || '2025-07-30', 'Account No.', bankDetails.accountNo || '-']
+                ['Employee ID', fullPayslip.employeeId?.toString() || '-', 'UAN', bankDetails.uan || '-'],
+                ['Employee Name', employee?.fullName || employee?.firstName || '-', 'PF No.', bankDetails.pfNo || '-'],
+                ['Designation', employee?.designation || '-', 'ESI No.', bankDetails.esiNo || '-'],
+                ['Department', employee?.department || '-', 'Bank', bankDetails.bank || '-'],
+                ['Date of Joining', employee?.joinDate || '-', 'Account No.', bankDetails.accountNo || '-']
             ];
 
             doc.autoTable({
@@ -169,9 +169,9 @@ function PayslipViewer() {
             startY = doc.lastAutoTable.finalY + 2;
             
             const workingDaysData = [
-                ['Gross Wages', '₹61,166.67', '', ''],
-                ['Total Working Days', '22', 'Leaves', fullPayslip.numberOfLeaves?.toString() || '0'],
-                ['LOP Days', '0', 'Paid Days', '22']
+                ['Gross Wages', `₹${fullPayslip.grossWages ?? '-'}`, '', ''],
+                ['Total Working Days', fullPayslip.totalWorkingDays?.toString() ?? '-', 'Leaves', fullPayslip.numberOfLeaves?.toString() ?? '-'],
+                ['LOP Days', fullPayslip.lopDays?.toString() ?? '-', 'Paid Days', fullPayslip.paidDays?.toString() ?? '-']
             ];
             
             doc.autoTable({
@@ -223,11 +223,10 @@ function PayslipViewer() {
             startY = doc.lastAutoTable.finalY;
             
             const earningsDeductionsData = [
-                ['Basic', '₹41,666.67', 'EPF', '₹500.00'],
-                ['HRA', '₹12,500.00', 'ESI', '₹0'],
-                ['Conveyance Allowance', '₹6,666.67', 'Professional Tax', '₹4,033.33'],
-                ['Medical Allowance', '₹250', '', ''],
-                ['Other Allowances', '₹333.33', '', '']
+                ['Basic', `₹${fullPayslip.basic ?? '-'}`, 'EPF', `₹${fullPayslip.epf ?? '-'}`],
+                ['HRA', `₹${fullPayslip.hra ?? '-'}`, 'Tax', `₹${fullPayslip.tax ?? '-'}`],
+                ['Allowances', `₹${fullPayslip.allowances ?? '-'}`, 'Other Deductions', `₹${fullPayslip.otherDeductions ?? '-'}`],
+                ['Bonuses', `₹${fullPayslip.bonuses ?? '-'}`, '', '']
             ];
             
             doc.autoTable({
@@ -255,7 +254,7 @@ function PayslipViewer() {
             
             doc.autoTable({
                 startY: startY,
-                body: [['Total Earnings', '₹61,166.67', 'Total Deductions', '₹4,533.33']],
+                body: [['Total Earnings', `₹${fullPayslip.totalEarnings ?? '-'}`, 'Total Deductions', `₹${fullPayslip.totalDeductions ?? '-'}`]],
                 theme: 'grid',
                 styles: {
                     fontSize: 9,
@@ -279,7 +278,7 @@ function PayslipViewer() {
             
             doc.autoTable({
                 startY: startY,
-                body: [['Net Salary', '₹56,633.34']],
+                body: [['Net Salary', `₹${fullPayslip.netSalary ?? '-'}`]],
                 theme: 'grid',
                 styles: {
                     fontSize: 11,
@@ -298,7 +297,7 @@ function PayslipViewer() {
             });
 
             // Save with professional filename
-            doc.save(`Payslip-${employee?.fullName || employee?.firstName || 'Employee'}-${fullPayslip.cycle || 'August-2025'}.pdf`);
+            doc.save(`Payslip-${employee?.fullName || employee?.firstName || 'Employee'}-${fullPayslip.cycle || ''}.pdf`);
             
         } catch (error) {
             console.error('Error generating payslip PDF:', error);

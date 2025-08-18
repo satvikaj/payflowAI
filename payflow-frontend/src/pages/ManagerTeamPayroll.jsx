@@ -163,89 +163,102 @@ const ManagerTeamPayroll = () => {
             doc.setFontSize(9);
             doc.setFont('times', 'normal');
             doc.text('123 Business District, Tech City, State - 123456', pageWidth / 2, 45, { align: 'center' });
-            // Pay Slip title with fallback for cycle/month (bold, centered)
-            const payslipCycle = fullPayslip.cycle || 'August 2025';
+            // Use actual payslip month/year for header and filename
+            const payslipMonth = fullPayslip.month || fullPayslip.payrollMonth || '-';
+            const payslipYear = fullPayslip.year || fullPayslip.payrollYear || '-';
             doc.setFontSize(12);
             doc.setFont('times', 'bold');
-            doc.text(`Pay Slip for ${payslipCycle}`, pageWidth / 2, 57, { align: 'center' });
+            doc.text(`Pay Slip for ${payslipMonth} ${payslipYear}`, pageWidth / 2, 57, { align: 'center' });
             
             // Employee Details Table
             let currentY = 70;
             const employeeData = [
-                ['Employee ID', fullPayslip.employeeId?.toString() || '7', 'UAN', bankDetails.uan || '-'],
-                ['Employee Name', employee?.fullName || employee?.firstName || getEmployeeName(fullPayslip.employeeId), 'PF No.', bankDetails.pfNo || '-'],
-                ['Designation', employee?.designation || 'Employee', 'ESI No.', bankDetails.esiNo || '-'],
-                ['Department', employee?.department || 'General', 'Bank', bankDetails.bank || '-'],
-                ['Date of Joining', employee?.joinDate || '2025-07-30', 'Account No.', bankDetails.accountNo || '-']
+                ['Employee ID', fullPayslip.employeeId?.toString() || '-', 'UAN', bankDetails.uan],
+                ['Employee Name', employee?.fullName || '-', 'PF No.', bankDetails.pfNo],
+                ['Designation', employee?.role || '-', 'ESI No.', bankDetails.esiNo],
+                ['Department', employee?.department || '-', 'Bank', bankDetails.bank],
+                ['Date of Joining', employee?.joiningDate || '-', 'Account No.', bankDetails.accountNo]
             ];
 
+            const tableMargin = 15;
+            const tableWidth = pageWidth - 2 * tableMargin;
+            const colWidth = tableWidth / 4;
             doc.autoTable({
                 startY: currentY,
-                head: [],
                 body: employeeData,
                 theme: 'grid',
-                styles: { 
-                    fontSize: 10,
-                    cellPadding: 3,
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 2.5,
+                    halign: 'center',
+                    valign: 'middle',
                     lineColor: [0, 0, 0],
                     lineWidth: 0.5
                 },
                 columnStyles: {
-                    0: { cellWidth: 42, fontStyle: 'bold' },
-                    1: { cellWidth: 53 },
-                    2: { cellWidth: 42, fontStyle: 'bold' },
-                    3: { cellWidth: 53 }
-                }
+                    0: { cellWidth: colWidth, fontStyle: 'bold', halign: 'center' },
+                    1: { cellWidth: colWidth, halign: 'center' },
+                    2: { cellWidth: colWidth, fontStyle: 'bold', halign: 'center' },
+                    3: { cellWidth: colWidth, halign: 'center' }
+                },
+                margin: { left: tableMargin, right: tableMargin },
+                didDrawPage: (data) => { doc.setPage(1); }
             });
             
             // Working Days Section
             currentY = doc.lastAutoTable.finalY + 5;
             
-            // Use dynamic data or fallback to sample values
-            const baseSalary = fullPayslip.baseSalary || 41666.67;
-            const grossWages = fullPayslip.grossSalary || 61166.67;
-            
+            // Use backend values, not hardcoded
+            const rupee = '\u20B9';
+            const baseSalary = fullPayslip.basicSalary || 0;
+            const grossWages = fullPayslip.grossSalary || 0;
+            const workingDays = fullPayslip.workingDays?.toString() || '-';
+            const leaveDays = fullPayslip.leaveDays?.toString() || '0';
+            const presentDays = fullPayslip.presentDays?.toString() || '-';
             const workingDaysData = [
-                ['Gross Wages', `₹${grossWages.toLocaleString()}`, '', ''],
-                ['Total Working Days', '22', 'Leaves', fullPayslip.numberOfLeaves?.toString() || '0'],
-                ['LOP Days', '0', 'Paid Days', '22']
+                ['Gross Wages', `${rupee}${grossWages.toLocaleString()}`, '', ''],
+                ['Total Working Days', workingDays, 'Leaves', leaveDays],
+                ['LOP Days', '-', 'Paid Days', presentDays]
             ];
             
             doc.autoTable({
-                startY: currentY,
-                head: [],
+                startY: doc.lastAutoTable.finalY + 2,
                 body: workingDaysData,
                 theme: 'grid',
-                styles: { 
-                    fontSize: 10,
-                    cellPadding: 3,
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 2.5,
+                    halign: 'center',
+                    valign: 'middle',
                     lineColor: [0, 0, 0],
                     lineWidth: 0.5
                 },
                 columnStyles: {
-                    0: { cellWidth: 47.5, fontStyle: 'bold' },
-                    1: { cellWidth: 47.5 },
-                    2: { cellWidth: 47.5, fontStyle: 'bold' },
-                    3: { cellWidth: 47.5 }
-                }
+                    0: { cellWidth: colWidth, fontStyle: 'bold', halign: 'center' },
+                    1: { cellWidth: colWidth, halign: 'center' },
+                    2: { cellWidth: colWidth, fontStyle: 'bold', halign: 'center' },
+                    3: { cellWidth: colWidth, halign: 'center' }
+                },
+                margin: { left: tableMargin, right: tableMargin },
+                didDrawPage: (data) => { doc.setPage(1); }
             });
             
             // Earnings and Deductions Section
             currentY = doc.lastAutoTable.finalY + 5;
             
-            // Calculate exact values to match the format
-            const hra = 12500.00;
-            const conveyanceAllowance = 6666.67;
-            const medicalAllowance = 250;
-            const otherAllowances = 333.33;
-            const totalEarnings = 61166.67;
-            
-            const epf = 500.00;
-            const esi = 0;
-            const professionalTax = 4033.33;
-            const totalDeductions = 4533.33;
-            
-            const netSalary = 56633.34;
+            // Use backend values for earnings/deductions
+            const hra = fullPayslip.hra || 0;
+            const conveyanceAllowance = fullPayslip.allowances || 0;
+            const medicalAllowance = fullPayslip.medicalAllowance || 0;
+            const otherAllowances = fullPayslip.otherAllowances || 0;
+            const bonuses = fullPayslip.bonuses || 0;
+            const pfDeduction = fullPayslip.pfDeduction || 0;
+            const taxDeduction = fullPayslip.taxDeduction || 0;
+            const otherDeductions = fullPayslip.otherDeductions || 0;
+            const unpaidLeaveDeduction = fullPayslip.unpaidLeaveDeduction || 0;
+            const totalEarnings = fullPayslip.grossSalary || 0;
+            const totalDeductions = fullPayslip.totalDeductions || 0;
+            const netSalary = fullPayslip.netPay || (totalEarnings - totalDeductions);
             
             // Create Earnings and Deductions table header
             const earningsDeductionsHeader = [
@@ -253,106 +266,116 @@ const ManagerTeamPayroll = () => {
             ];
             
             doc.autoTable({
-                startY: currentY,
-                head: [],
+                startY: doc.lastAutoTable.finalY + 2,
                 body: earningsDeductionsHeader,
                 theme: 'grid',
-                styles: { 
-                    fontSize: 11,
-                    cellPadding: 4,
-                    lineColor: [0, 0, 0],
-                    lineWidth: 0.5,
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 2.5,
+                    halign: 'center',
+                    valign: 'middle',
                     fontStyle: 'bold',
-                    halign: 'center'
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.5
                 },
                 columnStyles: {
-                    0: { cellWidth: 47.5 },
-                    1: { cellWidth: 47.5 },
-                    2: { cellWidth: 47.5 },
-                    3: { cellWidth: 47.5 }
-                }
+                    0: { cellWidth: colWidth, halign: 'center', fontStyle: 'bold' },
+                    1: { cellWidth: colWidth, halign: 'center', fontStyle: 'bold' },
+                    2: { cellWidth: colWidth, halign: 'center', fontStyle: 'bold' },
+                    3: { cellWidth: colWidth, halign: 'center', fontStyle: 'bold' }
+                },
+                margin: { left: tableMargin, right: tableMargin },
+                didDrawPage: (data) => { doc.setPage(1); }
             });
             
             // Earnings and Deductions data
             currentY = doc.lastAutoTable.finalY;
             const earningsDeductionsData = [
-                ['Basic', `₹${baseSalary.toLocaleString()}`, 'EPF', `₹${epf.toLocaleString()}`],
-                ['HRA', `₹${hra.toLocaleString()}`, 'ESI', `₹${esi.toLocaleString()}`],
-                ['Conveyance Allowance', `₹${conveyanceAllowance.toLocaleString()}`, 'Professional Tax', `₹${professionalTax.toLocaleString()}`],
-                ['Medical Allowance', `₹${medicalAllowance.toLocaleString()}`, '', ''],
-                ['Other Allowances', `₹${otherAllowances.toLocaleString()}`, '', '']
+                ['Basic', `${rupee}${baseSalary.toLocaleString()}`, 'PF Deduction', `${rupee}${pfDeduction.toLocaleString()}`],
+                ['HRA', `${rupee}${hra.toLocaleString()}`, 'Tax Deduction', `${rupee}${taxDeduction.toLocaleString()}`],
+                ['Allowances', `${rupee}${conveyanceAllowance.toLocaleString()}`, 'Other Deductions', `${rupee}${otherDeductions.toLocaleString()}`],
+                ['Bonuses', `${rupee}${bonuses.toLocaleString()}`, 'Unpaid Leave Deduction', `${rupee}${unpaidLeaveDeduction.toLocaleString()}`],
             ];
             
             doc.autoTable({
-                startY: currentY,
-                head: [],
+                startY: doc.lastAutoTable.finalY + 2,
                 body: earningsDeductionsData,
                 theme: 'grid',
-                styles: { 
-                    fontSize: 10,
-                    cellPadding: 3,
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 2.5,
+                    halign: 'center',
+                    valign: 'middle',
                     lineColor: [0, 0, 0],
                     lineWidth: 0.5
                 },
                 columnStyles: {
-                    0: { cellWidth: 47.5 },
-                    1: { cellWidth: 47.5, halign: 'right' },
-                    2: { cellWidth: 47.5 },
-                    3: { cellWidth: 47.5, halign: 'right' }
-                }
+                    0: { cellWidth: colWidth, halign: 'center' },
+                    1: { cellWidth: colWidth, halign: 'center' },
+                    2: { cellWidth: colWidth, halign: 'center' },
+                    3: { cellWidth: colWidth, halign: 'center' }
+                },
+                margin: { left: tableMargin, right: tableMargin },
+                didDrawPage: (data) => { doc.setPage(1); }
             });
             
             // Total Earnings and Total Deductions row
             currentY = doc.lastAutoTable.finalY;
             const totalsData = [
-                ['Total Earnings', `₹${totalEarnings.toLocaleString()}`, 'Total Deductions', `₹${totalDeductions.toLocaleString()}`]
+                ['Total Earnings', `${rupee}${totalEarnings.toLocaleString()}`, 'Total Deductions', `${rupee}${totalDeductions.toLocaleString()}`]
             ];
             
             doc.autoTable({
-                startY: currentY,
-                head: [],
+                startY: doc.lastAutoTable.finalY + 2,
                 body: totalsData,
                 theme: 'grid',
-                styles: { 
-                    fontSize: 10,
-                    cellPadding: 3,
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 2.5,
+                    halign: 'center',
+                    valign: 'middle',
+                    fontStyle: 'bold',
                     lineColor: [0, 0, 0],
-                    lineWidth: 0.5,
-                    fontStyle: 'bold'
+                    lineWidth: 0.5
                 },
                 columnStyles: {
-                    0: { cellWidth: 47.5 },
-                    1: { cellWidth: 47.5, halign: 'right' },
-                    2: { cellWidth: 47.5 },
-                    3: { cellWidth: 47.5, halign: 'right' }
-                }
+                    0: { cellWidth: colWidth, halign: 'center', fontStyle: 'bold' },
+                    1: { cellWidth: colWidth, halign: 'center', fontStyle: 'bold' },
+                    2: { cellWidth: colWidth, halign: 'center', fontStyle: 'bold' },
+                    3: { cellWidth: colWidth, halign: 'center', fontStyle: 'bold' }
+                },
+                margin: { left: tableMargin, right: tableMargin },
+                didDrawPage: (data) => { doc.setPage(1); }
             });
             
             // Net Salary Section
             currentY = doc.lastAutoTable.finalY;
             const netSalaryData = [
-                ['Net Salary', `₹${netSalary.toLocaleString()}`]
+                ['Net Salary', `${rupee}${netSalary.toLocaleString()}`]
             ];
             
             doc.autoTable({
-                startY: currentY,
-                head: [],
+                startY: doc.lastAutoTable.finalY + 2,
                 body: netSalaryData,
                 theme: 'grid',
-                styles: { 
-                    fontSize: 12,
-                    cellPadding: 4,
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 2.5,
+                    halign: 'center',
+                    valign: 'middle',
+                    fontStyle: 'bold',
                     lineColor: [0, 0, 0],
-                    lineWidth: 0.5,
-                    fontStyle: 'bold'
+                    lineWidth: 0.5
                 },
                 columnStyles: {
-                    0: { cellWidth: 95, halign: 'right' },
-                    1: { cellWidth: 95, halign: 'right' }
-                }
+                    0: { cellWidth: tableWidth / 2, halign: 'center', fontStyle: 'bold' },
+                    1: { cellWidth: tableWidth / 2, halign: 'center', fontStyle: 'bold' }
+                },
+                margin: { left: tableMargin, right: tableMargin },
+                didDrawPage: (data) => { doc.setPage(1); }
             });
 
-            doc.save(`Payslip-${employee?.fullName || getEmployeeName(fullPayslip.employeeId)}-${fullPayslip.cycle}.pdf`);
+            doc.save(`Payslip-${employee?.fullName || getEmployeeName(fullPayslip.employeeId)}-${payslipMonth}-${payslipYear}.pdf`);
             
             setMessage({ text: 'Payslip downloaded successfully', type: 'success' });
             

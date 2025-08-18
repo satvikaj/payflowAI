@@ -259,225 +259,228 @@ const PayrollDashboard = () => {
 
     const downloadPayslip = async (payslipId) => {
         try {
-           const res = await fetch(
-                   `http://localhost:8080/api/ctc-management/payslip/download/${payslipId}`
-                 );
-                 if (!res.ok) {
-                   throw new Error(`Failed to fetch payslip. Status: ${res.status}`);
-                 }
-           
-                 const data = await res.json();
-                 const { payslip: fullPayslip, employee } = data;
-                 console.log("Employee", employee)
-                 // Initialize PDF
-                 const doc = new jsPDF();
-                 const pageWidth = doc.internal.pageSize.width;
-           
-                 // Outer border
-                 doc.setLineWidth(1.5);
-                 doc.rect(15, 15, pageWidth - 30, 250);
-           
-                 // Header with logo
-                 doc.setLineWidth(1);
-                 doc.rect(15, 15, pageWidth - 30, 50);
-                 doc.setFillColor(70, 130, 180);
-                 doc.rect(25, 25, 25, 30, "F");
-                 doc.setTextColor(0,0,0);
-                 doc.setFontSize(14);
-                 doc.setFont("helvetica", "bold");
-                 doc.setFont("times", "bold");
-                 doc.setFontSize(18);
-                 doc.setFillColor(230, 230, 230); // light gray background
-                 doc.rect(25, 25, 25, 25, "F");
-                 doc.setTextColor(0, 0, 0);
-                 doc.text("PFS", 37, 42, { align: "center" });
-           
-           
-           
-                 // Company details
-                 doc.setTextColor(0, 0, 0);
-                 doc.setFontSize(16);
-                 doc.text("PayFlow Solutions", pageWidth / 2, 35, { align: "center" });
-                 doc.setFontSize(9);
-                 doc.text(
-                   "123 Business District, Tech City, State - 123456",
-                   pageWidth / 2,
-                   45,
-                   { align: "center" }
-                 );
-                 doc.setFontSize(12);
-                 
-                 doc.text(
-                   `Pay Slip for ${fullPayslip.cycle || "August 2025"}`,
-                   pageWidth / 2,
-                   57,
-                   { align: "center" }
-                 );
-           
-                                 // Fetch bank details for employee
-                                 let bankDetails = { uan: '-', pfNo: '-', esiNo: '-', bank: '-', accountNo: '-' };
-                                 try {
-                                     const bankRes = await fetch(`http://localhost:8080/api/employee/${fullPayslip.employeeId}/bank-details`);
-                                     if (bankRes.ok) {
-                                         const bankData = await bankRes.json();
-                                         bankDetails = {
-                                             uan: bankData.uan || '-',
-                                             pfNo: bankData.pfNo || '-',
-                                             esiNo: bankData.esiNo || '-',
-                                             bank: bankData.bank || '-',
-                                             accountNo: bankData.accountNo || '-'
-                                         };
-                                     }
-                                 } catch {}
+            const res = await fetch(
+                `http://localhost:8080/api/ctc-management/payslip/download/${payslipId}`
+            );
+            if (!res.ok) {
+                throw new Error(`Failed to fetch payslip. Status: ${res.status}`);
+            }
+            const data = await res.json();
+            const { payslip: fullPayslip, employee } = data;
 
-                                 const employeeDetails = [
-                                     ["Employee ID", fullPayslip.employeeId?.toString() || "-", "UAN", bankDetails.uan],
-                                     ["Employee Name", employee?.fullName || "-", "PF No.", bankDetails.pfNo],
-                                     ["Designation", employee?.role || "-", "ESI No.", bankDetails.esiNo],
-                                     ["Department", employee?.department || "-", "Bank", bankDetails.bank],
-                                     ["Date of Joining", employee?.joiningDate || "-", "Account No.", bankDetails.accountNo],
-                                 ];
+            // Use actual payslip month/year for header and filename
+            const payslipMonth = fullPayslip.month || fullPayslip.payrollMonth || "-";
+            const payslipYear = fullPayslip.year || fullPayslip.payrollYear || "-";
 
-                                 doc.autoTable({
-                                     startY: 75,
-                                     body: employeeDetails,
-                                     theme: "grid",
-                                     styles: {
-                                         fontSize: 10,
-                                         fontStyle: "bold",
-                                         halign: "center",
-                                         lineWidth: 0.5,
-                                         lineColor: [0, 0, 0]
-                                     },
-                                     columnStyles: {
-                                         0: { cellWidth: 40, fontStyle: "bold" },
-                                         1: { cellWidth: 45 },
-                                         2: { cellWidth: 40, fontStyle: "bold" },
-                                         3: { cellWidth: 45 },
-                                     },
-                                     margin: { left: 20, right: 20 },
-                                 });
-           
-                 // Working days section
-                 let startY = doc.lastAutoTable.finalY + 2;
-                 const workingDaysData = [
-                   ["Gross Wages", `₹${fullPayslip.grossSalary || 0}`, "", ""],
-                   ["Total Working Days", fullPayslip.workingDays?.toString() || "-", "Leaves", fullPayslip.leaveDays?.toString() || "0"],
-                   ["LOP Days", "-", "Paid Days", fullPayslip.presentDays?.toString() || "-"],
-                 ];
-                 doc.autoTable({
-                   startY,
-                   body: workingDaysData,
-                   theme: "grid",
-                   styles: {
-                     fontSize: 10,
-                     fontStyle: "bold",
-                     halign: "center",
-                     lineWidth: 0.5,          // Border thickness
-             lineColor: [0, 0, 0]
-                   //   fillColor: [240, 240, 240],
-                   },
-                   columnStyles: {
-                     0: { cellWidth: 40, fontStyle: "bold" },
-                     1: { cellWidth: 45 },
-                     2: { cellWidth: 40, fontStyle: "bold" },
-                     3: { cellWidth: 45 },
-                   },
-                   margin: { left: 20, right: 20 },
-                 });
-           
-                 // Earnings / Deductions header
-                 startY = doc.lastAutoTable.finalY + 2;
-                 doc.autoTable({
-                   startY,
-                   body: [["Earnings", "", "Deductions", ""]],
-                   theme: "grid",
-                   styles: {
-                     fontSize: 10,
-                     fontStyle: "bold",
-                     halign: "center",
-                     fillColor: [240, 240, 240],
-                     lineWidth: 0.5,          // Border thickness
-             lineColor: [0, 0, 0]
-                   },
-                   columnStyles: {
-                     0: { cellWidth: 40 },
-                     1: { cellWidth: 45 },
-                     2: { cellWidth: 40 },
-                     3: { cellWidth: 45 },
-                   },
-                   margin: { left: 20, right: 20 },
-                 });
-           
-                 // Earnings / Deductions details
-                 startY = doc.lastAutoTable.finalY;
-                 const earningsDeductionsData = [
-                   ["Basic", `₹${fullPayslip.basicSalary || 0}`, "EPF", `₹${fullPayslip.pfDeduction || 0}`],
-                   ["HRA", `₹${fullPayslip.hra || 0}`, "Tax", `₹${fullPayslip.taxDeduction || 0}`],
-                   ["Allowances", `₹${fullPayslip.allowances || 0}`, "Other Deductions", `₹${fullPayslip.otherDeductions || 0}`],
-                   ["Bonuses", `₹${fullPayslip.bonuses || 0}`, "", ""],
-                 ];
-                 doc.autoTable({
-                   startY,
-                   body: earningsDeductionsData,
-                   theme: "grid",
-                   styles: { fontSize: 9, cellPadding: 3, lineWidth: 0.5,          // Border thickness
-             lineColor: [0, 0, 0]    },
-                   columnStyles: {
-                     0: { cellWidth: 40 },
-                     1: { cellWidth: 45, halign: "center" },
-                     2: { cellWidth: 40 },
-                     3: { cellWidth: 45, halign: "center" },
-                   },
-                   margin: { left: 20, right: 20 },
-                 });
-           
-                 // Totals row
-                 startY = doc.lastAutoTable.finalY;
-                 doc.autoTable({
-                   startY,
-                   body: [["Total Earnings", "₹61,166.67", "Total Deductions", "₹4,533.33"]],
-                   theme: "grid",
-                   styles: { fontSize: 9, fontStyle: "bold", fillColor: [245, 245, 245], lineWidth: 0.5,          // Border thickness
-             lineColor: [0, 0, 0]   },
-                   columnStyles: {
-                     0: { cellWidth: 40 },
-                     1: { cellWidth: 45, halign: "center" },
-                     2: { cellWidth: 40 },
-                     3: { cellWidth: 45, halign: "center" },
-                   },
-                   margin: { left: 20, right: 20 },
-                 });
-           
-                 // Net Salary row
-                 startY = doc.lastAutoTable.finalY;
-                 doc.autoTable({
-                   startY,
-                   body: [["Net Salary", "₹56,633.34"]],
-                   theme: "grid",
-                   styles: {
-                     fontSize: 11,
-                     fontStyle: "bold",
-                     halign: "center",
-                     fillColor: [235, 235, 235],
-                     lineWidth: 0.5,          // Border thickness
-             lineColor: [0, 0, 0]   
-                   },
-                   columnStyles: { 0: { cellWidth: 85 }, 1: { cellWidth: 85 } },
-                   margin: { left: 20, right: 20 },
-                 });
-           
-                 // Save the PDF
-                 doc.save(
-                   `Payslip-${employee?.fullName || "Employee"}-${
-                     fullPayslip.cycle || "August-2025"
-                   }.pdf`
-                 );
-               } catch (error) {
-                 console.error("Error generating payslip PDF:", error);
-                 alert("Failed to generate payslip PDF. Please try again.");
-               }
-             };
+            // Initialize PDF
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.width;
+
+            // Outer border
+            doc.setLineWidth(1.5);
+            doc.rect(15, 15, pageWidth - 30, 250);
+
+            // Header with logo
+            doc.setLineWidth(1);
+            doc.rect(15, 15, pageWidth - 30, 50);
+            doc.setFillColor(70, 130, 180);
+            doc.rect(25, 25, 25, 30, "F");
+            doc.setTextColor(0,0,0);
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.setFont("times", "bold");
+            doc.setFontSize(18);
+            doc.setFillColor(230, 230, 230); // light gray background
+            doc.rect(25, 25, 25, 25, "F");
+            doc.setTextColor(0, 0, 0);
+            doc.text("PFS", 37, 42, { align: "center" });
+
+            // Company details
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(16);
+            doc.text("PayFlow Solutions", pageWidth / 2, 35, { align: "center" });
+            doc.setFontSize(9);
+            doc.text(
+                "123 Business District, Tech City, State - 123456",
+                pageWidth / 2,
+                45,
+                { align: "center" }
+            );
+            doc.setFontSize(12);
+            doc.text(
+                `Pay Slip for ${payslipMonth} ${payslipYear}`,
+                pageWidth / 2,
+                57,
+                { align: "center" }
+            );
+
+            // Fetch bank details for employee
+            let bankDetails = { uan: '-', pfNo: '-', esiNo: '-', bank: '-', accountNo: '-' };
+            try {
+                const bankRes = await fetch(`http://localhost:8080/api/employee/${fullPayslip.employeeId}/bank-details`);
+                if (bankRes.ok) {
+                    const bankData = await bankRes.json();
+                    bankDetails = {
+                        uan: bankData.uan || '-',
+                        pfNo: bankData.pfNo || '-',
+                        esiNo: bankData.esiNo || '-',
+                        bank: bankData.bank || '-',
+                        accountNo: bankData.accountNo || '-'
+                    };
+                }
+            } catch {}
+
+            const employeeDetails = [
+                ["Employee ID", fullPayslip.employeeId?.toString() || "-", "UAN", bankDetails.uan],
+                ["Employee Name", employee?.fullName || "-", "PF No.", bankDetails.pfNo],
+                ["Designation", employee?.role || "-", "ESI No.", bankDetails.esiNo],
+                ["Department", employee?.department || "-", "Bank", bankDetails.bank],
+                ["Date of Joining", employee?.joiningDate || "-", "Account No.", bankDetails.accountNo],
+            ];
+            doc.autoTable({
+                startY: 75,
+                body: employeeDetails,
+                theme: "grid",
+                styles: {
+                    fontSize: 10,
+                    fontStyle: "bold",
+                    halign: "center",
+                    lineWidth: 0.5,
+                    lineColor: [0, 0, 0]
+                },
+                columnStyles: {
+                    0: { cellWidth: 40, fontStyle: "bold" },
+                    1: { cellWidth: 45 },
+                    2: { cellWidth: 40, fontStyle: "bold" },
+                    3: { cellWidth: 45 },
+                },
+                margin: { left: 20, right: 20 },
+            });
+
+            // Working days section
+            let startY = doc.lastAutoTable.finalY + 2;
+            const rupee = '\u20B9';
+            const workingDaysData = [
+                ["Gross Wages", `${rupee}${fullPayslip.grossSalary || 0}`, "", ""],
+                ["Total Working Days", fullPayslip.workingDays?.toString() || "-", "Leaves", fullPayslip.leaveDays?.toString() || "0"],
+                ["LOP Days", "-", "Paid Days", fullPayslip.presentDays?.toString() || "-"],
+            ];
+            doc.autoTable({
+                startY,
+                body: workingDaysData,
+                theme: "grid",
+                styles: {
+                    fontSize: 10,
+                    fontStyle: "bold",
+                    halign: "center",
+                    lineWidth: 0.5,
+                    lineColor: [0, 0, 0]
+                },
+                columnStyles: {
+                    0: { cellWidth: 40, fontStyle: "bold" },
+                    1: { cellWidth: 45 },
+                    2: { cellWidth: 40, fontStyle: "bold" },
+                    3: { cellWidth: 45 },
+                },
+                margin: { left: 20, right: 20 },
+            });
+
+            // Earnings / Deductions header
+            startY = doc.lastAutoTable.finalY + 2;
+            doc.autoTable({
+                startY,
+                body: [["Earnings", "", "Deductions", ""]],
+                theme: "grid",
+                styles: {
+                    fontSize: 10,
+                    fontStyle: "bold",
+                    halign: "center",
+                    fillColor: [240, 240, 240],
+                    lineWidth: 0.5,
+                    lineColor: [0, 0, 0]
+                },
+                columnStyles: {
+                    0: { cellWidth: 40 },
+                    1: { cellWidth: 45 },
+                    2: { cellWidth: 40 },
+                    3: { cellWidth: 45 },
+                },
+                margin: { left: 20, right: 20 },
+            });
+
+            // Earnings / Deductions details
+            startY = doc.lastAutoTable.finalY;
+            const earningsDeductionsData = [
+                ["Basic", `${rupee}${fullPayslip.basicSalary || 0}` , "Provident Fund", `${rupee}${fullPayslip.pfDeduction || 0}`],
+                ["HRA", `${rupee}${fullPayslip.hra || 0}` , "Professional Tax", `${rupee}${fullPayslip.otherDeductions || 0}`],
+                ["Allowances", `${rupee}${fullPayslip.allowances || 0}` , "Income Tax", `${rupee}${fullPayslip.taxDeduction || 0}`],
+                ["Bonuses", `${rupee}${fullPayslip.bonuses || 0}` , "Unpaid Leave Deduction", `${rupee}${fullPayslip.unpaidLeaveDeduction || 0}`],
+            ];
+            doc.autoTable({
+                startY,
+                body: earningsDeductionsData,
+                theme: "grid",
+                styles: { fontSize: 9, cellPadding: 3, lineWidth: 0.5, lineColor: [0, 0, 0] },
+                columnStyles: {
+                    0: { cellWidth: 40 },
+                    1: { cellWidth: 45, halign: "center" },
+                    2: { cellWidth: 40 },
+                    3: { cellWidth: 45, halign: "center" },
+                },
+                margin: { left: 20, right: 20 },
+            });
+
+            // Totals row
+            startY = doc.lastAutoTable.finalY;
+            const totalEarnings = Number(fullPayslip.grossSalary || 0);
+            const totalDeductions = Number(fullPayslip.totalDeductions || 0);
+            const netSalary = Number(fullPayslip.netPay || (totalEarnings - totalDeductions));
+            doc.autoTable({
+                startY,
+                body: [[
+                    "Total Earnings",
+                    `${rupee}${totalEarnings.toLocaleString('en-IN', {minimumFractionDigits:2})}`,
+                    "Total Deductions",
+                    `${rupee}${totalDeductions.toLocaleString('en-IN', {minimumFractionDigits:2})}`
+                ]],
+                theme: "grid",
+                styles: { fontSize: 9, fontStyle: "bold", fillColor: [245, 245, 245], lineWidth: 0.5, lineColor: [0, 0, 0] },
+                columnStyles: {
+                    0: { cellWidth: 40 },
+                    1: { cellWidth: 45, halign: "center" },
+                    2: { cellWidth: 40 },
+                    3: { cellWidth: 45, halign: "center" },
+                },
+                margin: { left: 20, right: 20 },
+            });
+
+            // Net Salary row
+            startY = doc.lastAutoTable.finalY;
+            doc.autoTable({
+                startY,
+                body: [["Net Salary", `${rupee}${netSalary.toLocaleString('en-IN', {minimumFractionDigits:2})}`]],
+                theme: "grid",
+                styles: {
+                    fontSize: 11,
+                    fontStyle: "bold",
+                    halign: "center",
+                    fillColor: [235, 235, 235],
+                    lineWidth: 0.5,
+                    lineColor: [0, 0, 0]
+                },
+                columnStyles: { 0: { cellWidth: 85 }, 1: { cellWidth: 85 } },
+                margin: { left: 20, right: 20 },
+            });
+
+            // Save the PDF with correct month/year
+            doc.save(
+                `Payslip-${employee?.fullName || "Employee"}-${payslipMonth}-${payslipYear}.pdf`
+            );
+        } catch (error) {
+            console.error("Error generating payslip PDF:", error);
+            alert("Failed to generate payslip PDF. Please try again.");
+        }
+    };
 
     const viewPayslip = (payslip) => {
         setSelectedPayslip(payslip);
@@ -1283,27 +1286,12 @@ const PayrollDashboard = () => {
                                                 </td>
                                                 <td style={{ padding: '15px', textAlign: 'center' }}>
                                                     <div className="action-buttons-small" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                                        <button
-                                                            className="btn-view"
-                                                            onClick={() => viewPayslip(payslip)}
-                                                            style={{
-                                                                background: '#17a2b8',
-                                                                color: 'white',
-                                                                border: 'none',
-                                                                padding: '8px 12px',
-                                                                borderRadius: '6px',
-                                                                fontSize: '12px',
-                                                                cursor: 'pointer',
-                                                                fontWeight: '600'
-                                                            }}
-                                                        >
-                                                            👁️ View
-                                                        </button>
+                                                        {/* View button removed as requested */}
                                                         <button
                                                             className="btn-download"
                                                             onClick={() => downloadPayslip(payslip.payslipId)}
                                                             style={{
-                                                                background: '#28a745',
+                                                                background: '#1573d6ff', // blue
                                                                 color: 'white',
                                                                 border: 'none',
                                                                 padding: '8px 12px',
