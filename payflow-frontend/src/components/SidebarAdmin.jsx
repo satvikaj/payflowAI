@@ -121,7 +121,7 @@ const SidebarAdmin = () => {
                                 {!isCollapsed && <div className="nav-indicator"></div>}
                             </NavLink>
                         </li>
-                        <li>
+                        {/* <li>
                             <div 
                                 className="nav-link nav-placeholder"
                                 title={isCollapsed ? 'Settings' : ''}
@@ -129,7 +129,7 @@ const SidebarAdmin = () => {
                                 <FaCogs className="nav-icon" />
                                 {!isCollapsed && <span className="nav-text">Settings</span>}
                             </div>
-                        </li>
+                        </li> */}
                     </ul>
                 </nav>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
@@ -8,6 +8,14 @@ const EmployeeLogin = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+
+    // Clear user info from localStorage when login page loads
+    useEffect(() => {
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('employeeId');
+        // Add other keys as needed
+    }, []);
 
     const handleLogin = async (e) => {
         e.preventDefault();
