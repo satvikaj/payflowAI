@@ -38,9 +38,7 @@ export default function EmployeeSidebar() {
                 <NavLink to="/employee-resignation" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
                     <FaUserTimes /> Resignation
                 </NavLink>
-                <NavLink to="/employee-notifications" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
-                    <FaEnvelope /> Notifications
-                </NavLink>
+                {/* Notifications option removed as requested */}
             </div>
         </aside>
     );
