@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Login.css';
@@ -98,33 +99,41 @@ const UnifiedLogin = () => {
 
     return (
         <div className="login-container">
-            {popup.show && (
-                <PopupMessage title={popup.title} message={popup.message} type={popup.type} onClose={() => setPopup({ ...popup, show: false })} />
-            )}
             <h2>PayFlow AI - Login</h2>
             <form onSubmit={handleLogin}>
                 <input
                     type="text"
-                    placeholder="Email / Employee ID"
+                    placeholder="Email"
                     value={emailOrId}
                     onChange={(e) => setEmailOrId(e.target.value)}
                     required
+                    className="login-input"
                 />
-                <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-                <label>
-                    <input type="checkbox" checked={showPassword} onChange={() => setShowPassword(!showPassword)} />
-                    Show Password
-                </label>
-
+                <div className="login-password-wrapper">
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="login-input"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="login-password-eye"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        tabIndex={0}
+                    >
+                        {showPassword ? <FaEye style={{ color: '#6366f1' }} /> : <FaEyeSlash style={{ color: '#6366f1' }} />}
+                    </button>
+                </div>
                 {error && <p className="error" style={{ color: 'red' }}>{error}</p>}
                 <button type="submit">Login</button>
             </form>
+            {popup.show && (
+                <PopupMessage title={popup.title} message={popup.message} type={popup.type} onClose={() => setPopup({ ...popup, show: false })} />
+            )}
         </div>
     );
 };
