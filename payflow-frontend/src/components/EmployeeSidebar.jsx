@@ -31,9 +31,7 @@ export default function EmployeeSidebar() {
                 {/* <NavLink to="/employee-leave-history" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
                     <FaCalendarAlt /> Leave History
                 </NavLink> */}
-                <NavLink to="/upcoming-holidays" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end> 
-                 <FaCalendarAlt />Upcoming Holidays
-                </NavLink>
+                {/* Upcoming Holidays removed as requested */}
 
                 <NavLink to="/employee-resignation" className={({ isActive }) => "sidebar-btn" + (isActive ? ' active' : '')} end>
                     <FaUserTimes /> Resignation
