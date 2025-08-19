@@ -16,6 +16,18 @@ const EmployeeLogin = () => {
             alert("Login Successful with default password");
             localStorage.setItem('employeeToken', 'dummy-token');
             localStorage.setItem('role', 'EMPLOYEE');
+            localStorage.setItem('employeeId', employeeId);
+            // Mark attendance for default password login
+            try {
+                await axios.post('http://localhost:8080/api/attendance/mark', null, {
+                    params: {
+                        employeeId,
+                        present: true
+                    }
+                });
+            } catch (err) {
+                // Optionally handle attendance marking error
+            }
             navigate('/reset-password');
             return;
         }
@@ -28,6 +40,18 @@ const EmployeeLogin = () => {
 
             localStorage.setItem('employeeToken', res.data.token);
             localStorage.setItem('role', 'EMPLOYEE');
+            localStorage.setItem('employeeId', employeeId);
+            // Mark attendance after successful login
+            try {
+                await axios.post('http://localhost:8080/api/attendance/mark', null, {
+                    params: {
+                        employeeId,
+                        present: true
+                    }
+                });
+            } catch (err) {
+                // Optionally handle attendance marking error
+            }
             alert("Login Successful");
             navigate('/employee-dashboard');
         } catch (err) {
