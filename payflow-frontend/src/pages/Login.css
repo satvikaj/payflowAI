@@ -1,7 +1,7 @@
-body, html {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #7c6cf7 0%, #e3eafc 100%);
-}
+        body, html, #root, .App {
+            min-height: 100vh;
+            background: linear-gradient(120deg, #7c6cf7 0%, #a18fff 60%, #e3eafc 100%) !important;
+        }
 
 .login-container {
     max-width: 400px;
