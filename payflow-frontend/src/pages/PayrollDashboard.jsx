@@ -791,17 +791,7 @@ const PayrollDashboard = () => {
                                 <div style={{ fontSize: '14px', opacity: '0.8' }}>Next Run</div>
                                 <div style={{ fontWeight: '600', fontSize: '13px' }}>11:59 PM on {schedulerStatus.lastDayOfCurrentMonth}</div>
                             </div>
-                            <div className="stat-card" style={{
-                                background: 'rgba(255, 255, 255, 0.15)',
-                                padding: '15px',
-                                borderRadius: '10px',
-                                textAlign: 'center',
-                                backdropFilter: 'blur(10px)'
-                            }}>
-                                <div style={{ fontSize: '20px', marginBottom: '5px' }}>⚡</div>
-                                <div style={{ fontSize: '14px', opacity: '0.8' }}>Cron Expression</div>
-                                <div style={{ fontWeight: '600', fontSize: '13px', fontFamily: 'monospace' }}>{schedulerStatus.cronExpression}</div>
-                            </div>
+                           
                             <div className="stat-card" style={{
                                 background: 'rgba(255, 255, 255, 0.15)',
                                 padding: '15px',
@@ -1834,13 +1824,12 @@ const PayrollDashboard = () => {
                                     <h4 style={{ margin: '0 0 10px 0', color: '#1976d2', fontSize: '16px' }}>
                                         ℹ️ What will happen:
                                     </h4>
-                                    <ul style={{ margin: 0, paddingLeft: '20px', color: '#555' }}>
-                                        <li>Generate payslips for all employees with active CTC</li>
-                                        <li>Automatically calculate all salary components</li>
-                                        <li>Include unpaid leave deductions if applicable</li>
-                                        <li>Skip employees who already have payslips for this period</li>
-                                        <li>Send email notifications to employees (if configured)</li>
-                                    </ul>
+                                    <div style={{ margin: 0, paddingLeft: 0, color: '#555', textAlign: 'left' }}>
+                                        <div>Generate payslips for all employees with active CTC</div>
+                                        <div>Automatically calculate all salary components</div>
+                                        <div>Include unpaid leave deductions if applicable</div>
+                                        <div>Skip employees who already have payslips for this period</div>
+                                    </div>
                                 </div>
 
                                 <div className="confirmation-section" style={{
@@ -1983,31 +1972,7 @@ const PayrollDashboard = () => {
                                             </div>
                                         </div>
 
-                                        <div className="status-card" style={{
-                                            background: '#f8f9fa',
-                                            padding: '18px',
-                                            borderRadius: '10px',
-                                            border: '2px solid #e9ecef',
-                                            gridColumn: '1 / -1'
-                                        }}>
-                                            <div style={{ fontSize: '24px', marginBottom: '8px' }}>⚙️</div>
-                                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>CRON EXPRESSION</div>
-                                            <div style={{ 
-                                                fontWeight: '700', 
-                                                color: '#333', 
-                                                fontSize: '16px',
-                                                fontFamily: 'monospace',
-                                                background: '#e9ecef',
-                                                padding: '8px 12px',
-                                                borderRadius: '6px',
-                                                marginTop: '8px'
-                                            }}>
-                                                {schedulerStatus.cronExpression}
-                                            </div>
-                                            <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
-                                                Runs at 11:59 PM on the last day of every month
-                                            </div>
-                                        </div>
+                                        {/* CRON EXPRESSION section removed as requested */}
                                     </div>
 
                                     <div className="scheduler-features" style={{
