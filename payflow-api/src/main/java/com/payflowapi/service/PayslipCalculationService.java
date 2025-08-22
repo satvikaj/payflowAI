@@ -50,27 +50,42 @@ public class PayslipCalculationService {
         LocalDate monthStart = LocalDate.of(year, month, 1);
         LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
         
+        // Fix: Use "ACCEPTED" instead of "APPROVED" to match the actual status in the database
         List<EmployeeLeave> unpaidLeaves = employeeLeaveRepository
             .findByEmployeeIdAndStatusAndIsPaidAndDateRange(
-                employeeId, "APPROVED", false, monthStart, monthEnd);
+                employeeId, "ACCEPTED", false, monthStart, monthEnd);
         
         int unpaidDays = 0;
         
         for (EmployeeLeave leave : unpaidLeaves) {
-            LocalDate leaveStart = leave.getFromDate().isBefore(monthStart) ? monthStart : leave.getFromDate();
-            LocalDate leaveEnd = leave.getToDate().isAfter(monthEnd) ? monthEnd : leave.getToDate();
-            
-            // Count working days (excluding Sundays) in the leave period
-            LocalDate current = leaveStart;
-            while (!current.isAfter(leaveEnd)) {
-                if (current.getDayOfWeek().getValue() != 7) { // Not Sunday
-                    unpaidDays++;
+            // If leave has explicit unpaidDays field set, use that value
+            if (leave.getUnpaidDays() != null && leave.getUnpaidDays() > 0) {
+                unpaidDays += leave.getUnpaidDays();
+            } else {
+                // Otherwise calculate based on date range
+                LocalDate leaveStart = leave.getFromDate().isBefore(monthStart) ? monthStart : leave.getFromDate();
+                LocalDate leaveEnd = leave.getToDate().isAfter(monthEnd) ? monthEnd : leave.getToDate();
+                
+                // Count working days (excluding Sundays) in the leave period
+                LocalDate current = leaveStart;
+                while (!current.isAfter(leaveEnd)) {
+                    if (current.getDayOfWeek().getValue() != 7) { // Not Sunday
+                        unpaidDays++;
+                    }
+                    current = current.plusDays(1);
                 }
-                current = current.plusDays(1);
             }
         }
         
         return unpaidDays;
+    }
+
+    /**
+     * Calculate gross salary from CTC components
+     */
+    private BigDecimal calculateGrossSalary(CTCDetails ctcDetails) {
+        // Use the gross monthly salary directly instead of summing annual components
+        return ctcDetails.getGrossMonthlySalary();
     }
 
     /**
@@ -91,15 +106,33 @@ public class PayslipCalculationService {
         // Get monthly net salary from CTC
         BigDecimal monthlyNetSalary = ctcDetails.getNetSalary();
         
-        // Calculate daily rate
-        BigDecimal dailyRate = monthlyNetSalary.divide(
-            BigDecimal.valueOf(totalWorkingDays), 2, RoundingMode.HALF_UP);
+        // Calculate gross salary for unpaid leave deduction
+        BigDecimal monthlyGrossSalary = calculateGrossSalary(ctcDetails);
         
-        // Calculate deduction for unpaid leave
-        BigDecimal unpaidLeaveDeduction = dailyRate.multiply(BigDecimal.valueOf(unpaidLeaveDays));
+        // Calculate daily rate based on gross salary for unpaid leaves
+        // Use total days in month for unpaid leave calculation
+        int totalDaysInMonth = LocalDate.of(year, month, 1).lengthOfMonth();
         
-        // Calculate final payable amount
+        // Calculate daily rate as per requirement: monthly gross salary / total days in month
+        // Using setScale instead of specifying scale in divide to ensure proper rounding
+        BigDecimal dailyGrossRate = monthlyGrossSalary.divide(
+            BigDecimal.valueOf(totalDaysInMonth), RoundingMode.HALF_UP).setScale(2, RoundingMode.HALF_UP);
+        
+        // Calculate deduction for unpaid leave using gross daily rate
+        BigDecimal unpaidLeaveDeduction = dailyGrossRate.multiply(BigDecimal.valueOf(unpaidLeaveDays));
+        
+        // Log the values for debugging
+        System.out.println("Monthly Gross Salary: " + monthlyGrossSalary);
+        System.out.println("Total Days in Month: " + totalDaysInMonth);
+        System.out.println("Daily Gross Rate: " + dailyGrossRate);
+        System.out.println("Unpaid Leave Days: " + unpaidLeaveDays);
+        System.out.println("Unpaid Leave Deduction: " + unpaidLeaveDeduction);
+        
+        // Calculate final payable amount (ensure it's never negative)
         BigDecimal finalNetSalary = monthlyNetSalary.subtract(unpaidLeaveDeduction);
+        if (finalNetSalary.compareTo(BigDecimal.ZERO) < 0) {
+            finalNetSalary = BigDecimal.ZERO;
+        }
         
         // Build payslip data
         payslip.put("employeeId", employeeId);
@@ -111,7 +144,7 @@ public class PayslipCalculationService {
         payslip.put("unpaidLeaveDays", unpaidLeaveDays);
         payslip.put("effectiveWorkingDays", effectiveWorkingDays);
         payslip.put("monthlyNetSalary", monthlyNetSalary);
-        payslip.put("dailyRate", dailyRate);
+        payslip.put("dailyRate", dailyGrossRate); // Using gross daily rate
         payslip.put("unpaidLeaveDeduction", unpaidLeaveDeduction);
         payslip.put("finalNetSalary", finalNetSalary);
         
