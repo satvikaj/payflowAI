@@ -5,9 +5,9 @@ const Home = () => {
     return (
         <div className="home-container">
             <div className="home-content">
-                <h1>Welcome to <span>PayFlow AI</span></h1>
+                <h1>Welcome to <span>Payflow</span></h1>
                 <p>
-                    PayFlow AI is an intelligent platform for seamless employee onboarding and management.
+                    Payflow is an intelligent platform for seamless employee onboarding and management.
                     From secure logins to role-based access for Admin, HR, Managers, and Employees — we help organizations
                     digitize and streamline their workflows with efficiency and security.
                 </p>

@@ -111,7 +111,7 @@ const UnifiedLogin = () => {
 
     return (
         <div className="login-container">
-            <h2>PayFlow AI - Login</h2>
+            <h2>Payflow - Login</h2>
             <form onSubmit={handleLogin}>
                 <input
                     type="text"

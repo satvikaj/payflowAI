@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "ajv": "^8.17.1",
     "axios": "^1.10.0",
+    "chart": "^0.1.2",
     "chart.js": "^4.5.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",

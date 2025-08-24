@@ -52,7 +52,7 @@ const Navbar = () => {
             <div className="navbar-left">
                 <div className="brand-section">
                     <div className="brand-icon">💼</div>
-                    <span className="brand-text">PayFlow AI</span>
+                    <span className="brand-text">Payflow</span>
                 </div>
             </div>
 

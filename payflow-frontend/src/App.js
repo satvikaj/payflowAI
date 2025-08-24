@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AddUser from './pages/AddUser';
@@ -52,50 +52,175 @@ function App() {
     return (
         <BrowserRouter>
             <Navbar/>
-            <Routes>
-                <Route path="/" element={<Home/>} />
-                <Route path="/login" element={<UnifiedLogin/>}/>
-                <Route path="/hr-dashboard" element={<Dashboard/>} />
-                <Route path="/manager/payroll-dashboard" element={<PayrollDashboard />} />
-                <Route path="/manager/payslip-viewer" element={<PayslipViewer />} />
-                <Route path="/admin-dashboard" element={<AdminDashboard />} />
-                <Route path="/navbar" element={<Navbar/>} />
-                <Route path="/sidebar" element={<Sidebar/>}/>
-                <Route path="/create-user" element={<AddUser/>} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/manager-onboarding" element={<ManagerOnboarding />} />
-                <Route path="/manager/schedule" element={<SchedulePayrollForm />} />
-                <Route path="/employee" element={<EmployeeList />} />
-                <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
-                <Route path="/employee-reminders" element={<EmployeeReminders />} />
-                <Route path="/manager-dashboard" element={<ManagerDashboard />} />
-                <Route path="/manager/:managerId/leaves" element={<ManagerLeaveRequests />} />
-                <Route path="/hr/leave-requests" element={<HRLeaveRequests />} />
-                <Route path="/manager/resignation-requests" element={<ManagerResignationRequests />} />
-                <Route path="/hr/resignation-requests" element={<HRResignationRequests />} />
-                <Route path="/manager-notifications" element={<NotificationsPage />} />
-                <Route path="/employee-leave" element={<EmployeeLeave />} />
-                <Route path="/employee-resignation" element={<EmployeeResignation />} />
-                <Route path="/employee-overview" element={<EmployeeOverview />} />
-                <Route path="/employee-profile" element={<EmployeeProfile />} />
-                <Route path="/employee-leave-history" element={<LeaveHistory />} />
-                <Route path="/upcoming-holidays" element={<UpcomingHolidays />} />
-                <Route path="/employee-ctc-dashboard" element={<EmployeeCTCDashboard />} />
-                <Route path="/manager-team-payroll" element={<ManagerTeamPayroll />} />
-                <Route path="/hr-ctc-auto-calculator" element={<HRCTCManagement />} />
-                <Route path="/hr-ctc-structures" element={<HRCTCStructures />} />
-                <Route path="/team-members" element={<TeamMembers />} />
-                <Route path="/ctc-management" element={<AdminCTCStructures />} />
-                <Route path="/ctc-management-new" element={<AdminCTCManagement />} />
-                <Route path="/payroll-dashboard" element={<PayrollDashboard />} />
-                <Route path="/payment-hold-management" element={<PaymentHoldManagement />} />
-                <Route path="/manager/payment-holds" element={<ManagerPaymentHolds />} />
-                <Route path="/admin/payment-holds" element={<AdminPaymentHolds />} />
-                <Route path="/hr/payment-holds" element={<HRPaymentHolds />} />
-                <Route path="/employee-login" element={<EmployeeLogin />} />
-
-            </Routes>
+                        <Routes>
+                                <Route path="/" element={<Home/>} />
+                                <Route path="/login" element={<UnifiedLogin/>}/>
+                                {/* Admin protected routes */}
+                                <Route path="/admin-dashboard" element={
+                                    <ProtectedRoute roles={["ADMIN"]}>
+                                        <AdminDashboard />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/admin/payment-holds" element={
+                                    <ProtectedRoute roles={["ADMIN"]}>
+                                        <AdminPaymentHolds />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/ctc-management" element={
+                                    <ProtectedRoute roles={["ADMIN"]}>
+                                        <AdminCTCStructures />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/ctc-management-new" element={
+                                    <ProtectedRoute roles={["ADMIN"]}>
+                                        <AdminCTCManagement />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/create-user" element={
+                                    <ProtectedRoute roles={["ADMIN"]}>
+                                        <AddUser />
+                                    </ProtectedRoute>
+                                } />
+                                {/* HR protected routes */}
+                                <Route path="/hr-dashboard" element={
+                                    <ProtectedRoute roles={["HR"]}>
+                                        <Dashboard />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/hr/payment-holds" element={
+                                    <ProtectedRoute roles={["HR"]}>
+                                        <HRPaymentHolds />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/hr-ctc-auto-calculator" element={
+                                    <ProtectedRoute roles={["HR"]}>
+                                        <HRCTCManagement />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/hr-ctc-structures" element={
+                                    <ProtectedRoute roles={["HR"]}>
+                                        <HRCTCStructures />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/hr/leave-requests" element={
+                                    <ProtectedRoute roles={["HR"]}>
+                                        <HRLeaveRequests />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/hr/resignation-requests" element={
+                                    <ProtectedRoute roles={["HR"]}>
+                                        <HRResignationRequests />
+                                    </ProtectedRoute>
+                                } />
+                                {/* Manager protected routes */}
+                                <Route path="/manager-dashboard" element={
+                                    <ProtectedRoute roles={["MANAGER"]}>
+                                        <ManagerDashboard />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/manager/payroll-dashboard" element={
+                                    <ProtectedRoute roles={["MANAGER"]}>
+                                        <PayrollDashboard />
+                                    </ProtectedRoute>
+                                } />
+                                
+                                <Route path="/manager/payslip-viewer" element={
+                                    <ProtectedRoute roles={["MANAGER"]}>
+                                        <PayslipViewer />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/manager/schedule" element={
+                                    <ProtectedRoute roles={["MANAGER"]}>
+                                        <SchedulePayrollForm />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/manager-onboarding" element={
+                                    <ProtectedRoute roles={["MANAGER"]}>
+                                        <ManagerOnboarding />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/manager/payment-holds" element={
+                                    <ProtectedRoute roles={["MANAGER"]}>
+                                        <ManagerPaymentHolds />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/manager/:managerId/leaves" element={
+                                    <ProtectedRoute roles={["MANAGER"]}>
+                                        <ManagerLeaveRequests />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/manager-team-payroll" element={
+                                    <ProtectedRoute roles={["MANAGER"]}>
+                                        <ManagerTeamPayroll />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/manager-notifications" element={
+                                    <ProtectedRoute roles={["MANAGER"]}>
+                                        <NotificationsPage />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/manager/resignation-requests" element={
+                                    <ProtectedRoute roles={["MANAGER"]}>
+                                        <ManagerResignationRequests />
+                                    </ProtectedRoute>
+                                } />
+                                {/* Employee protected routes */}
+                                <Route path="/employee-dashboard" element={
+                                    <ProtectedRoute roles={["EMPLOYEE"]}>
+                                        <EmployeeDashboard />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/employee-reminders" element={
+                                    <ProtectedRoute roles={["EMPLOYEE"]}>
+                                        <EmployeeReminders />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/employee-leave" element={
+                                    <ProtectedRoute roles={["EMPLOYEE"]}>
+                                        <EmployeeLeave />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/employee-resignation" element={
+                                    <ProtectedRoute roles={["EMPLOYEE"]}>
+                                        <EmployeeResignation />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/employee-overview" element={
+                                    <ProtectedRoute roles={["ADMIN"]}>
+                                        <EmployeeOverview />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/employee-profile" element={
+                                    <ProtectedRoute roles={["EMPLOYEE"]}>
+                                        <EmployeeProfile />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/employee-leave-history" element={
+                                    <ProtectedRoute roles={["EMPLOYEE"]}>
+                                        <LeaveHistory />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/employee-ctc-dashboard" element={
+                                    <ProtectedRoute roles={["EMPLOYEE"]}>
+                                        <EmployeeCTCDashboard />
+                                    </ProtectedRoute>
+                                } />
+                                {/* Shared/other routes */}
+                                <Route path="/employee" element={<EmployeeList />} />
+                                <Route path="/onboarding" element={<Onboarding />} />
+                                <Route path="/team-members" element={<TeamMembers />} />
+                                                <Route path="/payroll-dashboard" element={
+                                                    <ProtectedRoute roles={["ADMIN", "HR"]}>
+                                                        <PayrollDashboard />
+                                                    </ProtectedRoute>
+                                                } />
+                                <Route path="/payment-hold-management" element={<PaymentHoldManagement />} />
+                                <Route path="/upcoming-holidays" element={<UpcomingHolidays />} />
+                                <Route path="/navbar" element={<Navbar/>} />
+                                <Route path="/sidebar" element={<Sidebar/>}/>
+                                <Route path="/reset-password" element={<ResetPassword />} />
+                                <Route path="/employee-login" element={<EmployeeLogin />} />
+                        </Routes>
         </BrowserRouter>
     );
 }

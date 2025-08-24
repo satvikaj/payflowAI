@@ -84,7 +84,7 @@ const DynamicPayslipGenerator = () => {
             // Company Header
             doc.setFontSize(20);
             doc.setFont('helvetica', 'bold');
-            doc.text('PayFlow Inc.', 20, 25);
+            doc.text('Payflow', 20, 25);
             doc.setFontSize(12);
             doc.setFont('helvetica', 'normal');
             doc.text('Salary Slip', 20, 35);

@@ -9,8 +9,8 @@ import './PayrollDashboardNew.css';
 
 const PayrollDashboard = () => {
     const location = useLocation();
-    const params = new URLSearchParams(location.search);
-    const isHRRoute = location.pathname.includes('/manager/') || params.get('role') === 'hr';
+    const role = localStorage.getItem('role');
+    const isHR = role === 'HR';
     
     const [employees, setEmployees] = useState([]);
     const [selectedEmployee, setSelectedEmployee] = useState('');
@@ -298,7 +298,7 @@ const PayrollDashboard = () => {
             // Company details
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(16);
-            doc.text("PayFlow Solutions", pageWidth / 2, 35, { align: "center" });
+            doc.text("Payflow Solutions", pageWidth / 2, 35, { align: "center" });
             doc.setFontSize(9);
             doc.text(
                 "123 Business District, Tech City, State - 123456",
@@ -637,7 +637,7 @@ const PayrollDashboard = () => {
         try {
             const response = await axios.post('/api/payroll/scheduler/generate-current-month', null, {
                 params: {
-                    generatedBy: isHRRoute ? 'HR_MANUAL' : 'ADMIN_MANUAL'
+                    generatedBy: isHR ? 'HR_MANUAL' : 'ADMIN_MANUAL'
                 }
             });
 
@@ -669,7 +669,7 @@ const PayrollDashboard = () => {
                 params: {
                     month: specificMonthData.month,
                     year: parseInt(specificMonthData.year),
-                    generatedBy: isHRRoute ? 'HR_MANUAL' : 'ADMIN_MANUAL'
+                    generatedBy: isHR ? 'HR_MANUAL' : 'ADMIN_MANUAL'
                 }
             });
 
@@ -700,8 +700,8 @@ const PayrollDashboard = () => {
     }, []);
 
     return (
-        <div className={isHRRoute ? "hr-dashboard-layout" : "admin-dashboard-layout"}>
-            {isHRRoute ? <Sidebar /> : <SidebarAdmin />}
+        <div className={isHR ? "hr-dashboard-layout" : "admin-dashboard-layout"}>
+            {isHR ? <Sidebar /> : <SidebarAdmin />}
             <div className="payroll-dashboard">
                 <div className="payroll-header">
                     <h1>Payroll Dashboard</h1>
