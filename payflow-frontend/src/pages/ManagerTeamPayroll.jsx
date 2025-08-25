@@ -209,14 +209,21 @@ const ManagerTeamPayroll = () => {
             currentY = doc.lastAutoTable.finalY + 5;
             
             // Use backend values, not hardcoded
-            const rupee = '\u20B9';
+            // Currency formatting helper
+            function formatCurrency(amount) {
+                const num = Number(amount);
+                if (isNaN(num) || amount === null || amount === undefined || amount === '') {
+                    return '0.00';
+                }
+                return num.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            }
             const baseSalary = fullPayslip.basicSalary || 0;
             const grossWages = fullPayslip.grossSalary || 0;
             const workingDays = fullPayslip.workingDays?.toString() || '-';
             const leaveDays = fullPayslip.leaveDays?.toString() || '0';
             const presentDays = fullPayslip.presentDays?.toString() || '-';
             const workingDaysData = [
-                ['Gross Wages', `${rupee}${grossWages.toLocaleString()}`, '', ''],
+                ['Gross Wages', formatCurrency(grossWages), '', ''],
                 ['Total Working Days', workingDays, 'Leaves', leaveDays],
                 ['LOP Days', '-', 'Paid Days', presentDays]
             ];
@@ -291,10 +298,10 @@ const ManagerTeamPayroll = () => {
             // Earnings and Deductions data
             currentY = doc.lastAutoTable.finalY;
             const earningsDeductionsData = [
-                ['Basic', `${rupee}${baseSalary.toLocaleString()}`, 'PF Deduction', `${rupee}${pfDeduction.toLocaleString()}`],
-                ['HRA', `${rupee}${hra.toLocaleString()}`, 'Tax Deduction', `${rupee}${taxDeduction.toLocaleString()}`],
-                ['Allowances', `${rupee}${conveyanceAllowance.toLocaleString()}`, 'Other Deductions', `${rupee}${otherDeductions.toLocaleString()}`],
-                ['Bonuses', `${rupee}${bonuses.toLocaleString()}`, 'Unpaid Leave Deduction', `${rupee}${unpaidLeaveDeduction.toLocaleString()}`],
+                ['Basic', formatCurrency(baseSalary), 'PF Deduction', formatCurrency(pfDeduction)],
+                ['HRA', formatCurrency(hra), 'Tax Deduction', formatCurrency(taxDeduction)],
+                ['Allowances', formatCurrency(conveyanceAllowance), 'Other Deductions', formatCurrency(otherDeductions)],
+                ['Bonuses', formatCurrency(bonuses), 'Unpaid Leave Deduction', formatCurrency(unpaidLeaveDeduction)],
             ];
             
             doc.autoTable({
@@ -322,7 +329,7 @@ const ManagerTeamPayroll = () => {
             // Total Earnings and Total Deductions row
             currentY = doc.lastAutoTable.finalY;
             const totalsData = [
-                ['Total Earnings', `${rupee}${totalEarnings.toLocaleString()}`, 'Total Deductions', `${rupee}${totalDeductions.toLocaleString()}`]
+                ['Total Earnings', formatCurrency(totalEarnings), 'Total Deductions', formatCurrency(totalDeductions)]
             ];
             
             doc.autoTable({
@@ -351,7 +358,7 @@ const ManagerTeamPayroll = () => {
             // Net Salary Section
             currentY = doc.lastAutoTable.finalY;
             const netSalaryData = [
-                ['Net Salary', `${rupee}${netSalary.toLocaleString()}`]
+                ['Net Salary', formatCurrency(netSalary)]
             ];
             
             doc.autoTable({

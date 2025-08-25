@@ -154,6 +154,14 @@ const EmployeeCTCDashboard = () => {
             const tableWidth = pageWidth - 2 * tableMargin;
             const colWidth = tableWidth / 4;
             const rupee = '\u20B9';
+            // Currency formatting helper
+            function formatCurrency(amount) {
+                const num = Number(amount);
+                if (isNaN(num) || amount === null || amount === undefined || amount === '') {
+                    return '0.00';
+                }
+                return num.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            }
 
             // Outer border for entire document
             doc.setLineWidth(2);
@@ -218,7 +226,7 @@ const EmployeeCTCDashboard = () => {
             const presentDays = fullPayslip.presentDays?.toString() || '-';
             const grossWages = fullPayslip.grossSalary || 0;
             const workingDaysData = [
-                ['Gross Wages', `${rupee}${grossWages.toLocaleString()}`, '', ''],
+                ['Gross Wages', formatCurrency(grossWages), '', ''],
                 ['Total Working Days', workingDays, 'Leaves', leaveDays],
                 ['LOP Days', '-', 'Paid Days', presentDays]
             ];
@@ -281,10 +289,10 @@ const EmployeeCTCDashboard = () => {
             const otherDeductions = fullPayslip.otherDeductions || 0;
             const unpaidLeaveDeduction = fullPayslip.unpaidLeaveDeduction || 0;
             const earningsDeductionsData = [
-                ['Basic', `${rupee}${baseSalary.toLocaleString()}`, 'PF Deduction', `${rupee}${pfDeduction.toLocaleString()}`],
-                ['HRA', `${rupee}${hra.toLocaleString()}`, 'Tax Deduction', `${rupee}${taxDeduction.toLocaleString()}`],
-                ['Allowances', `${rupee}${allowances.toLocaleString()}`, 'Other Deductions', `${rupee}${otherDeductions.toLocaleString()}`],
-                ['Bonuses', `${rupee}${bonuses.toLocaleString()}`, 'Unpaid Leave Deduction', `${rupee}${unpaidLeaveDeduction.toLocaleString()}`],
+                ['Basic', formatCurrency(baseSalary), 'PF Deduction', formatCurrency(pfDeduction)],
+                ['HRA', formatCurrency(hra), 'Tax Deduction', formatCurrency(taxDeduction)],
+                ['Allowances', formatCurrency(allowances), 'Other Deductions', formatCurrency(otherDeductions)],
+                ['Bonuses', formatCurrency(bonuses), 'Unpaid Leave Deduction', formatCurrency(unpaidLeaveDeduction)],
             ];
             doc.autoTable({
                 startY: doc.lastAutoTable.finalY + 2,
@@ -312,7 +320,7 @@ const EmployeeCTCDashboard = () => {
             const totalEarnings = fullPayslip.grossSalary || 0;
             const totalDeductions = fullPayslip.totalDeductions || 0;
             const totalsData = [
-                ['Total Earnings', `${rupee}${totalEarnings.toLocaleString()}`, 'Total Deductions', `${rupee}${totalDeductions.toLocaleString()}`]
+                ['Total Earnings', formatCurrency(totalEarnings), 'Total Deductions', formatCurrency(totalDeductions)]
             ];
             doc.autoTable({
                 startY: doc.lastAutoTable.finalY + 2,
@@ -340,7 +348,7 @@ const EmployeeCTCDashboard = () => {
             // Net Salary Section
             const netSalary = fullPayslip.netPay || (totalEarnings - totalDeductions);
             const netSalaryData = [
-                ['Net Salary', `${rupee}${netSalary.toLocaleString()}`]
+                ['Net Salary', formatCurrency(netSalary)]
             ];
             doc.autoTable({
                 startY: doc.lastAutoTable.finalY + 2,

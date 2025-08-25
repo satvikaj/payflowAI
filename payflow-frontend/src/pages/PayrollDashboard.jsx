@@ -359,9 +359,8 @@ const PayrollDashboard = () => {
 
             // Working days section
             let startY = doc.lastAutoTable.finalY + 2;
-            const rupee = '\u20B9';
             const workingDaysData = [
-                ["Gross Wages", `${rupee}${fullPayslip.grossSalary || 0}`, "", ""],
+                ["Gross Wages", formatCurrency(fullPayslip.grossSalary), "", ""],
                 ["Total Working Days", fullPayslip.workingDays?.toString() || "-", "Leaves", fullPayslip.leaveDays?.toString() || "0"],
                 ["LOP Days", "-", "Paid Days", fullPayslip.presentDays?.toString() || "-"],
             ];
@@ -411,10 +410,10 @@ const PayrollDashboard = () => {
             // Earnings / Deductions details
             startY = doc.lastAutoTable.finalY;
             const earningsDeductionsData = [
-                ["Basic", `${rupee}${fullPayslip.basicSalary || 0}` , "Provident Fund", `${rupee}${fullPayslip.pfDeduction || 0}`],
-                ["HRA", `${rupee}${fullPayslip.hra || 0}` , "Professional Tax", `${rupee}${fullPayslip.otherDeductions || 0}`],
-                ["Allowances", `${rupee}${fullPayslip.allowances || 0}` , "Income Tax", `${rupee}${fullPayslip.taxDeduction || 0}`],
-                ["Bonuses", `${rupee}${fullPayslip.bonuses || 0}` , "Unpaid Leave Deduction", `${rupee}${fullPayslip.unpaidLeaveDeduction || 0}`],
+                ["Basic", formatCurrency(fullPayslip.basicSalary), "Provident Fund", formatCurrency(fullPayslip.pfDeduction)],
+                ["HRA", formatCurrency(fullPayslip.hra), "Professional Tax", formatCurrency(fullPayslip.otherDeductions)],
+                ["Allowances", formatCurrency(fullPayslip.allowances), "Income Tax", formatCurrency(fullPayslip.taxDeduction)],
+                ["Bonuses", formatCurrency(fullPayslip.bonuses), "Unpaid Leave Deduction", formatCurrency(fullPayslip.unpaidLeaveDeduction)],
             ];
             doc.autoTable({
                 startY,
@@ -439,9 +438,9 @@ const PayrollDashboard = () => {
                 startY,
                 body: [[
                     "Total Earnings",
-                    `${rupee}${totalEarnings.toLocaleString('en-IN', {minimumFractionDigits:2})}`,
+                    formatCurrency(totalEarnings),
                     "Total Deductions",
-                    `${rupee}${totalDeductions.toLocaleString('en-IN', {minimumFractionDigits:2})}`
+                    formatCurrency(totalDeductions)
                 ]],
                 theme: "grid",
                 styles: { fontSize: 9, fontStyle: "bold", fillColor: [245, 245, 245], lineWidth: 0.5, lineColor: [0, 0, 0] },
@@ -458,7 +457,7 @@ const PayrollDashboard = () => {
             startY = doc.lastAutoTable.finalY;
             doc.autoTable({
                 startY,
-                body: [["Net Salary", `${rupee}${netSalary.toLocaleString('en-IN', {minimumFractionDigits:2})}`]],
+                body: [["Net Salary", formatCurrency(netSalary)]],
                 theme: "grid",
                 styles: {
                     fontSize: 11,
@@ -514,12 +513,9 @@ const PayrollDashboard = () => {
         // Handle null, undefined, empty string, or NaN values
         const numericAmount = parseFloat(amount);
         if (isNaN(numericAmount) || amount === null || amount === undefined || amount === '') {
-            return '₹0.00';
+            return '0.00';
         }
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR'
-        }).format(numericAmount);
+        return numericAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 });
     };
 
     const getStatusColor = (status) => {
