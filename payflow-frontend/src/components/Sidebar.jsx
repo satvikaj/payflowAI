@@ -46,7 +46,7 @@ export default function Sidebar() {
                 <button className={"sidebar-btn" + (isActive('/hr-ctc-auto-calculator') ? ' active' : '')} onClick={() => navigate('/hr-ctc-auto-calculator')}>
                     <FaCalculator /> CTC Management
                 </button>
-                <button className={"sidebar-btn" + (isActive('/manager/payroll-dashboard') ? ' active' : '')} onClick={() => navigate('/manager/payroll-dashboard')}>
+                <button className={"sidebar-btn" + (isActive('/payroll-dashboard') ? ' active' : '')} onClick={() => navigate('/payroll-dashboard')}>
                     <FaMoneyBill /> Payrolls
                 </button>
                 <button className={"sidebar-btn" + (isActive('/hr/payment-holds') ? ' active' : '')} onClick={() => navigate('/hr/payment-holds')}>

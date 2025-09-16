@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Papa from 'papaparse';
 import { useNavigate } from 'react-router-dom';
 import PopupMessage from '../components/PopupMessage';
 import Sidebar from '../components/Sidebar';
@@ -49,6 +50,10 @@ export default function Onboarding() {
     const [currentExperience, setCurrentExperience] = useState({ years: '', role: '', company: '', fromDate: '', toDate: '' });
 
     const [popup, setPopup] = useState({ show: false, message: '', type: 'success' });
+    const [importModalOpen, setImportModalOpen] = useState(false);
+    const [importLoading, setImportLoading] = useState(false);
+    const [importError, setImportError] = useState('');
+    const [importSuccess, setImportSuccess] = useState('');
     const [step, setStep] = useState(1);
 
     const steps = [
@@ -155,6 +160,82 @@ export default function Onboarding() {
         }
     };
 
+    // Bulk Import Handler
+    const requiredFields = [
+        'fullName', 'email', 'phone', 'department', 'role', 'position', 'joiningDate', 'managerId'
+    ];
+    const allFields = [
+        'fullName', 'dob', 'gender', 'joiningDate', 'address', 'email', 'phone', 'emergencyContact',
+        'qualification', 'institution', 'graduationYear', 'specialization', 'department', 'role', 'position',
+        'hasExperience', 'experiences', 'certifications', 'skills', 'languages', 'managerId'
+    ];
+
+    const handleImportCSV = (e) => {
+        setImportError('');
+        setImportSuccess('');
+        const file = e.target.files[0];
+        if (!file) return;
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: async (results) => {
+                const employees = results.data;
+                // Validate required fields
+                for (let i = 0; i < employees.length; i++) {
+                    for (let field of requiredFields) {
+                        if (!employees[i][field] || employees[i][field].trim() === '') {
+                            setImportError(`Row ${i + 2}: Missing required field '${field}'`);
+                            return;
+                        }
+                    }
+                }
+                setImportLoading(true);
+                let successCount = 0;
+                let failCount = 0;
+                for (let i = 0; i < employees.length; i++) {
+                    // Prepare payload, convert hasExperience and experiences
+                    let emp = { ...employees[i] };
+                    emp.hasExperience = emp.hasExperience === 'Yes' ? 'Yes' : 'No';
+                    try {
+                        if (emp.experiences) {
+                            // Parse experiences as JSON if present
+                            emp.experiences = JSON.parse(emp.experiences);
+                        } else {
+                            emp.experiences = [];
+                        }
+                    } catch {
+                        emp.experiences = [];
+                    }
+                    // Send to backend
+                    try {
+                        const response = await fetch('http://localhost:8080/api/employee/onboard', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(emp),
+                        });
+                        if (response.ok) successCount++;
+                        else failCount++;
+                    } catch {
+                        failCount++;
+                    }
+                }
+                setImportLoading(false);
+                setImportSuccess(`Imported ${successCount} employees. ${failCount > 0 ? failCount + ' failed.' : ''}`);
+                if (successCount > 0) {
+                    setTimeout(() => {
+                        setImportModalOpen(false);
+                        setPopup({ show: true, title: 'Bulk Import Successful', message: `Imported ${successCount} employees.`, type: 'success' });
+                        setTimeout(() => {
+                            setPopup(p => ({ ...p, show: false }));
+                            navigate('/employee');
+                        }, 1800);
+                    }, 1200);
+                }
+            },
+            error: (err) => setImportError('CSV Parse Error: ' + err.message)
+        });
+    };
+
     return (
         <div className="onboarding-page-layout">
             <Sidebar />
@@ -162,6 +243,43 @@ export default function Onboarding() {
                 <PopupMessage title={popup.title} message={popup.message} type={popup.type} onClose={() => setPopup({ ...popup, show: false })} />
             )}
             <div className="onboarding-form-wrapper" style={{ background: 'linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%)', fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif', color: '#222' }}>
+                {/* Import Button */}
+                <div style={{ position: 'absolute', top: 110, right: 40, zIndex: 10 }}>
+                    <button
+                        style={{ background: 'linear-gradient(90deg, #6366f1 60%, #818cf8 100%)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 22px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 2px 8px #6366f133' }}
+                        onClick={() => setImportModalOpen(true)}
+                    >
+                        + Import
+                    </button>
+                </div>
+                {/* Import Modal */}
+                {importModalOpen && (
+                    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ background: 'linear-gradient(120deg, #e0e7ff 60%, #f8fafc 100%)', borderRadius: 28, padding: '44px 38px 34px 38px', minWidth: 440, maxWidth: 520, boxShadow: '0 18px 56px 0 rgba(99,102,241,0.18), 0 2px 8px rgba(0,0,0,0.12)', border: '2.5px solid #6366f1', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <button
+                                style={{ position: 'absolute', top: 18, right: 24, background: 'none', border: 'none', fontSize: 28, color: '#6366f1', cursor: 'pointer', fontWeight: 700, lineHeight: 1 }}
+                                onClick={() => { setImportModalOpen(false); setImportError(''); setImportSuccess(''); }}
+                                aria-label="Close"
+                            >✕</button>
+                            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+                                <span style={{ background: 'linear-gradient(90deg, #6366f1 60%, #818cf8 100%)', color: '#fff', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, fontWeight: 900, boxShadow: '0 2px 8px #6366f122' }}>⇪</span>
+                                <h2 style={{ color: '#4f46e5', fontWeight: 900, fontSize: '1.6rem', margin: 0 }}>Import Bulk Employees</h2>
+                            </div>
+                            <div style={{ width: '100%', textAlign: 'left', marginBottom: 18, fontSize: '1rem', color: '#3730a3', background: '#fff', borderRadius: 14, border: '1.5px solid #6366f1', boxShadow: '0 2px 8px #6366f133', padding: '14px 18px' }}>
+                                <div style={{ marginBottom: 6 }}><b>Upload a CSV file with the following columns:</b></div>
+                                <div style={{ fontSize: '0.98rem', color: '#6366f1', marginBottom: 4 }}>{allFields.join(', ')}</div>
+                                <div style={{ fontSize: '0.97rem', color: '#e53935' }}>Mandatory: {requiredFields.join(', ')}</div>
+                            </div>
+                            <label htmlFor="bulk-import-csv" style={{ marginBottom: 16, fontWeight: 700, color: '#6366f1', fontSize: '1.08rem', cursor: importLoading ? 'not-allowed' : 'pointer' }}>
+                                Select CSV File
+                            </label>
+                            <input id="bulk-import-csv" type="file" accept=".csv" onChange={handleImportCSV} disabled={importLoading} style={{ marginBottom: 8, fontSize: '1rem', padding: '6px 0' }} />
+                            {importLoading && <div style={{ color: '#6366f1', marginTop: 14, fontWeight: 700, fontSize: '1.08rem' }}>Importing...</div>}
+                            {importError && <div style={{ color: '#e53935', marginTop: 14, fontWeight: 700, fontSize: '1.08rem', textAlign: 'center' }}>{importError}</div>}
+                            {importSuccess && <div style={{ color: '#22c55e', marginTop: 14, fontWeight: 700, fontSize: '1.08rem', textAlign: 'center' }}>{importSuccess}</div>}
+                        </div>
+                    </div>
+                )}
                 <style>{`
                 .onboarding-form-container {
                     background: linear-gradient(120deg, #f8fafc 60%, #e0e7ff 100%);

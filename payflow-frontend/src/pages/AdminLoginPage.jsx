@@ -21,7 +21,7 @@ const AdminLoginPage = () => {
     return (
         <div className="admin-login-container">
             <form className="admin-login-form" onSubmit={handleLogin}>
-                <h2>PayFlow AI - Admin Login</h2>
+                <h2>Payflow - Admin Login</h2>
                 <input
                     type="text"
                     placeholder="Username"
