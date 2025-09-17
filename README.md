@@ -41,9 +41,8 @@ The system automates key HR functions, including **user management, leave tracki
 
 ## **Installation / Setup Instructions**
 
-## **Quick Setup**
 ```bash
-# Clone the repository
+**Clone the repository**
 git clone https://github.com/satvikaj/payflowAI.git
 
 # --- Backend Setup (Spring Boot) ---
