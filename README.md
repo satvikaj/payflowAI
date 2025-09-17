@@ -45,12 +45,30 @@ The system automates key HR functions, including **user management, leave tracki
 ```bash
 git clone https://github.com/satvikaj/payflowAI.git
 
-## **2. Backend Setup (Spring Boot)**
-
-- Navigate to `/backend`  
-- Configure `application.properties` with your MySQL credentials and email SMTP settings  
-- Run the Spring Boot application:  
-
+### **2. Backend Setup (Spring Boot)**
 ```bash
+# Navigate to backend folder
+cd backend
+
+# Configure application.properties with your MySQL credentials and email SMTP settings
+
+# Run the Spring Boot application
 mvn spring-boot:run
+
+### **3. Frontend Setup (React.js)**
+```bash
+# Navigate to frontend folder
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start the frontend server
+npm start
+
+
+### **4. Access the Application**
+```bash
+# Open in your browser
+http://localhost:3000
 
