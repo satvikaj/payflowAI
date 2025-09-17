@@ -1,4 +1,4 @@
-# **PayFlow AI – Payroll & HR Management System**
+# **PayFlow – Payroll & HR Management System**
 
 ## **Project Overview**
 PayFlow AI is a **full-stack HR and payroll management system** developed during my internship at **Aptpath in collaboration with SmartX Technologies (July – August 2025)**.
